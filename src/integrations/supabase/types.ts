@@ -14,16 +14,320 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categorias: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          slug: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      configuracoes_gerais: {
+        Row: {
+          chave: string
+          descricao: string | null
+          id: string
+          updated_at: string | null
+          valor: string | null
+        }
+        Insert: {
+          chave: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string | null
+          valor?: string | null
+        }
+        Update: {
+          chave?: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string | null
+          valor?: string | null
+        }
+        Relationships: []
+      }
+      kits: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          descricao_curta: string | null
+          destaque: boolean | null
+          disponivel_assinatura: boolean | null
+          disponivel_b2b: boolean | null
+          id: string
+          imagens: string[] | null
+          nome: string
+          percentual_economia: number | null
+          preco_assinatura: number | null
+          preco_b2b_1: number | null
+          preco_b2b_2: number | null
+          preco_b2b_3: number | null
+          preco_original: number
+          preco_varejo: number
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          descricao_curta?: string | null
+          destaque?: boolean | null
+          disponivel_assinatura?: boolean | null
+          disponivel_b2b?: boolean | null
+          id?: string
+          imagens?: string[] | null
+          nome: string
+          percentual_economia?: number | null
+          preco_assinatura?: number | null
+          preco_b2b_1?: number | null
+          preco_b2b_2?: number | null
+          preco_b2b_3?: number | null
+          preco_original: number
+          preco_varejo: number
+          slug: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          descricao_curta?: string | null
+          destaque?: boolean | null
+          disponivel_assinatura?: boolean | null
+          disponivel_b2b?: boolean | null
+          id?: string
+          imagens?: string[] | null
+          nome?: string
+          percentual_economia?: number | null
+          preco_assinatura?: number | null
+          preco_b2b_1?: number | null
+          preco_b2b_2?: number | null
+          preco_b2b_3?: number | null
+          preco_original?: number
+          preco_varejo?: number
+          slug?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          interesse: string | null
+          nome: string | null
+          origem: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          interesse?: string | null
+          nome?: string | null
+          origem?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          interesse?: string | null
+          nome?: string | null
+          origem?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      produtos: {
+        Row: {
+          ativo: boolean | null
+          categoria_id: string | null
+          composicao: string | null
+          created_at: string | null
+          descricao: string | null
+          descricao_curta: string | null
+          destaque: boolean | null
+          disponivel_assinatura: boolean | null
+          disponivel_b2b: boolean | null
+          disponivel_varejo: boolean | null
+          durabilidade_media: string | null
+          estoque: number | null
+          id: string
+          imagens: string[] | null
+          intensidade: number | null
+          lancamento: boolean | null
+          mais_vendido: boolean | null
+          modo_de_uso: string | null
+          nome: string
+          notas_olfativas: string[] | null
+          preco_assinatura: number | null
+          preco_b2b_1: number | null
+          preco_b2b_2: number | null
+          preco_b2b_3: number | null
+          preco_varejo: number
+          sensacao_transmitida: string | null
+          slug: string
+          updated_at: string | null
+          volume: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria_id?: string | null
+          composicao?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          descricao_curta?: string | null
+          destaque?: boolean | null
+          disponivel_assinatura?: boolean | null
+          disponivel_b2b?: boolean | null
+          disponivel_varejo?: boolean | null
+          durabilidade_media?: string | null
+          estoque?: number | null
+          id?: string
+          imagens?: string[] | null
+          intensidade?: number | null
+          lancamento?: boolean | null
+          mais_vendido?: boolean | null
+          modo_de_uso?: string | null
+          nome: string
+          notas_olfativas?: string[] | null
+          preco_assinatura?: number | null
+          preco_b2b_1?: number | null
+          preco_b2b_2?: number | null
+          preco_b2b_3?: number | null
+          preco_varejo: number
+          sensacao_transmitida?: string | null
+          slug: string
+          updated_at?: string | null
+          volume?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria_id?: string | null
+          composicao?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          descricao_curta?: string | null
+          destaque?: boolean | null
+          disponivel_assinatura?: boolean | null
+          disponivel_b2b?: boolean | null
+          disponivel_varejo?: boolean | null
+          durabilidade_media?: string | null
+          estoque?: number | null
+          id?: string
+          imagens?: string[] | null
+          intensidade?: number | null
+          lancamento?: boolean | null
+          mais_vendido?: boolean | null
+          modo_de_uso?: string | null
+          nome?: string
+          notas_olfativas?: string[] | null
+          preco_assinatura?: number | null
+          preco_b2b_1?: number | null
+          preco_b2b_2?: number | null
+          preco_b2b_3?: number | null
+          preco_varejo?: number
+          sensacao_transmitida?: string | null
+          slug?: string
+          updated_at?: string | null
+          volume?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id: string
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +454,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "customer"],
+    },
   },
 } as const
