@@ -36,6 +36,7 @@ function CarrinhoPage() {
   const [endereco, setEndereco] = useState("");
   const [obs, setObs] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [sucesso, setSucesso] = useState<{ numero: string; link: string } | null>(null);
 
   // pré-preenche dados do perfil
   useEffect(() => {
