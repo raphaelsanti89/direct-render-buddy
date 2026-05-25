@@ -307,3 +307,169 @@ function Badge({ children }: { children: React.ReactNode }) {
     </span>
   );
 }
+
+function PricingCalculator({
+  editing,
+  setEditing,
+}: {
+  editing: Partial<Prod>;
+  setEditing: (p: Partial<Prod>) => void;
+}) {
+  const custo = Number(editing.preco_custo ?? 0);
+  const margem = Number(editing.margem_varejo_pct ?? 0);
+  const varejoSugerido = custo > 0 && margem > 0 ? r2(custo * (1 + margem / 100)) : 0;
+  const varejoEfetivo = Number(editing.preco_varejo ?? varejoSugerido ?? 0);
+  const margemValor = custo > 0 ? r2(varejoEfetivo - custo) : 0;
+
+  // Aplica varejo sugerido quando muda custo/margem (sem sobrescrever edição manual posterior)
+  function aplicarSugestaoVarejo() {
+    if (varejoSugerido > 0) {
+      setEditing({
+        ...editing,
+        preco_varejo: varejoSugerido,
+        preco_assinatura: r2(varejoSugerido * (1 - DESC.assinante)),
+        preco_b2b_1: r2(varejoSugerido * (1 - DESC.b2b1)),
+        preco_b2b_2: r2(varejoSugerido * (1 - DESC.b2b2)),
+        preco_b2b_3: r2(varejoSugerido * (1 - DESC.b2b3)),
+      });
+    }
+  }
+
+  return (
+    <div className="border border-border p-5 bg-surface/30 space-y-5">
+      <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-gold">— precificação</p>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Preço de custo (R$) — interno">
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            className="form-input"
+            value={editing.preco_custo ?? ""}
+            placeholder="Seu custo real"
+            onChange={(e) =>
+              setEditing({
+                ...editing,
+                preco_custo: e.target.value ? Number(e.target.value) : null,
+              })
+            }
+          />
+        </Field>
+        <Field label="Margem de lucro varejo (%)">
+          <input
+            type="number"
+            step="0.1"
+            min={0}
+            className="form-input"
+            value={editing.margem_varejo_pct ?? ""}
+            placeholder="ex.: 60"
+            onChange={(e) =>
+              setEditing({
+                ...editing,
+                margem_varejo_pct: e.target.value ? Number(e.target.value) : null,
+              })
+            }
+          />
+        </Field>
+      </div>
+
+      {custo > 0 && margem > 0 && (
+        <div className="border border-dashed border-border p-4 bg-background space-y-2 font-mono text-[11px]">
+          <p className="uppercase tracking-[0.25em] text-foreground/60 mb-2">
+            Simulação de preços
+          </p>
+          <Row k="Preço de custo" v={brl(custo)} />
+          <Row k={`Margem aplicada (${margem}%)`} v={`+ ${brl(margemValor || r2(custo * margem / 100))}`} />
+          <div className="h-px bg-border my-2" />
+          <Row k="Varejo sugerido" v={brl(varejoSugerido)} accent />
+          <Row k="Assinante (−13%)" v={brl(r2(varejoSugerido * (1 - DESC.assinante)))} />
+          <Row k="B2B Nível 1 (−15%)" v={brl(r2(varejoSugerido * (1 - DESC.b2b1)))} />
+          <Row k="B2B Nível 2 (−20%)" v={brl(r2(varejoSugerido * (1 - DESC.b2b2)))} />
+          <Row k="B2B Nível 3 (−25%)" v={brl(r2(varejoSugerido * (1 - DESC.b2b3)))} />
+          <button
+            type="button"
+            onClick={aplicarSugestaoVarejo}
+            className="mt-3 w-full bg-foreground text-background py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-gold transition-colors"
+          >
+            Aplicar sugestão a todos os preços
+          </button>
+          <p className="text-[10px] text-muted-foreground normal-case tracking-normal leading-relaxed">
+            Você pode editar manualmente qualquer valor abaixo. A calculadora é só uma sugestão.
+          </p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Preço varejo (R$) *">
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            className="form-input"
+            value={editing.preco_varejo ?? 0}
+            onChange={(e) => setEditing({ ...editing, preco_varejo: Number(e.target.value) })}
+            required
+          />
+        </Field>
+        <Field label="Preço assinante (R$)">
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            className="form-input"
+            value={editing.preco_assinatura ?? ""}
+            onChange={(e) =>
+              setEditing({ ...editing, preco_assinatura: e.target.value ? Number(e.target.value) : null })
+            }
+          />
+        </Field>
+        <Field label="B2B Nível 1 (R$)">
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            className="form-input"
+            value={editing.preco_b2b_1 ?? ""}
+            onChange={(e) =>
+              setEditing({ ...editing, preco_b2b_1: e.target.value ? Number(e.target.value) : null })
+            }
+          />
+        </Field>
+        <Field label="B2B Nível 2 (R$)">
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            className="form-input"
+            value={editing.preco_b2b_2 ?? ""}
+            onChange={(e) =>
+              setEditing({ ...editing, preco_b2b_2: e.target.value ? Number(e.target.value) : null })
+            }
+          />
+        </Field>
+        <Field label="B2B Nível 3 (R$)">
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            className="form-input"
+            value={editing.preco_b2b_3 ?? ""}
+            onChange={(e) =>
+              setEditing({ ...editing, preco_b2b_3: e.target.value ? Number(e.target.value) : null })
+            }
+          />
+        </Field>
+      </div>
+    </div>
+  );
+}
+
+function Row({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between ${accent ? "text-foreground" : "text-foreground/80"}`}>
+      <span className="uppercase tracking-[0.15em]">{k}</span>
+      <span className={accent ? "font-display text-sm text-gold" : ""}>{v}</span>
+    </div>
+  );
+}
