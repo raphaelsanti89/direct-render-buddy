@@ -32,12 +32,12 @@ function AdminPage() {
       if (!mounted) return;
       setEmail(data.session.user.email ?? null);
 
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", data.session.user.id);
-      const admin = !!roles?.some((r) => r.role === "admin");
-      setIsAdmin(admin);
+      const { data: isAdminRpc, error: roleErr } = await supabase.rpc("has_role", {
+        _user_id: data.session.user.id,
+        _role: "admin",
+      });
+      if (roleErr) console.error("[admin] has_role error:", roleErr);
+      setIsAdmin(!!isAdminRpc);
 
       const [{ count: p }, { count: k }, { count: c }, { count: l }] = await Promise.all([
         supabase.from("produtos").select("*", { count: "exact", head: true }),
