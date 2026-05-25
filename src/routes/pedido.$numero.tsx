@@ -48,30 +48,25 @@ function PedidoPublicoPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const { data: p } = await supabase
-        .from("pedidos")
-        .select(
-          "id,numero_pedido,nome_cliente,status,forma_entrega,forma_pagamento,codigo_rastreamento,subtotal,desconto,total,created_at",
-        )
-        .eq("numero_pedido", numero)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_pedido_publico", { p_numero: numero });
       if (!mounted) return;
-      if (!p) {
+      if (error || !data) {
         setPedido(null);
         return;
       }
-      setPedido(p as Pedido);
-      const { data: it } = await supabase
-        .from("pedido_itens")
-        .select("id,nome_produto,imagem_snapshot,quantidade,preco_unitario,subtotal")
-        .eq("pedido_id", p.id)
-        .order("created_at", { ascending: true });
-      if (mounted) setItens((it as Item[]) ?? []);
+      const payload = data as unknown as { pedido: Pedido | null; itens: Item[] } | null;
+      if (!payload || !payload.pedido) {
+        setPedido(null);
+        return;
+      }
+      setPedido(payload.pedido);
+      setItens(payload.itens ?? []);
     })();
     return () => {
       mounted = false;
     };
   }, [numero]);
+
 
   if (pedido === undefined) {
     return (

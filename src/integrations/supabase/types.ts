@@ -52,6 +52,7 @@ export type Database = {
           chave: string
           descricao: string | null
           id: string
+          publico: boolean
           updated_at: string | null
           valor: string | null
         }
@@ -59,6 +60,7 @@ export type Database = {
           chave: string
           descricao?: string | null
           id?: string
+          publico?: boolean
           updated_at?: string | null
           valor?: string | null
         }
@@ -66,6 +68,7 @@ export type Database = {
           chave?: string
           descricao?: string | null
           id?: string
+          publico?: boolean
           updated_at?: string | null
           valor?: string | null
         }
@@ -562,6 +565,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_pedido_publico: { Args: { p_numero: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
