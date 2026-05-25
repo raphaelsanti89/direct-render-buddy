@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
@@ -12,7 +12,7 @@ import {
 
 export const Route = createFileRoute("/admin/pedidos")({
   head: () => ({ meta: [{ title: "Pedidos — Admin" }] }),
-  component: AdminPedidosPage,
+  component: AdminPedidosRoute,
 });
 
 type PedidoRow = {
@@ -31,8 +31,17 @@ type PedidoRow = {
 const PERFIS = ["todos", "varejo", "assinante", "b2b_1", "b2b_2", "b2b_3"] as const;
 const ORIGENS = ["todas", "site", "instagram", "whatsapp", "admin", "revendedor"] as const;
 
+function AdminPedidosRoute() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  if (pathname !== "/admin/pedidos") {
+    return <Outlet />;
+  }
+
+  return <AdminPedidosPage />;
+}
+
 function AdminPedidosPage() {
-  const navigate = useNavigate();
   const [items, setItems] = useState<PedidoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"todos" | PedidoStatus>("todos");
@@ -135,20 +144,24 @@ function AdminPedidosPage() {
             </thead>
             <tbody>
               {filtered.map((p) => (
-                <tr
-                  key={p.id}
-                  onClick={() => navigate({ to: "/admin/pedidos/$id", params: { id: p.id } })}
-                  className="border-t border-border hover:bg-surface/50 cursor-pointer"
-                >
+                <tr key={p.id} className="border-t border-border hover:bg-surface/50">
                   <td className="p-4">
-                    <Link
-                      to="/admin/pedidos/$id"
-                      params={{ id: p.id }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="font-mono text-xs text-foreground hover:text-gold"
-                    >
-                      {p.numero_pedido}
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        to="/admin/pedidos/$id"
+                        params={{ id: p.id }}
+                        className="font-mono text-xs text-foreground underline underline-offset-4 hover:text-gold"
+                      >
+                        {p.numero_pedido}
+                      </Link>
+                      <Link
+                        to="/admin/pedidos/$id"
+                        params={{ id: p.id }}
+                        className="text-[10px] uppercase tracking-[0.18em] text-gold hover:text-foreground"
+                      >
+                        Abrir
+                      </Link>
+                    </div>
                   </td>
                   <td className="p-4">
                     <div className="text-foreground">{p.nome_cliente}</div>
