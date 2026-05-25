@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
@@ -32,6 +32,7 @@ const PERFIS = ["todos", "varejo", "assinante", "b2b_1", "b2b_2", "b2b_3"] as co
 const ORIGENS = ["todas", "site", "instagram", "whatsapp", "admin", "revendedor"] as const;
 
 function AdminPedidosPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<PedidoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"todos" | PedidoStatus>("todos");
@@ -134,9 +135,18 @@ function AdminPedidosPage() {
             </thead>
             <tbody>
               {filtered.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-surface/50">
+                <tr
+                  key={p.id}
+                  onClick={() => navigate({ to: "/admin/pedidos/$id", params: { id: p.id } })}
+                  className="border-t border-border hover:bg-surface/50 cursor-pointer"
+                >
                   <td className="p-4">
-                    <Link to="/admin/pedidos/$id" params={{ id: p.id }} className="font-mono text-xs text-foreground hover:text-gold">
+                    <Link
+                      to="/admin/pedidos/$id"
+                      params={{ id: p.id }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-mono text-xs text-foreground hover:text-gold"
+                    >
                       {p.numero_pedido}
                     </Link>
                   </td>
