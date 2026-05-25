@@ -183,6 +183,7 @@ export type Database = {
           intensidade: number | null
           lancamento: boolean | null
           mais_vendido: boolean | null
+          margem_varejo_pct: number | null
           modo_de_uso: string | null
           nome: string
           notas_olfativas: string[] | null
@@ -190,6 +191,7 @@ export type Database = {
           preco_b2b_1: number | null
           preco_b2b_2: number | null
           preco_b2b_3: number | null
+          preco_custo: number | null
           preco_varejo: number
           sensacao_transmitida: string | null
           slug: string
@@ -214,6 +216,7 @@ export type Database = {
           intensidade?: number | null
           lancamento?: boolean | null
           mais_vendido?: boolean | null
+          margem_varejo_pct?: number | null
           modo_de_uso?: string | null
           nome: string
           notas_olfativas?: string[] | null
@@ -221,6 +224,7 @@ export type Database = {
           preco_b2b_1?: number | null
           preco_b2b_2?: number | null
           preco_b2b_3?: number | null
+          preco_custo?: number | null
           preco_varejo: number
           sensacao_transmitida?: string | null
           slug: string
@@ -245,6 +249,7 @@ export type Database = {
           intensidade?: number | null
           lancamento?: boolean | null
           mais_vendido?: boolean | null
+          margem_varejo_pct?: number | null
           modo_de_uso?: string | null
           nome?: string
           notas_olfativas?: string[] | null
@@ -252,6 +257,7 @@ export type Database = {
           preco_b2b_1?: number | null
           preco_b2b_2?: number | null
           preco_b2b_3?: number | null
+          preco_custo?: number | null
           preco_varejo?: number
           sensacao_transmitida?: string | null
           slug?: string

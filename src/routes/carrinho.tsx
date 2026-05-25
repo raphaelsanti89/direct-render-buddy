@@ -19,7 +19,7 @@ export const Route = createFileRoute("/carrinho")({
 });
 
 const PAGAMENTOS = ["PIX", "Cartão", "Dinheiro", "Transferência"] as const;
-const ENTREGAS = ["Retirada", "Motoboy", "Correios", "Transportadora", "Entrega local"] as const;
+const ENTREGAS = ["Retirada", "Motoboy", "Correios", "Transportadora", "Entrega local", "A combinar"] as const;
 type Pagamento = (typeof PAGAMENTOS)[number];
 type Entrega = (typeof ENTREGAS)[number];
 
@@ -61,7 +61,7 @@ function CarrinhoPage() {
 
   const total = linhas.reduce((s, l) => s + l.subtotal, 0);
   const empresaWa = (config.whatsapp_pedidos || "").replace(/\D/g, "");
-  const exigeEndereco = entrega !== "Retirada";
+  const exigeEndereco = entrega !== "Retirada" && entrega !== "A combinar";
 
   function finalizarWhatsApp() {
     if (items.length === 0) {
@@ -285,6 +285,11 @@ function CarrinhoPage() {
                     <option key={e} value={e}>{e}</option>
                   ))}
                 </select>
+                {entrega === "A combinar" && (
+                  <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                    A forma de entrega será definida diretamente no WhatsApp após o envio do pedido.
+                  </p>
+                )}
               </Field>
 
               {exigeEndereco && (

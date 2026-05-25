@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/slug";
 import { ArrowLeft, ShoppingBag, Minus, Plus } from "lucide-react";
-import { getPrecoForProfile } from "@/lib/preco";
+
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -71,7 +71,7 @@ function ProdutoPage() {
     );
   }
 
-  const preco = getPrecoForProfile(p, profile);
+  
 
   function handleAdd(goToCart: boolean) {
     add(
@@ -134,26 +134,11 @@ function ProdutoPage() {
             {p.descricao_curta && <p className="mt-4 text-lg text-muted-foreground">{p.descricao_curta}</p>}
 
             <div className="mt-8 pb-8 border-b border-border">
-              {preco.badge && (
-                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gold mb-2">
-                  {preco.label}
-                </p>
-              )}
-              <div className="flex items-baseline gap-4">
-                <p className="font-display text-4xl text-foreground">{brl(preco.valor)}</p>
-                {preco.origem !== "varejo" && (
-                  <p className="text-lg text-muted-foreground line-through">{brl(preco.precoVarejoReferencia)}</p>
-                )}
-              </div>
-              {preco.economiaPercentual && (
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-gold">
-                  Economia de {preco.economiaPercentual}% sobre o varejo
-                </p>
-              )}
+              <PriceTiers p={p} profile={profile} />
 
               {/* CTA discreto para anônimo virar B2B/assinante */}
               {!profile && (
-                <p className="mt-4 text-xs text-muted-foreground">
+                <p className="mt-6 text-xs text-muted-foreground">
                   Empresa?{" "}
                   <Link to="/cadastro-b2b" className="text-gold hover:underline">
                     Solicite acesso B2B
@@ -247,6 +232,124 @@ function Spec({ label, value }: { label: string; value: string | null }) {
     <div className="bg-background p-5">
       <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{label}</p>
       <p className="mt-2 text-sm text-foreground">{value ?? "—"}</p>
+    </div>
+  );
+}
+
+function PriceTiers({
+  p,
+  profile,
+}: {
+  p: Prod;
+  profile: ReturnType<typeof useCurrentProfile>["profile"];
+}) {
+  const varejo = Number(p.preco_varejo);
+  const assinante = p.preco_assinatura != null ? Number(p.preco_assinatura) : null;
+  const b2bs = [p.preco_b2b_1, p.preco_b2b_2, p.preco_b2b_3]
+    .map((v) => (v != null ? Number(v) : null));
+  const b2bMin = b2bs.filter((v): v is number => v != null).sort((a, b) => a - b)[0] ?? null;
+
+  const isAssinante = profile?.tipo_cliente === "assinante";
+  const isB2B = profile?.tipo_cliente === "b2b" && profile?.status_aprovacao === "aprovado";
+  const nivel = isB2B ? profile?.nivel_b2b ?? null : null;
+  const meuB2B = nivel ? b2bs[nivel - 1] : null;
+
+  const pct = (de: number, para: number) =>
+    de > 0 && para < de ? Math.round(((de - para) / de) * 100) : null;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Varejo */}
+      <Tier
+        title="Varejo"
+        price={brl(varejo)}
+        caption="Preço cheio"
+      />
+
+      {/* Assinante */}
+      <Tier
+        title="Assinante"
+        price={assinante != null ? brl(assinante) : "—"}
+        caption={
+          assinante != null && pct(varejo, assinante) != null
+            ? `▼ ${pct(varejo, assinante)}% OFF`
+            : "Em breve"
+        }
+        highlight={isAssinante ? "gold" : undefined}
+        cta={
+          !profile && assinante != null
+            ? { to: "/cadastro-assinatura", label: "Assinar agora" }
+            : undefined
+        }
+      />
+
+      {/* B2B */}
+      <Tier
+        title="B2B Revendedor"
+        price={
+          isB2B && meuB2B != null
+            ? brl(meuB2B)
+            : b2bMin != null
+              ? `A partir de\n${brl(b2bMin)}`
+              : "—"
+        }
+        caption={
+          isB2B && meuB2B != null && pct(varejo, meuB2B) != null
+            ? `Seu nível ${nivel} — ▼ ${pct(varejo, meuB2B)}%`
+            : b2bMin != null && pct(varejo, b2bMin) != null
+              ? `▼ até ${pct(varejo, b2bMin)}%`
+              : "Sob aprovação"
+        }
+        highlight={isB2B ? "green" : undefined}
+        cta={
+          !profile && b2bMin != null
+            ? { to: "/cadastro-b2b", label: "Seja revendedor" }
+            : undefined
+        }
+        multilinePrice
+      />
+    </div>
+  );
+}
+
+function Tier({
+  title,
+  price,
+  caption,
+  highlight,
+  cta,
+  multilinePrice,
+}: {
+  title: string;
+  price: string;
+  caption: string;
+  highlight?: "gold" | "green";
+  cta?: { to: "/cadastro-assinatura" | "/cadastro-b2b"; label: string };
+  multilinePrice?: boolean;
+}) {
+  const border =
+    highlight === "gold"
+      ? "border-gold"
+      : highlight === "green"
+        ? "border-green-600"
+        : "border-border";
+  return (
+    <div className={`border ${border} ${highlight ? "border-2" : ""} bg-background p-4 flex flex-col`}>
+      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/60">{title}</p>
+      <p
+        className={`mt-2 font-display text-2xl text-foreground leading-tight ${multilinePrice ? "whitespace-pre-line text-xl" : ""}`}
+      >
+        {price}
+      </p>
+      <p className="mt-1 text-[11px] uppercase tracking-[0.15em] text-gold">{caption}</p>
+      {cta && (
+        <Link
+          to={cta.to}
+          className="mt-3 inline-block text-center border border-foreground px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-foreground hover:bg-foreground hover:text-background transition-colors"
+        >
+          {cta.label}
+        </Link>
+      )}
     </div>
   );
 }
