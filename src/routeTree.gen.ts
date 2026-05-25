@@ -13,6 +13,7 @@ import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KitsRouteImport } from './routes/kits'
 import { Route as CategoriasRouteImport } from './routes/categorias'
+import { Route as CadastroB2bRouteImport } from './routes/cadastro-b2b'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -40,6 +41,11 @@ const KitsRoute = KitsRouteImport.update({
 const CategoriasRoute = CategoriasRouteImport.update({
   id: '/categorias',
   path: '/categorias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroB2bRoute = CadastroB2bRouteImport.update({
+  id: '/cadastro-b2b',
+  path: '/cadastro-b2b',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -86,6 +92,7 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/cadastro-b2b': typeof CadastroB2bRoute
   '/categorias': typeof CategoriasRoute
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro-b2b': typeof CadastroB2bRoute
   '/categorias': typeof CategoriasRoute
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/cadastro-b2b': typeof CadastroB2bRoute
   '/categorias': typeof CategoriasRoute
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/cadastro-b2b'
     | '/categorias'
     | '/kits'
     | '/login'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cadastro-b2b'
     | '/categorias'
     | '/kits'
     | '/login'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/cadastro-b2b'
     | '/categorias'
     | '/kits'
     | '/login'
@@ -172,6 +184,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  CadastroB2bRoute: typeof CadastroB2bRoute
   CategoriasRoute: typeof CategoriasRoute
   KitsRoute: typeof KitsRoute
   LoginRoute: typeof LoginRoute
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/categorias'
       fullPath: '/categorias'
       preLoaderRoute: typeof CategoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro-b2b': {
+      id: '/cadastro-b2b'
+      path: '/cadastro-b2b'
+      fullPath: '/cadastro-b2b'
+      preLoaderRoute: typeof CadastroB2bRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -288,6 +308,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  CadastroB2bRoute: CadastroB2bRoute,
   CategoriasRoute: CategoriasRoute,
   KitsRoute: KitsRoute,
   LoginRoute: LoginRoute,
@@ -298,3 +319,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
