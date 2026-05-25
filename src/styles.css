@@ -195,6 +195,17 @@
   }
 }
 
+@layer components {
+  .form-input {
+    @apply w-full bg-surface border border-border px-4 py-3 text-foreground text-sm
+           focus:outline-none focus:border-foreground transition-colors;
+  }
+  .form-input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: -2px;
+  }
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
@@ -207,3 +218,11 @@
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slideInRight 0.35s var(--transition-elegant) both;
+}
+
