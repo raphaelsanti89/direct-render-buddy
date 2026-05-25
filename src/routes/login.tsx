@@ -4,7 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Acesso administrativo — Gama Sensações" }] }),
+  head: () => ({
+    meta: [
+      { title: "Acesso administrativo — Gama Sensações" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: LoginPage,
 });
 

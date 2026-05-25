@@ -27,7 +27,9 @@ export const Route = createFileRoute("/kits")({
       { name: "description", content: "Kits sensoriais cuidadosamente curados — economia e descoberta em uma só caixa." },
       { property: "og:title", content: "Kits — Gama Sensações" },
       { property: "og:description", content: "Kits sensoriais cuidadosamente curados." },
+      { property: "og:url", content: "https://gamasensacoes.com.br/kits" },
     ],
+    links: [{ rel: "canonical", href: "https://gamasensacoes.com.br/kits" }],
   }),
   component: KitsPage,
 });

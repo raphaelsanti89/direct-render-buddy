@@ -13,7 +13,11 @@ export const Route = createFileRoute("/")({
         content:
           "Aromatizadores, home spray, velas e difusores premium. Marketing sensorial e ambientação para casa, hotelaria e empresas.",
       },
+      { property: "og:title", content: "Gama Sensações — Transformamos aromas em experiências" },
+      { property: "og:description", content: "Marketing sensorial premium e catálogo exclusivo de aromas." },
+      { property: "og:url", content: "https://gamasensacoes.com.br/" },
     ],
+    links: [{ rel: "canonical", href: "https://gamasensacoes.com.br/" }],
   }),
   component: HomePage,
 });

@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /pedido/
+Disallow: /carrinho
+Disallow: /api/
+Disallow: /cadastro-b2b
+Disallow: /cadastro-assinatura
+
+Sitemap: https://gamasensacoes.com.br/sitemap.xml

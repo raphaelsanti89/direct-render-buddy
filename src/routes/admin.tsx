@@ -2,7 +2,12 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/AdminShell";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Painel — Gama Sensações" }] }),
+  head: () => ({
+    meta: [
+      { title: "Painel — Gama Sensações" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AdminLayout,
 });
 

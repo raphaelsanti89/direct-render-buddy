@@ -14,6 +14,7 @@ export const Route = createFileRoute("/carrinho")({
     meta: [
       { title: "Carrinho — Gama Sensações" },
       { name: "description", content: "Revise seu pedido e finalize pelo WhatsApp." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: CarrinhoPage,

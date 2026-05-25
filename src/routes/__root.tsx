@@ -60,6 +60,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+const SITE_URL = "https://gamasensacoes.com.br";
+const SITE_NAME = "Gama Sensações";
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -69,17 +73,54 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Aromas que despertam sensações, criam memórias e transformam ambientes. Catálogo premium, kits sensoriais e linha corporativa.",
+          "Aromas que despertam sensações, criam memórias e transformam ambientes. Catálogo premium, kits sensoriais e linha corporativa B2B.",
       },
+      {
+        name: "keywords",
+        content:
+          "aromatizadores, marketing sensorial, aromas premium, home spray, difusores, velas aromáticas, ambientação corporativa, B2B, Gama Sensações",
+      },
+      { name: "author", content: SITE_NAME },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { name: "theme-color", content: "#4E6B4A" },
+      { name: "format-detection", content: "telephone=no" },
+
+      { property: "og:site_name", content: SITE_NAME },
       { property: "og:title", content: "Gama Sensações — Transformamos aromas em experiências" },
       {
         property: "og:description",
         content: "Marketing sensorial premium, aromatização de ambientes e catálogo exclusivo.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:locale", content: "pt_BR" },
+      { property: "og:url", content: SITE_URL },
+      { property: "og:image", content: DEFAULT_OG_IMAGE },
+
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Gama Sensações" },
+      { name: "twitter:description", content: "Aromas que transformam ambientes." },
+      { name: "twitter:image", content: DEFAULT_OG_IMAGE },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: SITE_NAME,
+          url: SITE_URL,
+          description: "Aromas premium, marketing sensorial e ambientação para casa, hotelaria e empresas.",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
