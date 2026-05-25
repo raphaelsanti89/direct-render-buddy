@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/slug";
 import { ArrowLeft, ShoppingBag, Minus, Plus } from "lucide-react";
-import { getPrecoForProfile } from "@/lib/preco";
+
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
