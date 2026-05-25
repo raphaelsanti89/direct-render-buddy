@@ -34,14 +34,44 @@ function CadastroB2B() {
   const [cnpj, setCnpj] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
 
+  async function tryFinalizePending() {
+    const raw = localStorage.getItem("gama:pending_b2b");
+    if (!raw) return;
+    try {
+      const pending = JSON.parse(raw) as {
+        empresa_nome: string;
+        cnpj: string;
+        whatsapp: string;
+      };
+      await enviar({ data: pending });
+      localStorage.removeItem("gama:pending_b2b");
+      toast.success("Solicitação B2B concluída! Vamos analisar e te avisamos.");
+      navigate({ to: "/produtos" });
+    } catch (err) {
+      console.error("[b2b] finalize pending error:", err);
+      // mantém pending — usuário pode reenviar via formulário pré-preenchido
+    }
+  }
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         setMode("logged");
         setEmail(data.session.user.email ?? "");
+        const raw = localStorage.getItem("gama:pending_b2b");
+        if (raw) {
+          try {
+            const p = JSON.parse(raw);
+            setEmpresaNome(p.empresa_nome ?? "");
+            setCnpj(p.cnpj ?? "");
+            setWhatsapp(p.whatsapp ?? "");
+          } catch {}
+          await tryFinalizePending();
+        }
       }
       setLoadingAuth(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
@@ -52,6 +82,17 @@ function CadastroB2B() {
     try {
       if (mode === "signup") {
         if (senha.length < 6) throw new Error("Senha deve ter ao menos 6 caracteres.");
+
+        // Salva ANTES do signUp para não perder os dados caso precise confirmar e-mail
+        localStorage.setItem(
+          "gama:pending_b2b",
+          JSON.stringify({
+            empresa_nome: empresaNome.trim(),
+            cnpj: cnpj.trim(),
+            whatsapp: whatsapp.trim(),
+          }),
+        );
+
         const { error: signErr } = await supabase.auth.signUp({
           email: email.trim(),
           password: senha,
@@ -62,10 +103,11 @@ function CadastroB2B() {
         });
         if (signErr) throw signErr;
 
-        // Caso o projeto exija confirmação de e-mail, a sessão pode não existir ainda.
         const { data: s } = await supabase.auth.getSession();
         if (!s.session) {
-          toast.success("Conta criada! Confirme seu e-mail e volte aqui para concluir o cadastro B2B.");
+          toast.success(
+            "Conta criada! Confirme seu e-mail e volte aqui — sua solicitação B2B será enviada automaticamente.",
+          );
           setSubmitting(false);
           return;
         }
@@ -79,6 +121,7 @@ function CadastroB2B() {
         },
       });
 
+      localStorage.removeItem("gama:pending_b2b");
       toast.success("Solicitação enviada! Vamos analisar e te avisamos pelo WhatsApp.");
       navigate({ to: "/produtos" });
     } catch (err) {
