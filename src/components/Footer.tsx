@@ -5,6 +5,10 @@ import { useConfig } from "@/hooks/useConfig";
 export function Footer() {
   const { config } = useConfig();
   const logo = config.logo_url_escura || "";
+  const instagram = config.instagram_url || "";
+  const facebook = config.facebook_url || "";
+  const email = config.email_contato || "contato@gamasensacoes.com.br";
+  const horario = config.horario_atendimento || "Seg–Sex: 9h às 18h | Sáb: 9h às 13h";
   return (
     <footer className="bg-surface-dark text-background pt-24 pb-10">
       <div className="container-editorial grid gap-14 md:grid-cols-12">
@@ -21,20 +25,28 @@ export function Footer() {
             Aroma é memória. Sensação é presença. Transformamos ambientes em experiências sensoriais.
           </p>
           <div className="flex gap-4">
-            <a
-              href="#"
-              aria-label="Instagram"
-              className="w-10 h-10 rounded-full border border-background/20 flex items-center justify-center hover:border-gold hover:text-gold transition-colors"
-            >
-              <Instagram size={16} />
-            </a>
-            <a
-              href="#"
-              aria-label="Facebook"
-              className="w-10 h-10 rounded-full border border-background/20 flex items-center justify-center hover:border-gold hover:text-gold transition-colors"
-            >
-              <Facebook size={16} />
-            </a>
+            {instagram && (
+              <a
+                href={instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="w-10 h-10 rounded-full border border-background/20 flex items-center justify-center hover:border-gold hover:text-gold transition-colors"
+              >
+                <Instagram size={16} />
+              </a>
+            )}
+            {facebook && (
+              <a
+                href={facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="w-10 h-10 rounded-full border border-background/20 flex items-center justify-center hover:border-gold hover:text-gold transition-colors"
+              >
+                <Facebook size={16} />
+              </a>
+            )}
           </div>
         </div>
 
@@ -55,11 +67,11 @@ export function Footer() {
           <ul className="space-y-3 text-sm text-background/70">
             <li className="flex items-start gap-3">
               <Mail size={15} className="mt-0.5 text-gold/80" />
-              <span>contato@gamasensacoes.com.br</span>
+              <a href={`mailto:${email}`} className="hover:text-gold transition-colors">{email}</a>
             </li>
             <li className="flex items-start gap-3">
               <Clock size={15} className="mt-0.5 text-gold/80" />
-              <span>Seg–Sex: 9h às 18h | Sáb: 9h às 13h</span>
+              <span>{horario}</span>
             </li>
             <li className="flex items-start gap-3">
               <MapPin size={15} className="mt-0.5 text-gold/80" />
