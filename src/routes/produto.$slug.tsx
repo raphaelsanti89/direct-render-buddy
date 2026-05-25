@@ -324,7 +324,7 @@ function Tier({
   price: string;
   caption: string;
   highlight?: "gold" | "green";
-  cta?: { to: string; label: string };
+  cta?: { to: "/cadastro-assinatura" | "/cadastro-b2b"; label: string };
   multilinePrice?: boolean;
 }) {
   const border =
