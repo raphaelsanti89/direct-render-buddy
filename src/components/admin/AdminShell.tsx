@@ -1,13 +1,14 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, LayoutDashboard, Package, Boxes, Tag, ArrowLeft } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Boxes, Tag, ArrowLeft, Users } from "lucide-react";
 
 const NAV = [
   { to: "/admin", label: "Visão geral", icon: LayoutDashboard, exact: true },
   { to: "/admin/categorias", label: "Categorias", icon: Tag, exact: false },
   { to: "/admin/produtos", label: "Produtos", icon: Package, exact: false },
   { to: "/admin/kits", label: "Kits", icon: Boxes, exact: false },
+  { to: "/admin/clientes", label: "Clientes", icon: Users, exact: false },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
