@@ -480,3 +480,293 @@ function Row({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
     </div>
   );
 }
+
+// ============================================================
+// IMPORT / EXPORT
+// ============================================================
+
+const EXPORT_COLS = [
+  "nome", "slug", "categoria", "marca", "descricao_curta", "volume",
+  "notas_olfativas", "intensidade", "sensacao_transmitida",
+  "preco_custo", "margem", "preco_varejo", "preco_assinatura",
+  "preco_b2b_1", "preco_b2b_2", "preco_b2b_3",
+  "estoque", "destaque", "lancamento", "mais_vendido", "ativo",
+] as const;
+
+function csvEscape(v: any): string {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  if (/[",\n;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function downloadFile(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportProductsCsv(items: Prod[], cats: Cat[]) {
+  const catName = (id: string | null) => cats.find((c) => c.id === id)?.nome ?? "";
+  const rows = items.map((p) => [
+    p.nome, p.slug, catName(p.categoria_id), "", p.descricao_curta ?? "", p.volume ?? "",
+    Array.isArray((p as any).notas_olfativas) ? (p as any).notas_olfativas.join("|") : "",
+    p.intensidade ?? "", p.sensacao_transmitida ?? "",
+    p.preco_custo ?? "", p.margem_varejo_pct ?? "", p.preco_varejo,
+    p.preco_assinatura ?? "", p.preco_b2b_1 ?? "", p.preco_b2b_2 ?? "", p.preco_b2b_3 ?? "",
+    (p as any).estoque ?? 0, p.destaque ? "true" : "false",
+    p.lancamento ? "true" : "false", p.mais_vendido ? "true" : "false",
+    p.ativo ? "true" : "false",
+  ]);
+  const csv = [EXPORT_COLS.join(","), ...rows.map((r) => r.map(csvEscape).join(","))].join("\n");
+  downloadFile(csv, `produtos-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv;charset=utf-8");
+}
+
+function downloadTemplate() {
+  const sample = [
+    "Aromatizador Bambu", "", "Aromatizadores", "Via Aroma", "Aroma suave e aconchegante", "250ml",
+    "bambu|capim-limão", "3", "Relaxante",
+    "35.00", "60", "89.90", "", "", "", "",
+    "10", "false", "false", "false", "true",
+  ];
+  const csv = [EXPORT_COLS.join(","), sample.map(csvEscape).join(",")].join("\n");
+  downloadFile(csv, "modelo-produtos.csv", "text/csv;charset=utf-8");
+}
+
+type ImportRow = Record<string, any>;
+
+async function parseFile(file: File): Promise<ImportRow[]> {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json<ImportRow>(ws, { defval: "" });
+}
+
+const DESC_RATIOS = { assinatura: 0.13, b2b1: 0.15, b2b2: 0.20, b2b3: 0.25 };
+const r2 = (n: number) => Math.round(n * 100) / 100;
+const num = (v: any): number | null => {
+  if (v === "" || v === null || v === undefined) return null;
+  const n = Number(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+};
+const bool = (v: any): boolean => {
+  const s = String(v).toLowerCase().trim();
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+};
+
+function ProdutosHeader({
+  count, items, cats, onNew, onImported,
+}: {
+  count: number; items: Prod[]; cats: Cat[]; onNew: () => void; onImported: () => void;
+}) {
+  const [showImport, setShowImport] = useState(false);
+  return (
+    <>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-3">— catálogo</p>
+          <h1 className="font-display text-5xl text-foreground">Produtos</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{count} cadastrado(s)</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-2 border border-border bg-background px-4 py-3 text-xs uppercase tracking-[0.18em] text-foreground hover:border-gold hover:text-gold transition-colors"
+          >
+            <Upload size={14} /> Importar CSV/Excel
+          </button>
+          <button
+            onClick={() => exportProductsCsv(items, cats)}
+            className="inline-flex items-center gap-2 border border-border bg-background px-4 py-3 text-xs uppercase tracking-[0.18em] text-foreground hover:border-gold hover:text-gold transition-colors"
+          >
+            <Download size={14} /> Exportar CSV
+          </button>
+          <button
+            onClick={onNew}
+            className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors"
+          >
+            <Plus size={14} /> Novo
+          </button>
+        </div>
+      </div>
+      {showImport && (
+        <ImportModal cats={cats} onClose={() => setShowImport(false)} onDone={() => { setShowImport(false); onImported(); }} />
+      )}
+    </>
+  );
+}
+
+function ImportModal({ cats, onClose, onDone }: { cats: Cat[]; onClose: () => void; onDone: () => void }) {
+  const [rows, setRows] = useState<ImportRow[]>([]);
+  const [fileName, setFileName] = useState("");
+  const [importing, setImporting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFile(f: File) {
+    try {
+      const parsed = await parseFile(f);
+      if (parsed.length === 0) return toast.error("Arquivo vazio");
+      setRows(parsed);
+      setFileName(f.name);
+      toast.success(`${parsed.length} linha(s) detectada(s)`);
+    } catch (err: any) {
+      toast.error(`Erro ao ler arquivo: ${err.message}`);
+    }
+  }
+
+  async function confirmImport() {
+    setImporting(true);
+    let ok = 0;
+    const errors: string[] = [];
+
+    // Build categoria lookup, create missing ones
+    const catMap = new Map(cats.map((c) => [c.nome.toLowerCase().trim(), c.id]));
+    const newCats = new Set<string>();
+    for (const row of rows) {
+      const name = String(row.categoria ?? "").trim();
+      if (name && !catMap.has(name.toLowerCase())) newCats.add(name);
+    }
+    for (const name of newCats) {
+      const slug = slugify(name);
+      const { data, error } = await supabase
+        .from("categorias")
+        .insert({ nome: name, slug })
+        .select("id")
+        .single();
+      if (!error && data) catMap.set(name.toLowerCase(), data.id);
+    }
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const nome = String(row.nome ?? "").trim();
+      const preco_varejo = num(row.preco_varejo);
+      if (!nome) { errors.push(`Linha ${i + 2}: nome vazio`); continue; }
+      if (preco_varejo == null || preco_varejo <= 0) { errors.push(`Linha ${i + 2} (${nome}): preco_varejo inválido`); continue; }
+
+      const catName = String(row.categoria ?? "").trim();
+      const categoria_id = catName ? catMap.get(catName.toLowerCase()) ?? null : null;
+
+      const preco_assinatura = num(row.preco_assinatura) ?? r2(preco_varejo * (1 - DESC_RATIOS.assinatura));
+      const preco_b2b_1 = num(row.preco_b2b_1) ?? r2(preco_varejo * (1 - DESC_RATIOS.b2b1));
+      const preco_b2b_2 = num(row.preco_b2b_2) ?? r2(preco_varejo * (1 - DESC_RATIOS.b2b2));
+      const preco_b2b_3 = num(row.preco_b2b_3) ?? r2(preco_varejo * (1 - DESC_RATIOS.b2b3));
+
+      const notas = String(row.notas_olfativas ?? "").trim();
+      const notas_olfativas = notas ? notas.split(/[|,;]/).map((s) => s.trim()).filter(Boolean) : null;
+
+      const payload: any = {
+        nome,
+        slug: String(row.slug ?? "").trim() || slugify(nome),
+        descricao_curta: row.descricao_curta || null,
+        volume: row.volume || null,
+        notas_olfativas,
+        intensidade: num(row.intensidade),
+        sensacao_transmitida: row.sensacao_transmitida || null,
+        preco_custo: num(row.preco_custo),
+        margem_varejo_pct: num(row.margem),
+        preco_varejo,
+        preco_assinatura,
+        preco_b2b_1, preco_b2b_2, preco_b2b_3,
+        estoque: num(row.estoque) ?? 0,
+        destaque: bool(row.destaque),
+        lancamento: bool(row.lancamento),
+        mais_vendido: bool(row.mais_vendido),
+        ativo: row.ativo === "" || row.ativo == null ? true : bool(row.ativo),
+        categoria_id,
+        imagens: [],
+      };
+
+      const { error } = await supabase.from("produtos").insert(payload);
+      if (error) errors.push(`Linha ${i + 2} (${nome}): ${error.message}`);
+      else ok++;
+    }
+
+    setImporting(false);
+    if (ok > 0) toast.success(`${ok} produto(s) importado(s)`);
+    if (errors.length > 0) toast.error(`${errors.length} erro(s): ${errors.slice(0, 3).join(" • ")}${errors.length > 3 ? "…" : ""}`, { duration: 8000 });
+    onDone();
+  }
+
+  const preview = rows.slice(0, 5);
+  const cols = rows.length > 0 ? Object.keys(rows[0]) : [];
+
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-background border border-border max-w-4xl w-full max-h-[90vh] overflow-auto">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="font-display text-2xl text-foreground">Importar produtos</h2>
+          <button onClick={onClose} className="p-2 text-foreground/60 hover:text-gold"><X size={18} /></button>
+        </div>
+
+        <div className="p-6 space-y-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => inputRef.current?.click()}
+              className="inline-flex items-center gap-2 bg-foreground text-background px-5 py-3 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors"
+            >
+              <Upload size={14} /> Escolher arquivo (.csv / .xlsx)
+            </button>
+            <button
+              onClick={downloadTemplate}
+              className="inline-flex items-center gap-2 border border-border px-5 py-3 text-xs uppercase tracking-[0.18em] text-foreground hover:border-gold hover:text-gold transition-colors"
+            >
+              <FileDown size={14} /> Baixar modelo
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+            />
+            {fileName && <span className="text-xs font-mono text-muted-foreground">{fileName} · {rows.length} linha(s)</span>}
+          </div>
+
+          <div className="border border-border bg-surface/40 p-4 text-xs text-muted-foreground leading-relaxed">
+            <p><strong className="text-foreground">Campos obrigatórios:</strong> nome e preco_varejo. Os demais são opcionais.</p>
+            <p className="mt-1">Preços de assinante/B2B vazios serão calculados automaticamente (−13% / −15% / −20% / −25%).</p>
+            <p className="mt-1">Categorias novas serão criadas automaticamente. Notas olfativas separadas por <code>|</code> ou <code>,</code>.</p>
+            <p className="mt-1 text-gold">As fotos não são importadas — adicione depois editando cada produto.</p>
+          </div>
+
+          {preview.length > 0 && (
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60 mb-2">Pré-visualização (5 primeiras linhas)</p>
+              <div className="overflow-auto border border-border max-h-72">
+                <table className="text-xs">
+                  <thead className="bg-surface sticky top-0">
+                    <tr>{cols.map((c) => <th key={c} className="text-left p-2 font-mono text-[10px] uppercase tracking-[0.15em] text-foreground/60 whitespace-nowrap">{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {preview.map((r, i) => (
+                      <tr key={i} className="border-t border-border">
+                        {cols.map((c) => <td key={c} className="p-2 whitespace-nowrap text-foreground/80">{String(r[c] ?? "")}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 p-6 border-t border-border">
+          <button
+            onClick={confirmImport}
+            disabled={rows.length === 0 || importing}
+            className="bg-foreground text-background px-6 py-3 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {importing ? "Importando…" : `Confirmar importação (${rows.length})`}
+          </button>
+          <button onClick={onClose} className="px-6 py-3 text-xs uppercase tracking-[0.18em] text-foreground/60 hover:text-foreground">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
