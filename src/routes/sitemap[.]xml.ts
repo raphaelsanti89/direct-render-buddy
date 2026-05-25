@@ -19,8 +19,8 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         const [produtos, kits, categorias] = await Promise.all([
           supabaseAdmin.from("produtos").select("slug, updated_at").eq("ativo", true),
-          supabaseAdmin.from("kits").select("slug, updated_at").eq("ativo", true),
-          supabaseAdmin.from("categorias").select("slug, updated_at"),
+          supabaseAdmin.from("kits").select("slug").eq("ativo", true),
+          supabaseAdmin.from("categorias").select("slug"),
         ]);
 
         const dynamicUrls: string[] = [];
