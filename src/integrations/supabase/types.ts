@@ -164,6 +164,217 @@ export type Database = {
         }
         Relationships: []
       }
+      pedido_itens: {
+        Row: {
+          categoria_snapshot: string | null
+          created_at: string
+          id: string
+          imagem_snapshot: string | null
+          kind: Database["public"]["Enums"]["pedido_item_kind"]
+          marca_snapshot: string | null
+          nome_produto: string
+          pedido_id: string
+          preco_unitario: number
+          produto_id: string | null
+          quantidade: number
+          subtotal: number
+        }
+        Insert: {
+          categoria_snapshot?: string | null
+          created_at?: string
+          id?: string
+          imagem_snapshot?: string | null
+          kind?: Database["public"]["Enums"]["pedido_item_kind"]
+          marca_snapshot?: string | null
+          nome_produto: string
+          pedido_id: string
+          preco_unitario: number
+          produto_id?: string | null
+          quantidade: number
+          subtotal: number
+        }
+        Update: {
+          categoria_snapshot?: string | null
+          created_at?: string
+          id?: string
+          imagem_snapshot?: string | null
+          kind?: Database["public"]["Enums"]["pedido_item_kind"]
+          marca_snapshot?: string | null
+          nome_produto?: string
+          pedido_id?: string
+          preco_unitario?: number
+          produto_id?: string | null
+          quantidade?: number
+          subtotal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_itens_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_notas: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          pedido_id: string
+          texto: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pedido_id: string
+          texto: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pedido_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_notas_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedido_notas_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_status_historico: {
+        Row: {
+          created_at: string
+          id: string
+          pedido_id: string
+          status: Database["public"]["Enums"]["pedido_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pedido_id: string
+          status: Database["public"]["Enums"]["pedido_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pedido_id?: string
+          status?: Database["public"]["Enums"]["pedido_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_status_historico_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedidos: {
+        Row: {
+          canal_contato: Database["public"]["Enums"]["pedido_canal"]
+          cliente_id: string | null
+          codigo_rastreamento: string | null
+          created_at: string
+          desconto: number
+          email: string | null
+          endereco: string | null
+          forma_entrega: string | null
+          forma_pagamento: string | null
+          id: string
+          nome_cliente: string
+          numero_pedido: string
+          observacoes: string | null
+          origem_pedido: string
+          perfil_cliente: string
+          responsavel_atendimento: string | null
+          status: Database["public"]["Enums"]["pedido_status"]
+          subtotal: number
+          tags: string[]
+          telefone: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          canal_contato?: Database["public"]["Enums"]["pedido_canal"]
+          cliente_id?: string | null
+          codigo_rastreamento?: string | null
+          created_at?: string
+          desconto?: number
+          email?: string | null
+          endereco?: string | null
+          forma_entrega?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          nome_cliente: string
+          numero_pedido: string
+          observacoes?: string | null
+          origem_pedido?: string
+          perfil_cliente?: string
+          responsavel_atendimento?: string | null
+          status?: Database["public"]["Enums"]["pedido_status"]
+          subtotal?: number
+          tags?: string[]
+          telefone: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          canal_contato?: Database["public"]["Enums"]["pedido_canal"]
+          cliente_id?: string | null
+          codigo_rastreamento?: string | null
+          created_at?: string
+          desconto?: number
+          email?: string | null
+          endereco?: string | null
+          forma_entrega?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          nome_cliente?: string
+          numero_pedido?: string
+          observacoes?: string | null
+          origem_pedido?: string
+          perfil_cliente?: string
+          responsavel_atendimento?: string | null
+          status?: Database["public"]["Enums"]["pedido_status"]
+          subtotal?: number
+          tags?: string[]
+          telefone?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_responsavel_atendimento_fkey"
+            columns: ["responsavel_atendimento"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           ativo: boolean | null
@@ -361,6 +572,16 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
+      pedido_canal: "whatsapp" | "instagram" | "site" | "direto" | "revendedor"
+      pedido_item_kind: "produto" | "kit"
+      pedido_status:
+        | "novo"
+        | "em_atendimento"
+        | "confirmado"
+        | "em_separacao"
+        | "enviado"
+        | "entregue"
+        | "cancelado"
       status_aprovacao: "pendente" | "aprovado" | "rejeitado"
       tipo_cliente: "varejo" | "assinante" | "b2b"
     }
@@ -491,6 +712,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      pedido_canal: ["whatsapp", "instagram", "site", "direto", "revendedor"],
+      pedido_item_kind: ["produto", "kit"],
+      pedido_status: [
+        "novo",
+        "em_atendimento",
+        "confirmado",
+        "em_separacao",
+        "enviado",
+        "entregue",
+        "cancelado",
+      ],
       status_aprovacao: ["pendente", "aprovado", "rejeitado"],
       tipo_cliente: ["varejo", "assinante", "b2b"],
     },
