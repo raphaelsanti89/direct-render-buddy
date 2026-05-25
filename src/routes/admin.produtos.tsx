@@ -189,26 +189,9 @@ function ProdutosAdmin() {
               />
             </Field>
 
+            <PricingCalculator editing={editing} setEditing={setEditing} />
+
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Preço varejo (R$) *">
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  value={editing.preco_varejo ?? 0}
-                  onChange={(e) => setEditing({ ...editing, preco_varejo: Number(e.target.value) })}
-                  required
-                />
-              </Field>
-              <Field label="Preço assinatura (R$)">
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  value={editing.preco_assinatura ?? ""}
-                  onChange={(e) => setEditing({ ...editing, preco_assinatura: e.target.value ? Number(e.target.value) : null })}
-                />
-              </Field>
               <Field label="Volume">
                 <input
                   className="form-input"
