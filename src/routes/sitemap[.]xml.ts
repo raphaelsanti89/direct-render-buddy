@@ -33,7 +33,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         for (const k of kits.data ?? []) {
           if (!k.slug) continue;
           dynamicUrls.push(
-            `  <url><loc>${BASE_URL}/kit/${k.slug}</loc>${k.updated_at ? `<lastmod>${new Date(k.updated_at).toISOString()}</lastmod>` : ""}<changefreq>weekly</changefreq><priority>0.8</priority></url>`,
+            `  <url><loc>${BASE_URL}/kit/${k.slug}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`,
           );
         }
         for (const c of categorias.data ?? []) {
