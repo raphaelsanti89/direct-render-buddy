@@ -18,6 +18,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { count } = useCart();
+  const { config } = useConfig();
+  const logo = config.logo_url_clara || "";
+
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
