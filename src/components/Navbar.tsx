@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useConfig } from "@/hooks/useConfig";
+
 
 const links = [
   { to: "/", label: "Início" },
@@ -16,6 +18,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { count } = useCart();
+  const { config } = useConfig();
+  const logo = config.logo_url_clara || "";
+
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -33,11 +38,16 @@ export function Navbar() {
       }`}
     >
       <div className="container-editorial flex items-center justify-between h-20">
-        <Link to="/" className="group">
-          <span className="font-display text-2xl tracking-wide text-foreground">
-            Gama <span className="text-gold italic">Sensações</span>
-          </span>
+        <Link to="/" className="group flex items-center" aria-label="Gama Sensações">
+          {logo ? (
+            <img src={logo} alt="Gama Sensações" className="h-10 w-auto object-contain" />
+          ) : (
+            <span className="font-display text-2xl tracking-wide text-foreground">
+              Gama <span className="text-gold italic">Sensações</span>
+            </span>
+          )}
         </Link>
+
 
         <nav className="hidden lg:flex items-center gap-10">
           {links.map((l) => (

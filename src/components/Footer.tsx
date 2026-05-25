@@ -1,14 +1,22 @@
 import { Link } from "@tanstack/react-router";
 import { Instagram, Facebook, Mail, MapPin, Clock } from "lucide-react";
+import { useConfig } from "@/hooks/useConfig";
 
 export function Footer() {
+  const { config } = useConfig();
+  const logo = config.logo_url_escura || "";
   return (
     <footer className="bg-surface-dark text-background pt-24 pb-10">
       <div className="container-editorial grid gap-14 md:grid-cols-12">
         <div className="md:col-span-4 space-y-6">
-          <div className="font-display text-3xl tracking-wide">
-            Gama <span className="text-gold italic">Sensações</span>
-          </div>
+          {logo ? (
+            <img src={logo} alt="Gama Sensações" className="h-12 w-auto object-contain" />
+          ) : (
+            <div className="font-display text-3xl tracking-wide">
+              Gama <span className="text-gold italic">Sensações</span>
+            </div>
+          )}
+
           <p className="text-sm text-background/65 leading-relaxed max-w-xs">
             Aroma é memória. Sensação é presença. Transformamos ambientes em experiências sensoriais.
           </p>
