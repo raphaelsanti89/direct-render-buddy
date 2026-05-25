@@ -38,9 +38,13 @@ export function Navbar() {
       }`}
     >
       <div className="container-editorial flex items-center justify-between h-20">
-        <Link to="/" className="group flex items-center" aria-label="Gama Sensações">
+        <Link to="/" className="group flex items-center py-2" aria-label="Gama Sensações">
           {logo ? (
-            <img src={logo} alt="Gama Sensações" className="h-10 w-auto object-contain" />
+            <img
+              src={logo}
+              alt="Gama Sensações"
+              className="h-12 lg:h-16 w-auto object-contain"
+            />
           ) : (
             <span className="font-display text-2xl tracking-wide text-foreground">
               Gama <span className="text-gold italic">Sensações</span>
