@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useConfig } from "@/hooks/useConfig";
+
 
 const links = [
   { to: "/", label: "Início" },
