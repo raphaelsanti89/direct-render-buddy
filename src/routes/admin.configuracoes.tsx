@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Settings } from "lucide-react";
+import { Settings, Upload, Loader2, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/configuracoes")({
   component: AdminConfiguracoes,
 });
+
 
 type Row = { chave: string; valor: string | null; descricao: string | null };
 
