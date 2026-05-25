@@ -23,13 +23,10 @@ type Prod = {
 };
 
 export const Route = createFileRoute("/produto/$slug")({
-  head: ({ loaderData }) => ({
+  head: () => ({
     meta: [
-      { title: loaderData?.nome ? `${loaderData.nome} — Gama Sensações` : "Produto — Gama Sensações" },
-      { name: "description", content: loaderData?.descricao_curta ?? "Aromas premium Gama Sensações" },
-      { property: "og:title", content: loaderData?.nome ?? "Gama Sensações" },
-      { property: "og:description", content: loaderData?.descricao_curta ?? "" },
-      ...(loaderData?.imagens?.[0] ? [{ property: "og:image", content: loaderData.imagens[0] }] : []),
+      { title: "Produto — Gama Sensações" },
+      { name: "description", content: "Aromas premium Gama Sensações" },
     ],
   }),
   component: ProdutoPage,
