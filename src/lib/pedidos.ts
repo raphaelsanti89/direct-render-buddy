@@ -122,11 +122,25 @@ export async function criarPedido(input: CreatePedidoInput): Promise<CreatedPedi
     });
   }
 
-  // 2) Inserir pedido
-  const { data: pedido, error } = await supabase
-    .from("pedidos")
-    .insert({
-      numero_pedido: "", // trigger gera
+  // 2) Criar pedido + itens via RPC (SECURITY DEFINER) — anon não tem SELECT
+  //    em pedidos, então o INSERT direto com .select() falharia.
+  const itensPayload = input.itens.map((row) => {
+    const snap = snapshots.get(row.item.id);
+    return {
+      kind: row.item.kind,
+      produto_id: row.item.id,
+      nome_produto: row.item.nome,
+      marca_snapshot: null as string | null,
+      categoria_snapshot: snap?.categoria_snapshot ?? null,
+      imagem_snapshot: snap?.imagem_snapshot ?? row.item.imagem ?? null,
+      quantidade: row.item.qty,
+      preco_unitario: row.preco_unitario,
+      subtotal: row.subtotal,
+    };
+  });
+
+  const { data, error } = await supabase.rpc("criar_pedido_publico", {
+    payload: {
       cliente_id: input.cliente_id,
       nome_cliente: input.nome_cliente,
       telefone: input.telefone,
@@ -141,39 +155,18 @@ export async function criarPedido(input: CreatePedidoInput): Promise<CreatedPedi
       subtotal: input.subtotal,
       desconto: input.desconto,
       total: input.total,
-      status: "novo",
-    } as any)
-    .select("id, numero_pedido")
-    .single();
+      itens: itensPayload,
+    } as any,
+  });
 
-  if (error || !pedido) {
+  if (error || !data) {
     throw new Error(error?.message ?? "Falha ao registrar pedido.");
   }
 
-  // 3) Inserir itens
-  const itens = input.itens.map((row) => {
-    const snap = snapshots.get(row.item.id);
-    return {
-      pedido_id: pedido.id,
-      kind: row.item.kind,
-      produto_id: row.item.id,
-      nome_produto: row.item.nome,
-      marca_snapshot: null as string | null,
-      categoria_snapshot: snap?.categoria_snapshot ?? null,
-      imagem_snapshot: snap?.imagem_snapshot ?? row.item.imagem ?? null,
-      quantidade: row.item.qty,
-      preco_unitario: row.preco_unitario,
-      subtotal: row.subtotal,
-    };
-  });
-
-  const { error: itensErr } = await supabase.from("pedido_itens").insert(itens as any);
-  if (itensErr) {
-    throw new Error(itensErr.message);
-  }
-
-  return { id: pedido.id, numero_pedido: pedido.numero_pedido };
+  const result = data as unknown as { id: string; numero_pedido: string };
+  return { id: result.id, numero_pedido: result.numero_pedido };
 }
+
 
 export function perfilLabel(p: {
   tipo_cliente?: string | null;
