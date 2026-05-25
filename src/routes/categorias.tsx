@@ -18,7 +18,9 @@ export const Route = createFileRoute("/categorias")({
       { name: "description", content: "Explore as famílias olfativas e as coleções da Gama Sensações." },
       { property: "og:title", content: "Categorias — Gama Sensações" },
       { property: "og:description", content: "Famílias olfativas e coleções sensoriais." },
+      { property: "og:url", content: "https://gamasensacoes.com.br/categorias" },
     ],
+    links: [{ rel: "canonical", href: "https://gamasensacoes.com.br/categorias" }],
   }),
   component: CategoriasPage,
 });
