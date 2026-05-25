@@ -19,7 +19,7 @@ export const Route = createFileRoute("/carrinho")({
 });
 
 const PAGAMENTOS = ["PIX", "Cartão", "Dinheiro", "Transferência"] as const;
-const ENTREGAS = ["Retirada", "Motoboy", "Correios", "Transportadora", "Entrega local"] as const;
+const ENTREGAS = ["Retirada", "Motoboy", "Correios", "Transportadora", "Entrega local", "A combinar"] as const;
 type Pagamento = (typeof PAGAMENTOS)[number];
 type Entrega = (typeof ENTREGAS)[number];
 
