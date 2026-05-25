@@ -24,7 +24,46 @@ type Kit = {
   imagens: string[] | null;
 };
 
+const SITE_URL = "https://gamasensacoes.com.br";
+
 export const Route = createFileRoute("/kit/$slug")({
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("kits")
+      .select("nome, descricao_curta, descricao, imagens, slug")
+      .eq("slug", params.slug)
+      .eq("ativo", true)
+      .maybeSingle();
+    return { meta: data };
+  },
+  head: ({ loaderData, params }) => {
+    const k = loaderData?.meta as
+      | { nome: string; descricao_curta: string | null; descricao: string | null; imagens: string[] | null }
+      | null
+      | undefined;
+    const title = k ? `${k.nome} | Kits Gama Sensações` : "Kit — Gama Sensações";
+    const description =
+      k?.descricao_curta ||
+      (k?.descricao ? k.descricao.slice(0, 160) : "Kits sensoriais Gama Sensações — combinações exclusivas a preço especial.");
+    const image = k?.imagens?.[0] || `${SITE_URL}/og-default.jpg`;
+    const url = `${SITE_URL}/kit/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: image },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: KitPage,
 });
 
