@@ -82,7 +82,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: SITE_NAME },
       { name: "robots", content: "index, follow, max-image-preview:large" },
-      { name: "theme-color", content: "#4E6B4A" },
+      { name: "theme-color", content: "#ffffff" },
+      { name: "msapplication-TileColor", content: "#ffffff" },
       { name: "format-detection", content: "telephone=no" },
 
       { property: "og:site_name", content: SITE_NAME },
