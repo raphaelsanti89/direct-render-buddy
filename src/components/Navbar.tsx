@@ -38,11 +38,16 @@ export function Navbar() {
       }`}
     >
       <div className="container-editorial flex items-center justify-between h-20">
-        <Link to="/" className="group">
-          <span className="font-display text-2xl tracking-wide text-foreground">
-            Gama <span className="text-gold italic">Sensações</span>
-          </span>
+        <Link to="/" className="group flex items-center" aria-label="Gama Sensações">
+          {logo ? (
+            <img src={logo} alt="Gama Sensações" className="h-10 w-auto object-contain" />
+          ) : (
+            <span className="font-display text-2xl tracking-wide text-foreground">
+              Gama <span className="text-gold italic">Sensações</span>
+            </span>
+          )}
         </Link>
+
 
         <nav className="hidden lg:flex items-center gap-10">
           {links.map((l) => (
