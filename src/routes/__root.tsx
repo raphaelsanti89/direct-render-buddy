@@ -85,6 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#ffffff" },
       { name: "msapplication-TileColor", content: "#ffffff" },
       { name: "format-detection", content: "telephone=no" },
+      { name: "google-site-verification", content: "VnSXyiK1NmchG_WaurS1H8TPs_Gpj-kfkKQ0tGoZ4ms" },
 
       { property: "og:site_name", content: SITE_NAME },
       { property: "og:title", content: "Gama Sensações — Aromas, marketing sensorial e ambientação" },
