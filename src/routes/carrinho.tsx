@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Minus, Plus, Trash2, MessageCircle, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, MessageCircle, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 import { useConfig } from "@/hooks/useConfig";
 import { getPrecoForProfile } from "@/lib/preco";
 import { brl } from "@/lib/slug";
 import { toast } from "sonner";
+import { criarPedido, perfilLabel } from "@/lib/pedidos";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({
@@ -35,6 +36,7 @@ function CarrinhoPage() {
   const [endereco, setEndereco] = useState("");
   const [obs, setObs] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [sucesso, setSucesso] = useState<{ numero: string; link: string } | null>(null);
 
   // pré-preenche dados do perfil
   useEffect(() => {
@@ -63,68 +65,97 @@ function CarrinhoPage() {
   const empresaWa = (config.whatsapp_pedidos || "").replace(/\D/g, "");
   const exigeEndereco = entrega !== "Retirada" && entrega !== "A combinar";
 
-  function finalizarWhatsApp() {
-    if (items.length === 0) {
-      toast.error("Seu carrinho está vazio.");
-      return;
-    }
-    if (!nome.trim() || nome.trim().length < 2) {
-      toast.error("Informe seu nome.");
-      return;
-    }
-    if (!whats.trim() || whats.replace(/\D/g, "").length < 8) {
-      toast.error("Informe um WhatsApp válido.");
-      return;
-    }
-    if (exigeEndereco && endereco.trim().length < 5) {
-      toast.error("Informe o endereço de entrega.");
-      return;
-    }
-    if (!empresaWa) {
-      toast.error("Número da empresa ainda não configurado. Avise o administrador.");
-      return;
-    }
+  async function finalizarWhatsApp() {
+    if (items.length === 0) { toast.error("Seu carrinho está vazio."); return; }
+    if (!nome.trim() || nome.trim().length < 2) { toast.error("Informe seu nome."); return; }
+    if (!whats.trim() || whats.replace(/\D/g, "").length < 8) { toast.error("Informe um WhatsApp válido."); return; }
+    if (exigeEndereco && endereco.trim().length < 5) { toast.error("Informe o endereço de entrega."); return; }
+    if (!empresaWa) { toast.error("Número da empresa ainda não configurado."); return; }
     setSubmitting(true);
 
-    const linhasMsg = linhas
-      .map(
-        (l, i) =>
-          `${i + 1}. ${l.item.nome}${l.item.kind === "kit" ? " (kit)" : ""} — ${l.item.qty}x ${brl(l.unit)} = ${brl(l.subtotal)}${l.badge ? ` [${l.badge}]` : ""}`,
-      )
-      .join("\n");
+    try {
+      // 1) Registrar pedido no banco
+      const pedido = await criarPedido({
+        cliente_id: profile?.id ?? null,
+        nome_cliente: nome.trim(),
+        telefone: whats.trim(),
+        email: profile?.email ?? null,
+        perfil_cliente: perfilLabel(profile),
+        forma_pagamento: pagamento,
+        forma_entrega: entrega,
+        endereco: exigeEndereco ? endereco.trim() : null,
+        observacoes: obs.trim() || null,
+        canal_contato: "whatsapp",
+        subtotal: total,
+        desconto: 0,
+        total,
+        itens: linhas.map((l) => ({ item: l.item, preco_unitario: l.unit, subtotal: l.subtotal })),
+      });
 
-    const tipoCliente =
-      profile?.tipo_cliente === "b2b" && profile.status_aprovacao === "aprovado"
-        ? `B2B Nível ${profile.nivel_b2b ?? "?"}`
-        : profile?.tipo_cliente === "assinante"
-          ? "Assinante"
-          : "Varejo";
+      const trackingLink = `${window.location.origin}/pedido/${pedido.numero_pedido}`;
 
-    const linhasFinais = [
-      "*Novo pedido — Gama Sensações*",
-      "",
-      `*Cliente:* ${nome.trim()}`,
-      `*WhatsApp:* ${whats.trim()}`,
-      `*Tipo:* ${tipoCliente}`,
-      profile?.empresa_nome ? `*Empresa:* ${profile.empresa_nome}` : null,
-      "",
-      "*Itens:*",
-      linhasMsg,
-      "",
-      `*Total: ${brl(total)}*`,
-      "",
-      `*Pagamento:* ${pagamento}`,
-      `*Entrega:* ${entrega}`,
-      exigeEndereco ? `*Endereço:* ${endereco.trim()}` : null,
-      obs.trim() ? `*Observações:* ${obs.trim()}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+      // 2) Montar mensagem WhatsApp
+      const linhasMsg = linhas
+        .map((l, i) => `${i + 1}. ${l.item.nome}${l.item.kind === "kit" ? " (kit)" : ""} — ${l.item.qty}x ${brl(l.unit)} = ${brl(l.subtotal)}${l.badge ? ` [${l.badge}]` : ""}`)
+        .join("\n");
 
-    const url = `https://wa.me/${empresaWa}?text=${encodeURIComponent(linhasFinais)}`;
-    window.open(url, "_blank", "noopener");
-    toast.success("Pedido enviado! Finalize a conversa no WhatsApp.");
-    setSubmitting(false);
+      const tipoCliente =
+        profile?.tipo_cliente === "b2b" && profile.status_aprovacao === "aprovado"
+          ? `B2B Nível ${profile.nivel_b2b ?? "?"}`
+          : profile?.tipo_cliente === "assinante" ? "Assinante" : "Varejo";
+
+      const msg = [
+        `*Novo pedido — ${pedido.numero_pedido}*`,
+        "",
+        `*Cliente:* ${nome.trim()}`,
+        `*WhatsApp:* ${whats.trim()}`,
+        `*Tipo:* ${tipoCliente}`,
+        profile?.empresa_nome ? `*Empresa:* ${profile.empresa_nome}` : null,
+        "",
+        "*Itens:*",
+        linhasMsg,
+        "",
+        `*Total: ${brl(total)}*`,
+        "",
+        `*Pagamento:* ${pagamento}`,
+        `*Entrega:* ${entrega}`,
+        exigeEndereco ? `*Endereço:* ${endereco.trim()}` : null,
+        obs.trim() ? `*Observações:* ${obs.trim()}` : null,
+        "",
+        `*Acompanhar:* ${trackingLink}`,
+      ].filter(Boolean).join("\n");
+
+      window.open(`https://wa.me/${empresaWa}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+      clear();
+      setSucesso({ numero: pedido.numero_pedido, link: trackingLink });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao registrar pedido.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (sucesso) {
+    return (
+      <div className="min-h-screen bg-background pt-28 pb-24">
+        <div className="container-editorial max-w-xl text-center">
+          <CheckCircle2 size={48} className="mx-auto text-gold mb-6" strokeWidth={1.5} />
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-2">— pedido {sucesso.numero}</p>
+          <h1 className="font-display text-4xl text-foreground mb-3">Pedido registrado com sucesso.</h1>
+          <p className="text-sm text-muted-foreground mb-8">
+            Abrimos o WhatsApp com o resumo. Acompanhe o status pelo link abaixo.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href={sucesso.link} target="_blank" rel="noreferrer" className="bg-foreground text-background px-6 py-3 text-xs uppercase tracking-[0.2em] hover:opacity-90">
+              Acompanhar pedido
+            </a>
+            <Link to="/produtos" className="border border-border px-6 py-3 text-xs uppercase tracking-[0.2em] hover:bg-surface">
+              Continuar comprando
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -139,6 +170,7 @@ function CarrinhoPage() {
 
         <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold">— carrinho</p>
         <h1 className="font-display text-5xl text-foreground">Seu pedido</h1>
+
 
         {items.length === 0 ? (
           <div className="mt-16 text-center border border-border py-20 px-6">

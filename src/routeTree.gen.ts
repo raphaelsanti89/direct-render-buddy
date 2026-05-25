@@ -20,12 +20,15 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
+import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as KitSlugRouteImport } from './routes/kit.$slug'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
+import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminKitsRouteImport } from './routes/admin.kits'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
+import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
 
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
@@ -82,6 +85,11 @@ const ProdutoSlugRoute = ProdutoSlugRouteImport.update({
   path: '/produto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PedidoNumeroRoute = PedidoNumeroRouteImport.update({
+  id: '/pedido/$numero',
+  path: '/pedido/$numero',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KitSlugRoute = KitSlugRouteImport.update({
   id: '/kit/$slug',
   path: '/kit/$slug',
@@ -90,6 +98,11 @@ const KitSlugRoute = KitSlugRouteImport.update({
 const AdminProdutosRoute = AdminProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPedidosRoute = AdminPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminKitsRoute = AdminKitsRouteImport.update({
@@ -112,6 +125,11 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   path: '/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPedidosIdRoute = AdminPedidosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminPedidosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -127,10 +145,13 @@ export interface FileRoutesByFullPath {
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/kits': typeof AdminKitsRoute
+  '/admin/pedidos': typeof AdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
+  '/pedido/$numero': typeof PedidoNumeroRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/pedidos/$id': typeof AdminPedidosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -145,10 +166,13 @@ export interface FileRoutesByTo {
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/kits': typeof AdminKitsRoute
+  '/admin/pedidos': typeof AdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
+  '/pedido/$numero': typeof PedidoNumeroRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/pedidos/$id': typeof AdminPedidosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -165,10 +189,13 @@ export interface FileRoutesById {
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/kits': typeof AdminKitsRoute
+  '/admin/pedidos': typeof AdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
+  '/pedido/$numero': typeof PedidoNumeroRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/pedidos/$id': typeof AdminPedidosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -186,10 +213,13 @@ export interface FileRouteTypes {
     | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/kits'
+    | '/admin/pedidos'
     | '/admin/produtos'
     | '/kit/$slug'
+    | '/pedido/$numero'
     | '/produto/$slug'
     | '/admin/'
+    | '/admin/pedidos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -204,10 +234,13 @@ export interface FileRouteTypes {
     | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/kits'
+    | '/admin/pedidos'
     | '/admin/produtos'
     | '/kit/$slug'
+    | '/pedido/$numero'
     | '/produto/$slug'
     | '/admin'
+    | '/admin/pedidos/$id'
   id:
     | '__root__'
     | '/'
@@ -223,10 +256,13 @@ export interface FileRouteTypes {
     | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/kits'
+    | '/admin/pedidos'
     | '/admin/produtos'
     | '/kit/$slug'
+    | '/pedido/$numero'
     | '/produto/$slug'
     | '/admin/'
+    | '/admin/pedidos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -240,6 +276,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProdutosRoute: typeof ProdutosRoute
   KitSlugRoute: typeof KitSlugRoute
+  PedidoNumeroRoute: typeof PedidoNumeroRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
 }
 
@@ -322,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pedido/$numero': {
+      id: '/pedido/$numero'
+      path: '/pedido/$numero'
+      fullPath: '/pedido/$numero'
+      preLoaderRoute: typeof PedidoNumeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kit/$slug': {
       id: '/kit/$slug'
       path: '/kit/$slug'
@@ -334,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/admin/produtos'
       preLoaderRoute: typeof AdminProdutosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/pedidos': {
+      id: '/admin/pedidos'
+      path: '/pedidos'
+      fullPath: '/admin/pedidos'
+      preLoaderRoute: typeof AdminPedidosRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/kits': {
@@ -364,14 +415,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/pedidos/$id': {
+      id: '/admin/pedidos/$id'
+      path: '/$id'
+      fullPath: '/admin/pedidos/$id'
+      preLoaderRoute: typeof AdminPedidosIdRouteImport
+      parentRoute: typeof AdminPedidosRoute
+    }
   }
 }
+
+interface AdminPedidosRouteChildren {
+  AdminPedidosIdRoute: typeof AdminPedidosIdRoute
+}
+
+const AdminPedidosRouteChildren: AdminPedidosRouteChildren = {
+  AdminPedidosIdRoute: AdminPedidosIdRoute,
+}
+
+const AdminPedidosRouteWithChildren = AdminPedidosRoute._addFileChildren(
+  AdminPedidosRouteChildren,
+)
 
 interface AdminRouteChildren {
   AdminCategoriasRoute: typeof AdminCategoriasRoute
   AdminClientesRoute: typeof AdminClientesRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminKitsRoute: typeof AdminKitsRoute
+  AdminPedidosRoute: typeof AdminPedidosRouteWithChildren
   AdminProdutosRoute: typeof AdminProdutosRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -381,6 +452,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminClientesRoute: AdminClientesRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminKitsRoute: AdminKitsRoute,
+  AdminPedidosRoute: AdminPedidosRouteWithChildren,
   AdminProdutosRoute: AdminProdutosRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -398,6 +470,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProdutosRoute: ProdutosRoute,
   KitSlugRoute: KitSlugRoute,
+  PedidoNumeroRoute: PedidoNumeroRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
 }
 export const routeTree = rootRouteImport
