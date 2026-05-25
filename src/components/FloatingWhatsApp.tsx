@@ -1,12 +1,15 @@
 import { MessageCircle } from "lucide-react";
+import { useConfig } from "@/hooks/useConfig";
 
 export function FloatingWhatsApp() {
-  // Number is configured in admin panel; fallback empty -> hidden
-  const number = ""; // TODO: read from configuracoes_gerais
+  const { config } = useConfig();
+  const number = (config.whatsapp_pedidos || "").replace(/\D/g, "");
   const message = encodeURIComponent(
-    "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+    config.mensagem_whatsapp ||
+      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
   );
-  const href = number ? `https://wa.me/${number}?text=${message}` : "#";
+  if (!number) return null;
+  const href = `https://wa.me/${number}?text=${message}`;
 
   return (
     <a
