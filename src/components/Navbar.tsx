@@ -4,10 +4,10 @@ import { Menu, X } from "lucide-react";
 
 const links = [
   { to: "/", label: "Início" },
+  { to: "/categorias", label: "Categorias" },
   { to: "/produtos", label: "Produtos" },
   { to: "/kits", label: "Kits" },
   { to: "/assinatura", label: "Assinatura" },
-  { to: "/revendedores", label: "Revendedores" },
   { to: "/contato", label: "Contato" },
 ] as const;
 

@@ -14,6 +14,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { supabase } from "@/integrations/supabase/client";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -128,6 +129,7 @@ function Layout() {
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <FloatingWhatsApp />}
+      <Toaster position="top-center" />
     </>
   );
 }
