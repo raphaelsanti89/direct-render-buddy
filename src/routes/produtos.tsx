@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/slug";
+import { getPrecoForProfile } from "@/lib/preco";
+import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 
 type Cat = { id: string; nome: string; slug: string };
 type Prod = {
@@ -10,6 +12,10 @@ type Prod = {
   slug: string;
   descricao_curta: string | null;
   preco_varejo: number;
+  preco_assinatura: number | null;
+  preco_b2b_1: number | null;
+  preco_b2b_2: number | null;
+  preco_b2b_3: number | null;
   imagens: string[] | null;
   categoria_id: string | null;
   destaque: boolean | null;
@@ -36,6 +42,7 @@ export const Route = createFileRoute("/produtos")({
 function ProdutosPage() {
   const { categoria } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { profile } = useCurrentProfile();
   const [items, setItems] = useState<Prod[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +71,8 @@ function ProdutosPage() {
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-4">— catálogo</p>
           <h1 className="font-display text-5xl md:text-6xl text-foreground">Produtos</h1>
         </div>
+
+        <PriceBanner profile={profile} />
 
         {cats.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-12 pb-6 border-b border-border">
@@ -97,7 +106,7 @@ function ProdutosPage() {
           </p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {items.map((p) => <ProductCard key={p.id} p={p} />)}
+            {items.map((p) => <ProductCard key={p.id} p={p} profile={profile} />)}
           </div>
         )}
       </div>
@@ -105,8 +114,9 @@ function ProdutosPage() {
   );
 }
 
-function ProductCard({ p }: { p: Prod }) {
+function ProductCard({ p, profile }: { p: Prod; profile: ReturnType<typeof useCurrentProfile>["profile"] }) {
   const img = p.imagens?.[0];
+  const preco = getPrecoForProfile(p, profile);
   return (
     <Link to="/produto/$slug" params={{ slug: p.slug }} className="bg-background group flex flex-col">
       <div className="aspect-[4/5] bg-surface overflow-hidden relative">
@@ -122,12 +132,75 @@ function ProductCard({ p }: { p: Prod }) {
             Lançamento
           </span>
         )}
+        {preco.badge && (
+          <span className="absolute top-4 right-4 bg-gold text-foreground font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1">
+            {preco.badge}
+          </span>
+        )}
       </div>
       <div className="p-6">
         <h3 className="font-display text-2xl text-foreground group-hover:text-gold transition-colors">{p.nome}</h3>
         {p.descricao_curta && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{p.descricao_curta}</p>}
-        <p className="mt-4 font-display text-lg text-foreground">{brl(p.preco_varejo)}</p>
+        <div className="mt-4 flex items-baseline gap-3">
+          <span className="font-display text-lg text-foreground">{brl(preco.valor)}</span>
+          {preco.origem !== "varejo" && (
+            <span className="text-xs text-muted-foreground line-through">{brl(preco.precoVarejoReferencia)}</span>
+          )}
+        </div>
+        {preco.economiaPercentual && (
+          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-gold">
+            economia de {preco.economiaPercentual}%
+          </p>
+        )}
       </div>
     </Link>
   );
+}
+
+function PriceBanner({ profile }: { profile: ReturnType<typeof useCurrentProfile>["profile"] }) {
+  if (!profile) {
+    return (
+      <div className="mb-10 px-5 py-4 border border-border bg-surface text-sm text-foreground/75 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span>
+          É empresa ou quer condições especiais?
+        </span>
+        <Link to="/cadastro-b2b" className="text-gold uppercase tracking-[0.18em] text-xs hover:underline">
+          Cadastro B2B
+        </Link>
+        <span className="text-muted-foreground">·</span>
+        <Link to="/cadastro-assinatura" className="text-gold uppercase tracking-[0.18em] text-xs hover:underline">
+          Virar Assinante
+        </Link>
+      </div>
+    );
+  }
+  if (profile.tipo_cliente === "b2b" && profile.status_aprovacao === "pendente") {
+    return (
+      <div className="mb-10 px-5 py-4 border border-gold/40 bg-gold/5 text-sm text-foreground/80">
+        Sua solicitação B2B está <strong>em análise</strong>. Enquanto isso, você vê preços de varejo.
+      </div>
+    );
+  }
+  if (profile.tipo_cliente === "b2b" && profile.status_aprovacao === "rejeitado") {
+    return (
+      <div className="mb-10 px-5 py-4 border border-border bg-surface text-sm text-foreground/75">
+        Sua solicitação B2B anterior não foi aprovada. Entre em contato pelo WhatsApp para reabrir o processo.
+      </div>
+    );
+  }
+  if (profile.tipo_cliente === "b2b" && profile.status_aprovacao === "aprovado") {
+    return (
+      <div className="mb-10 px-5 py-4 border border-gold/50 bg-gold/10 text-sm text-foreground">
+        Você está vendo os <strong>preços B2B Nível {profile.nivel_b2b}</strong>.
+      </div>
+    );
+  }
+  if (profile.tipo_cliente === "assinante") {
+    return (
+      <div className="mb-10 px-5 py-4 border border-gold/50 bg-gold/10 text-sm text-foreground">
+        Você está vendo os <strong>preços de Assinante</strong>.
+      </div>
+    );
+  }
+  return null;
 }

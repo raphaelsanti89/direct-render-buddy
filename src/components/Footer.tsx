@@ -36,7 +36,8 @@ export function Footer() {
             <li><Link to="/" className="hover:text-gold transition-colors">Início</Link></li>
             <li><Link to="/produtos" className="hover:text-gold transition-colors">Produtos</Link></li>
             <li><Link to="/kits" className="hover:text-gold transition-colors">Kits Sensoriais</Link></li>
-            <li><Link to="/assinatura" className="hover:text-gold transition-colors">Assinatura</Link></li>
+            <li><Link to="/cadastro-assinatura" className="hover:text-gold transition-colors">Assinatura</Link></li>
+            <li><Link to="/cadastro-b2b" className="hover:text-gold transition-colors">Cadastro B2B</Link></li>
             <li><Link to="/categorias" className="hover:text-gold transition-colors">Categorias</Link></li>
           </ul>
         </div>

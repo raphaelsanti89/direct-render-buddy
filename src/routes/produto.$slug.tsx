@@ -1,8 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/slug";
 import { ArrowLeft, MessageCircle } from "lucide-react";
+import { getPrecoForProfile } from "@/lib/preco";
+import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 
 type Prod = {
   id: string;
@@ -12,6 +14,9 @@ type Prod = {
   descricao: string | null;
   preco_varejo: number;
   preco_assinatura: number | null;
+  preco_b2b_1: number | null;
+  preco_b2b_2: number | null;
+  preco_b2b_3: number | null;
   imagens: string[] | null;
   volume: string | null;
   intensidade: number | null;
@@ -34,6 +39,7 @@ export const Route = createFileRoute("/produto/$slug")({
 
 function ProdutoPage() {
   const { slug } = Route.useParams();
+  const { profile } = useCurrentProfile();
   const [p, setP] = useState<Prod | null | undefined>(undefined);
   const [active, setActive] = useState(0);
 
@@ -59,6 +65,8 @@ function ProdutoPage() {
       </div>
     );
   }
+
+  const preco = getPrecoForProfile(p, profile);
 
   const phone = "5500000000000";
   const waMsg = encodeURIComponent(`Olá, tenho interesse no produto: ${p.nome}`);
@@ -102,10 +110,35 @@ function ProdutoPage() {
             {p.descricao_curta && <p className="mt-4 text-lg text-muted-foreground">{p.descricao_curta}</p>}
 
             <div className="mt-8 pb-8 border-b border-border">
-              <p className="font-display text-4xl text-foreground">{brl(p.preco_varejo)}</p>
-              {p.preco_assinatura && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Assinatura: <span className="text-gold font-medium">{brl(p.preco_assinatura)}</span>
+              {preco.badge && (
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gold mb-2">
+                  {preco.label}
+                </p>
+              )}
+              <div className="flex items-baseline gap-4">
+                <p className="font-display text-4xl text-foreground">{brl(preco.valor)}</p>
+                {preco.origem !== "varejo" && (
+                  <p className="text-lg text-muted-foreground line-through">{brl(preco.precoVarejoReferencia)}</p>
+                )}
+              </div>
+              {preco.economiaPercentual && (
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-gold">
+                  Economia de {preco.economiaPercentual}% sobre o varejo
+                </p>
+              )}
+
+              {/* CTA discreto para anônimo virar B2B/assinante */}
+              {!profile && (
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Empresa?{" "}
+                  <Link to="/cadastro-b2b" className="text-gold hover:underline">
+                    Solicite acesso B2B
+                  </Link>
+                  {" "}ou{" "}
+                  <Link to="/cadastro-assinatura" className="text-gold hover:underline">
+                    vire assinante
+                  </Link>
+                  .
                 </p>
               )}
             </div>

@@ -7,8 +7,8 @@ const links = [
   { to: "/categorias", label: "Categorias" },
   { to: "/produtos", label: "Produtos" },
   { to: "/kits", label: "Kits" },
-  { to: "/assinatura", label: "Assinatura" },
-  { to: "/contato", label: "Contato" },
+  { to: "/cadastro-b2b", label: "B2B" },
+  { to: "/cadastro-assinatura", label: "Assinatura" },
 ] as const;
 
 export function Navbar() {
