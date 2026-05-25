@@ -94,10 +94,10 @@ function Hero() {
 
 function SobreMarca() {
   const diferenciais = [
-    { icon: Hand, title: "100% Artesanal", text: "Cada aroma é produzido em pequenos lotes" },
-    { icon: Leaf, title: "Aromas Exclusivos", text: "Composições autorais, perfumaria fina" },
-    { icon: Heart, title: "Atendimento Pessoal", text: "Curadoria e suporte personalizados" },
-    { icon: Truck, title: "Entrega Brasil", text: "Embalagem premium para todo o país" },
+    { icon: Building2, title: "Foco B2B", text: "Escritórios, hotéis, clínicas e ambientes corporativos" },
+    { icon: Leaf, title: "Marcas Selecionadas", text: "Curadoria de fornecedores premium de perfumaria fina" },
+    { icon: Heart, title: "Atendimento Consultivo", text: "Indicação personalizada para cada ambiente" },
+    { icon: Truck, title: "Entrega Brasil", text: "Logística e embalagem premium para todo o país" },
   ];
   return (
     <section className="py-32 md:py-40 bg-background">
@@ -111,9 +111,9 @@ function SobreMarca() {
             <em className="text-gold not-italic">Sensação é presença.</em>
           </h2>
           <p className="mt-8 text-foreground/70 leading-relaxed max-w-md">
-            A Gama Sensações nasceu da convicção de que ambientes não são
-            apenas espaços — são sentimentos. Trabalhamos perfumaria fina e
-            marketing sensorial para hotéis, marcas e residências que entendem
+            A Gama Sensações é uma distribuidora de aromas premium. Selecionamos
+            marcas e fornecedores de perfumaria fina para levar marketing
+            sensorial a hotéis, escritórios, clínicas e empresas que entendem
             o aroma como assinatura.
           </p>
 
@@ -136,16 +136,16 @@ function SobreMarca() {
           <div className="aspect-[4/5] overflow-hidden">
             <img
               src={sobreImg}
-              alt="Composição artesanal de aroma"
+              alt="Composição de aromas premium para ambientes corporativos"
               loading="lazy"
               width={1024}
               height={1280}
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-6 -left-6 hidden md:block bg-gold text-foreground px-8 py-6 max-w-[220px]">
+          <div className="absolute -bottom-6 -left-6 hidden md:block bg-gold text-foreground px-8 py-6 max-w-[240px]">
             <p className="font-display text-2xl leading-tight">
-              Feito à mão, em pequenos lotes.
+              Curadoria premium para o seu ambiente.
             </p>
           </div>
         </div>
