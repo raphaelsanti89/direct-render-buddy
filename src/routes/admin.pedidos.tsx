@@ -135,9 +135,18 @@ function AdminPedidosPage() {
             </thead>
             <tbody>
               {filtered.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-surface/50">
+                <tr
+                  key={p.id}
+                  onClick={() => navigate({ to: "/admin/pedidos/$id", params: { id: p.id } })}
+                  className="border-t border-border hover:bg-surface/50 cursor-pointer"
+                >
                   <td className="p-4">
-                    <Link to="/admin/pedidos/$id" params={{ id: p.id }} className="font-mono text-xs text-foreground hover:text-gold">
+                    <Link
+                      to="/admin/pedidos/$id"
+                      params={{ id: p.id }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-mono text-xs text-foreground hover:text-gold"
+                    >
                       {p.numero_pedido}
                     </Link>
                   </td>
