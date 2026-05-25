@@ -1,0 +1,12 @@
+# Gama Sensações
+
+> Aromas premium, marketing sensorial e ambientação para casa, hotelaria e empresas. Catálogo varejo, kits sensoriais, linha B2B e assinatura.
+
+## Pages
+
+- [Início](/): Apresentação da marca e destaques de aromas.
+- [Produtos](/produtos): Catálogo completo de aromatizadores, home sprays, difusores e velas.
+- [Kits](/kits): Combinações sensoriais com preço especial.
+- [Categorias](/categorias): Famílias olfativas e coleções.
+- [Cadastro B2B](/cadastro-b2b): Acesso para revendedores e empresas.
+- [Cadastro Assinatura](/cadastro-assinatura): Programa de assinatura sensorial.
