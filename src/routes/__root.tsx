@@ -101,10 +101,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "Gama Sensações — Aromas, marketing sensorial e ambientação" },
       { name: "twitter:description", content: "Pixel Perfect implements a dynamic e-commerce platform with B2B and retail pricing, order management, and WhatsApp checkout." },
       { name: "twitter:image", content: DEFAULT_OG_IMAGE },
-      { name: "description", content: "Pixel Perfect implements a dynamic e-commerce platform with B2B and retail pricing, order management, and WhatsApp checkout." },
-      { property: "og:description", content: "Pixel Perfect implements a dynamic e-commerce platform with B2B and retail pricing, order management, and WhatsApp checkout." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b3cd1b7e-32d6-4693-8321-8241efd30b0a/id-preview-9f5bb5b2--09f6ee85-040e-40e0-a272-c616ee345832.lovable.app-1779732682900.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b3cd1b7e-32d6-4693-8321-8241efd30b0a/id-preview-9f5bb5b2--09f6ee85-040e-40e0-a272-c616ee345832.lovable.app-1779732682900.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
