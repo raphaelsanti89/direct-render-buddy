@@ -20,6 +20,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
+import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as KitSlugRouteImport } from './routes/kit.$slug'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminKitsRouteImport } from './routes/admin.kits'
@@ -82,6 +83,11 @@ const ProdutoSlugRoute = ProdutoSlugRouteImport.update({
   path: '/produto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PedidoNumeroRoute = PedidoNumeroRouteImport.update({
+  id: '/pedido/$numero',
+  path: '/pedido/$numero',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KitSlugRoute = KitSlugRouteImport.update({
   id: '/kit/$slug',
   path: '/kit/$slug',
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/admin/kits': typeof AdminKitsRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
+  '/pedido/$numero': typeof PedidoNumeroRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/admin/kits': typeof AdminKitsRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
+  '/pedido/$numero': typeof PedidoNumeroRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/admin/kits': typeof AdminKitsRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
+  '/pedido/$numero': typeof PedidoNumeroRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/admin/kits'
     | '/admin/produtos'
     | '/kit/$slug'
+    | '/pedido/$numero'
     | '/produto/$slug'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/admin/kits'
     | '/admin/produtos'
     | '/kit/$slug'
+    | '/pedido/$numero'
     | '/produto/$slug'
     | '/admin'
   id:
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/admin/kits'
     | '/admin/produtos'
     | '/kit/$slug'
+    | '/pedido/$numero'
     | '/produto/$slug'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -240,6 +252,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProdutosRoute: typeof ProdutosRoute
   KitSlugRoute: typeof KitSlugRoute
+  PedidoNumeroRoute: typeof PedidoNumeroRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
 }
 
@@ -322,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pedido/$numero': {
+      id: '/pedido/$numero'
+      path: '/pedido/$numero'
+      fullPath: '/pedido/$numero'
+      preLoaderRoute: typeof PedidoNumeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kit/$slug': {
       id: '/kit/$slug'
       path: '/kit/$slug'
@@ -398,8 +418,19 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProdutosRoute: ProdutosRoute,
   KitSlugRoute: KitSlugRoute,
+  PedidoNumeroRoute: PedidoNumeroRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
