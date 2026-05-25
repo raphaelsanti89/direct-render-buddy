@@ -32,6 +32,7 @@ const PERFIS = ["todos", "varejo", "assinante", "b2b_1", "b2b_2", "b2b_3"] as co
 const ORIGENS = ["todas", "site", "instagram", "whatsapp", "admin", "revendedor"] as const;
 
 function AdminPedidosPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<PedidoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"todos" | PedidoStatus>("todos");
