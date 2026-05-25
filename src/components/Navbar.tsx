@@ -9,7 +9,6 @@ const links = [
   { to: "/kits", label: "Kits" },
   { to: "/cadastro-b2b", label: "B2B" },
   { to: "/cadastro-assinatura", label: "Assinatura" },
-  { to: "/contato", label: "Contato" },
 ] as const;
 
 export function Navbar() {
