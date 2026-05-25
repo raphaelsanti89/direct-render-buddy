@@ -285,6 +285,11 @@ function CarrinhoPage() {
                     <option key={e} value={e}>{e}</option>
                   ))}
                 </select>
+                {entrega === "A combinar" && (
+                  <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                    A forma de entrega será definida diretamente no WhatsApp após o envio do pedido.
+                  </p>
+                )}
               </Field>
 
               {exigeEndereco && (
