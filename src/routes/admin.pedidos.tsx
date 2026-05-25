@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
@@ -12,7 +12,7 @@ import {
 
 export const Route = createFileRoute("/admin/pedidos")({
   head: () => ({ meta: [{ title: "Pedidos — Admin" }] }),
-  component: AdminPedidosPage,
+  component: AdminPedidosRoute,
 });
 
 type PedidoRow = {
@@ -30,6 +30,16 @@ type PedidoRow = {
 
 const PERFIS = ["todos", "varejo", "assinante", "b2b_1", "b2b_2", "b2b_3"] as const;
 const ORIGENS = ["todas", "site", "instagram", "whatsapp", "admin", "revendedor"] as const;
+
+function AdminPedidosRoute() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  if (pathname !== "/admin/pedidos") {
+    return <Outlet />;
+  }
+
+  return <AdminPedidosPage />;
+}
 
 function AdminPedidosPage() {
   const [items, setItems] = useState<PedidoRow[]>([]);
@@ -134,7 +144,7 @@ function AdminPedidosPage() {
             </thead>
             <tbody>
               {filtered.map((p) => (
-              <tr key={p.id} className="border-t border-border hover:bg-surface/50">
+                <tr key={p.id} className="border-t border-border hover:bg-surface/50">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <Link
