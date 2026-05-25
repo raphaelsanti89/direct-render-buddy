@@ -123,7 +123,13 @@ function ProdutosAdmin() {
 
   return (
     <>
-      <Header title="Produtos" subtitle={`${items.length} cadastrado(s)`} onNew={() => setEditing({ ...EMPTY })} />
+      <ProdutosHeader
+        count={items.length}
+        items={items}
+        cats={cats}
+        onNew={() => setEditing({ ...EMPTY })}
+        onImported={load}
+      />
 
       <div className="bg-background border border-border">
         {loading ? <Empty text="Carregando…" /> : items.length === 0 ? (
