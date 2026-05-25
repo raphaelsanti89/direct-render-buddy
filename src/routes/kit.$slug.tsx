@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/slug";
-import { ArrowLeft, MessageCircle } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Minus, Plus } from "lucide-react";
 import { getPrecoForProfile } from "@/lib/preco";
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 type Kit = {
   id: string;
@@ -29,8 +31,11 @@ export const Route = createFileRoute("/kit/$slug")({
 function KitPage() {
   const { slug } = Route.useParams();
   const { profile } = useCurrentProfile();
+  const { add } = useCart();
+  const navigate = useNavigate();
   const [k, setK] = useState<Kit | null | undefined>(undefined);
   const [active, setActive] = useState(0);
+  const [qty, setQty] = useState(1);
 
   useEffect(() => {
     supabase.from("kits").select("*").eq("slug", slug).eq("ativo", true).maybeSingle()
@@ -51,8 +56,29 @@ function KitPage() {
   }
 
   const preco = getPrecoForProfile(k, profile);
-  const phone = "5500000000000";
-  const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(`Olá, tenho interesse no kit: ${k.nome}`)}`;
+
+  function handleAdd(goToCart: boolean) {
+    add(
+      {
+        kind: "kit",
+        id: k!.id,
+        slug: k!.slug,
+        nome: k!.nome,
+        imagem: k!.imagens?.[0] ?? null,
+        precos: {
+          preco_varejo: k!.preco_varejo,
+          preco_assinatura: k!.preco_assinatura,
+          preco_b2b_1: k!.preco_b2b_1,
+          preco_b2b_2: k!.preco_b2b_2,
+          preco_b2b_3: k!.preco_b2b_3,
+        },
+      },
+      qty,
+    );
+    toast.success(`Kit adicionado ao carrinho (${qty}x).`);
+    if (goToCart) navigate({ to: "/carrinho" });
+  }
+
 
   return (
     <div className="min-h-screen bg-background pt-28 pb-24">
@@ -131,9 +157,24 @@ function KitPage() {
               )}
             </div>
 
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="mt-8 inline-flex items-center justify-center gap-3 w-full bg-foreground text-background py-4 text-xs uppercase tracking-[0.2em] hover:bg-gold transition-colors">
-              <MessageCircle size={16} /> Comprar pelo WhatsApp
-            </a>
+            <div className="mt-8 flex items-center gap-4">
+              <div className="flex items-center border border-border">
+                <button type="button" aria-label="Diminuir" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-3 hover:bg-surface">
+                  <Minus size={14} />
+                </button>
+                <span className="w-10 text-center font-mono text-sm">{qty}</span>
+                <button type="button" aria-label="Aumentar" onClick={() => setQty((q) => q + 1)} className="px-3 py-3 hover:bg-surface">
+                  <Plus size={14} />
+                </button>
+              </div>
+              <button type="button" onClick={() => handleAdd(false)} className="flex-1 border border-foreground text-foreground py-4 text-xs uppercase tracking-[0.2em] hover:bg-foreground hover:text-background transition-colors">
+                Adicionar
+              </button>
+            </div>
+            <button type="button" onClick={() => handleAdd(true)} className="mt-3 inline-flex items-center justify-center gap-3 w-full bg-foreground text-background py-4 text-xs uppercase tracking-[0.2em] hover:bg-gold transition-colors">
+              <ShoppingBag size={16} /> Comprar agora
+            </button>
+
 
             {k.descricao && (
               <div className="mt-10">
