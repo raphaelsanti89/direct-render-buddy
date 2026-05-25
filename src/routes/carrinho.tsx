@@ -135,6 +135,29 @@ function CarrinhoPage() {
     }
   }
 
+  if (sucesso) {
+    return (
+      <div className="min-h-screen bg-background pt-28 pb-24">
+        <div className="container-editorial max-w-xl text-center">
+          <CheckCircle2 size={48} className="mx-auto text-gold mb-6" strokeWidth={1.5} />
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-2">— pedido {sucesso.numero}</p>
+          <h1 className="font-display text-4xl text-foreground mb-3">Pedido registrado com sucesso.</h1>
+          <p className="text-sm text-muted-foreground mb-8">
+            Abrimos o WhatsApp com o resumo. Acompanhe o status pelo link abaixo.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href={sucesso.link} target="_blank" rel="noreferrer" className="bg-foreground text-background px-6 py-3 text-xs uppercase tracking-[0.2em] hover:opacity-90">
+              Acompanhar pedido
+            </a>
+            <Link to="/produtos" className="border border-border px-6 py-3 text-xs uppercase tracking-[0.2em] hover:bg-surface">
+              Continuar comprando
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pt-28 pb-24">
       <div className="container-editorial max-w-5xl">
@@ -147,6 +170,7 @@ function CarrinhoPage() {
 
         <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold">— carrinho</p>
         <h1 className="font-display text-5xl text-foreground">Seu pedido</h1>
+
 
         {items.length === 0 ? (
           <div className="mt-16 text-center border border-border py-20 px-6">
