@@ -66,7 +66,9 @@ function AdminConfiguracoes() {
                 <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{r.descricao}</p>
               )}
             </div>
-            {r.chave.includes("mensagem") || r.chave.includes("endereco") ? (
+            {r.chave.startsWith("logo_url") ? (
+              <LogoUpload value={r.valor ?? ""} onChange={(v) => setValor(r.chave, v)} chave={r.chave} />
+            ) : r.chave.includes("mensagem") || r.chave.includes("endereco") ? (
               <textarea
                 className="form-input min-h-[60px]"
                 value={r.valor ?? ""}
@@ -81,6 +83,7 @@ function AdminConfiguracoes() {
                 maxLength={500}
               />
             )}
+
             <button
               type="button"
               onClick={() => salvar(r)}
