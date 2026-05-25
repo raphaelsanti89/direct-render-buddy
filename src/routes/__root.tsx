@@ -15,6 +15,7 @@ import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
+import { CartProvider } from "@/contexts/CartContext";
 
 function NotFoundComponent() {
   return (
@@ -104,7 +105,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <Layout />
+      <CartProvider>
+        <Layout />
+      </CartProvider>
     </QueryClientProvider>
   );
 }

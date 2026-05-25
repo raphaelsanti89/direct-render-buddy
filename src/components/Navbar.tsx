@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingBag } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 
 const links = [
   { to: "/", label: "Início" },
@@ -14,6 +15,7 @@ const links = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { count } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -50,13 +52,27 @@ export function Navbar() {
           ))}
         </nav>
 
-        <button
-          className="lg:hidden p-2 text-foreground"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Menu"
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/carrinho"
+            aria-label="Carrinho"
+            className="relative p-2 text-foreground/80 hover:text-gold transition-colors"
+          >
+            <ShoppingBag size={20} />
+            {count > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gold text-background text-[10px] font-mono flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </Link>
+          <button
+            className="lg:hidden p-2 text-foreground"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Menu"
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {open && (

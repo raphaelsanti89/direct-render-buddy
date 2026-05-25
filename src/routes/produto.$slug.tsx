@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/slug";
-import { ArrowLeft, MessageCircle } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Minus, Plus } from "lucide-react";
 import { getPrecoForProfile } from "@/lib/preco";
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 type Prod = {
   id: string;
@@ -40,8 +42,11 @@ export const Route = createFileRoute("/produto/$slug")({
 function ProdutoPage() {
   const { slug } = Route.useParams();
   const { profile } = useCurrentProfile();
+  const { add } = useCart();
+  const navigate = useNavigate();
   const [p, setP] = useState<Prod | null | undefined>(undefined);
   const [active, setActive] = useState(0);
+  const [qty, setQty] = useState(1);
 
   useEffect(() => {
     supabase
@@ -68,9 +73,28 @@ function ProdutoPage() {
 
   const preco = getPrecoForProfile(p, profile);
 
-  const phone = "5500000000000";
-  const waMsg = encodeURIComponent(`Olá, tenho interesse no produto: ${p.nome}`);
-  const waLink = `https://wa.me/${phone}?text=${waMsg}`;
+  function handleAdd(goToCart: boolean) {
+    add(
+      {
+        kind: "produto",
+        id: p!.id,
+        slug: p!.slug,
+        nome: p!.nome,
+        imagem: p!.imagens?.[0] ?? null,
+        precos: {
+          preco_varejo: p!.preco_varejo,
+          preco_assinatura: p!.preco_assinatura,
+          preco_b2b_1: p!.preco_b2b_1,
+          preco_b2b_2: p!.preco_b2b_2,
+          preco_b2b_3: p!.preco_b2b_3,
+        },
+      },
+      qty,
+    );
+    toast.success(`Adicionado ao carrinho (${qty}x).`);
+    if (goToCart) navigate({ to: "/carrinho" });
+  }
+
 
   return (
     <div className="min-h-screen bg-background pt-28 pb-24">
@@ -143,14 +167,42 @@ function ProdutoPage() {
               )}
             </div>
 
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center justify-center gap-3 w-full bg-foreground text-background py-4 text-xs uppercase tracking-[0.2em] hover:bg-gold transition-colors"
+            <div className="mt-8 flex items-center gap-4">
+              <div className="flex items-center border border-border">
+                <button
+                  type="button"
+                  aria-label="Diminuir"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="px-3 py-3 hover:bg-surface"
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="w-10 text-center font-mono text-sm">{qty}</span>
+                <button
+                  type="button"
+                  aria-label="Aumentar"
+                  onClick={() => setQty((q) => q + 1)}
+                  className="px-3 py-3 hover:bg-surface"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleAdd(false)}
+                className="flex-1 border border-foreground text-foreground py-4 text-xs uppercase tracking-[0.2em] hover:bg-foreground hover:text-background transition-colors"
+              >
+                Adicionar
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAdd(true)}
+              className="mt-3 inline-flex items-center justify-center gap-3 w-full bg-foreground text-background py-4 text-xs uppercase tracking-[0.2em] hover:bg-gold transition-colors"
             >
-              <MessageCircle size={16} /> Comprar pelo WhatsApp
-            </a>
+              <ShoppingBag size={16} /> Comprar agora
+            </button>
+
 
             {p.descricao && (
               <div className="mt-10">
