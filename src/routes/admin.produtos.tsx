@@ -51,7 +51,7 @@ const EMPTY: Partial<Prod> = {
 
 // Descontos sugeridos (sobre o preço de varejo)
 const DESC = { assinante: 0.13, b2b1: 0.15, b2b2: 0.20, b2b3: 0.25 };
-const r2x = (n: number) => Math.round(n * 100) / 100;
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function ProdutosAdmin() {
   const [items, setItems] = useState<Prod[]>([]);
@@ -547,7 +547,6 @@ async function parseFile(file: File): Promise<ImportRow[]> {
 }
 
 const DESC_RATIOS = { assinatura: 0.13, b2b1: 0.15, b2b2: 0.20, b2b3: 0.25 };
-const r2x = (n: number) => Math.round(n * 100) / 100;
 const num = (v: any): number | null => {
   if (v === "" || v === null || v === undefined) return null;
   const n = Number(String(v).replace(",", "."));
