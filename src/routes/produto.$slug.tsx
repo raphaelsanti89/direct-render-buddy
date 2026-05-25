@@ -35,7 +35,7 @@ export const Route = createFileRoute("/produto/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("produtos")
-      .select("nome, descricao_curta, descricao, imagens, marca, categoria_id, slug")
+      .select("nome, descricao_curta, descricao, imagens, marca, categoria_id, slug, preco_varejo")
       .eq("slug", params.slug)
       .eq("ativo", true)
       .maybeSingle();
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/produto/$slug")({
   },
   head: ({ loaderData, params }) => {
     const p = loaderData?.meta as
-      | { nome: string; descricao_curta: string | null; descricao: string | null; imagens: string[] | null; marca: string | null }
+      | { nome: string; descricao_curta: string | null; descricao: string | null; imagens: string[] | null; marca: string | null; preco_varejo: number | null }
       | null
       | undefined;
     const title = p ? `${p.nome}${p.marca ? ` — ${p.marca}` : ""} | Gama Sensações` : "Produto — Gama Sensações";
@@ -67,6 +67,28 @@ export const Route = createFileRoute("/produto/$slug")({
         { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: url }],
+      scripts: p
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Product",
+                name: p.nome,
+                image: p.imagens?.length ? p.imagens : [image],
+                description,
+                brand: p.marca ? { "@type": "Brand", name: p.marca } : { "@type": "Brand", name: "Gama Sensações" },
+                offers: {
+                  "@type": "Offer",
+                  url,
+                  price: p.preco_varejo ?? undefined,
+                  priceCurrency: "BRL",
+                  availability: "https://schema.org/InStock",
+                },
+              }),
+            },
+          ]
+        : [],
     };
   },
   component: ProdutoPage,

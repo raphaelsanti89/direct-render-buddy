@@ -30,7 +30,7 @@ export const Route = createFileRoute("/kit/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("kits")
-      .select("nome, descricao_curta, descricao, imagens, slug")
+      .select("nome, descricao_curta, descricao, imagens, slug, preco_varejo")
       .eq("slug", params.slug)
       .eq("ativo", true)
       .maybeSingle();
@@ -38,7 +38,7 @@ export const Route = createFileRoute("/kit/$slug")({
   },
   head: ({ loaderData, params }) => {
     const k = loaderData?.meta as
-      | { nome: string; descricao_curta: string | null; descricao: string | null; imagens: string[] | null }
+      | { nome: string; descricao_curta: string | null; descricao: string | null; imagens: string[] | null; preco_varejo: number | null }
       | null
       | undefined;
     const title = k ? `${k.nome} | Kits Gama Sensações` : "Kit — Gama Sensações";
@@ -62,6 +62,28 @@ export const Route = createFileRoute("/kit/$slug")({
         { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: url }],
+      scripts: k
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Product",
+                name: k.nome,
+                image: k.imagens?.length ? k.imagens : [image],
+                description,
+                brand: { "@type": "Brand", name: "Gama Sensações" },
+                offers: {
+                  "@type": "Offer",
+                  url,
+                  price: k.preco_varejo ?? undefined,
+                  priceCurrency: "BRL",
+                  availability: "https://schema.org/InStock",
+                },
+              }),
+            },
+          ]
+        : [],
     };
   },
   component: KitPage,
