@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KitsRouteImport } from './routes/kits'
@@ -30,6 +31,11 @@ import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
 import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/produtos'
+    | '/sitemap.xml'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/produtos'
+    | '/sitemap.xml'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/produtos'
+    | '/sitemap.xml'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
@@ -275,6 +287,7 @@ export interface RootRouteChildren {
   KitsRoute: typeof KitsRoute
   LoginRoute: typeof LoginRoute
   ProdutosRoute: typeof ProdutosRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   KitSlugRoute: typeof KitSlugRoute
   PedidoNumeroRoute: typeof PedidoNumeroRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
@@ -282,6 +295,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produtos': {
       id: '/produtos'
       path: '/produtos'
@@ -469,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   KitsRoute: KitsRoute,
   LoginRoute: LoginRoute,
   ProdutosRoute: ProdutosRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   KitSlugRoute: KitSlugRoute,
   PedidoNumeroRoute: PedidoNumeroRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
@@ -476,3 +497,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
