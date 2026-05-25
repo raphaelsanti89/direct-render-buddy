@@ -134,26 +134,11 @@ function ProdutoPage() {
             {p.descricao_curta && <p className="mt-4 text-lg text-muted-foreground">{p.descricao_curta}</p>}
 
             <div className="mt-8 pb-8 border-b border-border">
-              {preco.badge && (
-                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gold mb-2">
-                  {preco.label}
-                </p>
-              )}
-              <div className="flex items-baseline gap-4">
-                <p className="font-display text-4xl text-foreground">{brl(preco.valor)}</p>
-                {preco.origem !== "varejo" && (
-                  <p className="text-lg text-muted-foreground line-through">{brl(preco.precoVarejoReferencia)}</p>
-                )}
-              </div>
-              {preco.economiaPercentual && (
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-gold">
-                  Economia de {preco.economiaPercentual}% sobre o varejo
-                </p>
-              )}
+              <PriceTiers p={p} profile={profile} />
 
               {/* CTA discreto para anônimo virar B2B/assinante */}
               {!profile && (
-                <p className="mt-4 text-xs text-muted-foreground">
+                <p className="mt-6 text-xs text-muted-foreground">
                   Empresa?{" "}
                   <Link to="/cadastro-b2b" className="text-gold hover:underline">
                     Solicite acesso B2B
