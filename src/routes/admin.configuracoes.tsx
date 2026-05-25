@@ -98,3 +98,87 @@ function AdminConfiguracoes() {
     </div>
   );
 }
+
+function LogoUpload({
+  value,
+  onChange,
+  chave,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  chave: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isDark = chave.includes("escura");
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem (PNG, SVG, WEBP).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "png";
+      const path = `logos/${chave}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("catalogo")
+        .upload(path, file, { cacheControl: "3600", upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("catalogo").getPublicUrl(path);
+      onChange(data.publicUrl);
+      toast.success("Logo enviada. Clique em Salvar para aplicar.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha no upload.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className={`w-32 h-16 flex items-center justify-center border border-border overflow-hidden ${
+          isDark ? "bg-surface-dark" : "bg-background"
+        }`}
+      >
+        {value ? (
+          <img src={value} alt="Logo" className="max-w-full max-h-full object-contain" />
+        ) : (
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+            sem logo
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-2 border border-border px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] hover:bg-surface disabled:opacity-50"
+        >
+          {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+          {uploading ? "Enviando" : value ? "Trocar PNG" : "Enviar PNG"}
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+          >
+            <X size={11} /> Remover
+          </button>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/svg+xml,image/webp"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+        />
+      </div>
+    </div>
+  );
+}
+
