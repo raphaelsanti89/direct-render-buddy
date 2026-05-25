@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Minus, Plus, Trash2, MessageCircle, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, MessageCircle, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 import { useConfig } from "@/hooks/useConfig";
 import { getPrecoForProfile } from "@/lib/preco";
 import { brl } from "@/lib/slug";
 import { toast } from "sonner";
+import { criarPedido, perfilLabel } from "@/lib/pedidos";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({
