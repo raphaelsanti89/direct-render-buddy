@@ -34,7 +34,9 @@ export const Route = createFileRoute("/produtos")({
       { name: "description", content: "Aromas premium para casa e ambientes corporativos." },
       { property: "og:title", content: "Produtos — Gama Sensações" },
       { property: "og:description", content: "Aromas premium para casa e ambientes corporativos." },
+      { property: "og:url", content: "https://gamasensacoes.com.br/produtos" },
     ],
+    links: [{ rel: "canonical", href: "https://gamasensacoes.com.br/produtos" }],
   }),
   component: ProdutosPage,
 });
