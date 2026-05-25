@@ -60,9 +60,10 @@ function Hero() {
           </h1>
 
           <p className="mt-8 text-base md:text-lg text-background/80 max-w-xl leading-relaxed font-light">
-            Aromas que despertam sensações, criam memórias e transformam
-            ambientes — feitos à mão, com a sensibilidade de quem entende que
-            cada espaço tem a sua própria presença.
+            Curadoria de aromas premium para escritórios, hotéis e empresas
+            que entendem o ambiente como parte da experiência. Distribuímos
+            marcas selecionadas, com atendimento próximo e entrega para todo
+            o Brasil.
           </p>
 
           <div className="mt-12 flex flex-wrap gap-4">
@@ -79,12 +80,6 @@ function Hero() {
             >
               Falar no WhatsApp
             </a>
-            <Link
-              to="/revendedores"
-              className="inline-flex items-center gap-3 text-background/85 px-2 py-4 text-xs uppercase tracking-[0.2em] font-medium border-b border-transparent hover:border-gold hover:text-gold transition-all"
-            >
-              Seja revendedor
-            </Link>
           </div>
         </div>
       </div>
