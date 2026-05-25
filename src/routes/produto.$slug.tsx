@@ -71,7 +71,7 @@ function ProdutoPage() {
     );
   }
 
-  const preco = getPrecoForProfile(p, profile);
+  
 
   function handleAdd(goToCart: boolean) {
     add(
