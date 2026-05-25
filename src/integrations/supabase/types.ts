@@ -565,6 +565,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      criar_pedido_publico: { Args: { payload: Json }; Returns: Json }
       get_pedido_publico: { Args: { p_numero: string }; Returns: Json }
       has_role: {
         Args: {
