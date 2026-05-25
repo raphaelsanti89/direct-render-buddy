@@ -1,0 +1,14 @@
+{
+  "name": "Gama Sensações",
+  "short_name": "Gama Sensações",
+  "description": "Aromas premium, marketing sensorial e ambientação.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8f3",
+  "theme_color": "#4E6B4A",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
