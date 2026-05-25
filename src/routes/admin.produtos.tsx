@@ -19,8 +19,13 @@ type Prod = {
   slug: string;
   descricao_curta: string | null;
   descricao: string | null;
+  preco_custo: number | null;
+  margem_varejo_pct: number | null;
   preco_varejo: number;
   preco_assinatura: number | null;
+  preco_b2b_1: number | null;
+  preco_b2b_2: number | null;
+  preco_b2b_3: number | null;
   categoria_id: string | null;
   imagens: string[] | null;
   volume: string | null;
@@ -35,10 +40,17 @@ type Prod = {
 
 const EMPTY: Partial<Prod> = {
   nome: "", slug: "", descricao_curta: "", descricao: "",
-  preco_varejo: 0, preco_assinatura: null, categoria_id: null,
+  preco_custo: null, margem_varejo_pct: 60,
+  preco_varejo: 0, preco_assinatura: null,
+  preco_b2b_1: null, preco_b2b_2: null, preco_b2b_3: null,
+  categoria_id: null,
   imagens: [], volume: "", intensidade: 3, sensacao_transmitida: "",
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
 };
+
+// Descontos sugeridos (sobre o preço de varejo)
+const DESC = { assinante: 0.13, b2b1: 0.15, b2b2: 0.20, b2b3: 0.25 };
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function ProdutosAdmin() {
   const [items, setItems] = useState<Prod[]>([]);
