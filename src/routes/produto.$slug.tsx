@@ -29,13 +29,46 @@ type Prod = {
   modo_de_uso: string | null;
 };
 
+const SITE_URL = "https://gamasensacoes.com.br";
+
 export const Route = createFileRoute("/produto/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Produto — Gama Sensações" },
-      { name: "description", content: "Aromas premium Gama Sensações" },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("produtos")
+      .select("nome, descricao_curta, descricao, imagens, marca, categoria_id, slug")
+      .eq("slug", params.slug)
+      .eq("ativo", true)
+      .maybeSingle();
+    return { meta: data };
+  },
+  head: ({ loaderData, params }) => {
+    const p = loaderData?.meta as
+      | { nome: string; descricao_curta: string | null; descricao: string | null; imagens: string[] | null; marca: string | null }
+      | null
+      | undefined;
+    const title = p ? `${p.nome}${p.marca ? ` — ${p.marca}` : ""} | Gama Sensações` : "Produto — Gama Sensações";
+    const description =
+      p?.descricao_curta ||
+      (p?.descricao ? p.descricao.slice(0, 160) : "Aromas premium Gama Sensações — fragrâncias exclusivas e marketing sensorial.");
+    const image = p?.imagens?.[0] || `${SITE_URL}/og-default.jpg`;
+    const url = `${SITE_URL}/produto/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: image },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: ProdutoPage,
 });
 
