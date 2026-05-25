@@ -270,25 +270,52 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cnpj: string | null
           created_at: string | null
           email: string | null
+          empresa_nome: string | null
           id: string
+          nivel_b2b: number | null
           nome: string | null
+          observacoes_admin: string | null
+          status_aprovacao:
+            | Database["public"]["Enums"]["status_aprovacao"]
+            | null
+          tipo_cliente: Database["public"]["Enums"]["tipo_cliente"]
           updated_at: string | null
+          whatsapp: string | null
         }
         Insert: {
+          cnpj?: string | null
           created_at?: string | null
           email?: string | null
+          empresa_nome?: string | null
           id: string
+          nivel_b2b?: number | null
           nome?: string | null
+          observacoes_admin?: string | null
+          status_aprovacao?:
+            | Database["public"]["Enums"]["status_aprovacao"]
+            | null
+          tipo_cliente?: Database["public"]["Enums"]["tipo_cliente"]
           updated_at?: string | null
+          whatsapp?: string | null
         }
         Update: {
+          cnpj?: string | null
           created_at?: string | null
           email?: string | null
+          empresa_nome?: string | null
           id?: string
+          nivel_b2b?: number | null
           nome?: string | null
+          observacoes_admin?: string | null
+          status_aprovacao?:
+            | Database["public"]["Enums"]["status_aprovacao"]
+            | null
+          tipo_cliente?: Database["public"]["Enums"]["tipo_cliente"]
           updated_at?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -328,6 +355,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
+      status_aprovacao: "pendente" | "aprovado" | "rejeitado"
+      tipo_cliente: "varejo" | "assinante" | "b2b"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -456,6 +485,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      status_aprovacao: ["pendente", "aprovado", "rejeitado"],
+      tipo_cliente: ["varejo", "assinante", "b2b"],
     },
   },
 } as const
