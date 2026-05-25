@@ -22,6 +22,7 @@ import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
 import { Route as KitSlugRouteImport } from './routes/kit.$slug'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminKitsRouteImport } from './routes/admin.kits'
+import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
 
 const ProdutosRoute = ProdutosRouteImport.update({
@@ -89,6 +90,11 @@ const AdminKitsRoute = AdminKitsRouteImport.update({
   path: '/kits',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminClientesRoute = AdminClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   id: '/categorias',
   path: '/categorias',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/clientes': typeof AdminClientesRoute
   '/admin/kits': typeof AdminKitsRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/clientes': typeof AdminClientesRoute
   '/admin/kits': typeof AdminKitsRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/clientes': typeof AdminClientesRoute
   '/admin/kits': typeof AdminKitsRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/kit/$slug': typeof KitSlugRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/produtos'
     | '/admin/categorias'
+    | '/admin/clientes'
     | '/admin/kits'
     | '/admin/produtos'
     | '/kit/$slug'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/produtos'
     | '/admin/categorias'
+    | '/admin/clientes'
     | '/admin/kits'
     | '/admin/produtos'
     | '/kit/$slug'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/produtos'
     | '/admin/categorias'
+    | '/admin/clientes'
     | '/admin/kits'
     | '/admin/produtos'
     | '/kit/$slug'
@@ -299,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKitsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/clientes': {
+      id: '/admin/clientes'
+      path: '/clientes'
+      fullPath: '/admin/clientes'
+      preLoaderRoute: typeof AdminClientesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categorias': {
       id: '/admin/categorias'
       path: '/categorias'
@@ -311,6 +330,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminCategoriasRoute: typeof AdminCategoriasRoute
+  AdminClientesRoute: typeof AdminClientesRoute
   AdminKitsRoute: typeof AdminKitsRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -318,6 +338,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriasRoute: AdminCategoriasRoute,
+  AdminClientesRoute: AdminClientesRoute,
   AdminKitsRoute: AdminKitsRoute,
   AdminProdutosRoute: AdminProdutosRoute,
   AdminIndexRoute: AdminIndexRoute,
