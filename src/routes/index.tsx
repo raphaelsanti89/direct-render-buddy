@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Leaf, Heart, Truck, Building2 } from "lucide-react";
+import { useConfig } from "@/hooks/useConfig";
 import heroImg from "@/assets/hero-aroma.jpg";
 import sobreImg from "@/assets/sobre-marca.jpg";
 import expImg from "@/assets/experiencia-sensorial.jpg";
@@ -37,6 +38,13 @@ function HomePage() {
 }
 
 function Hero() {
+  const { config } = useConfig();
+  const waNumber = (config.whatsapp_pedidos || "").replace(/\D/g, "");
+  const waMessage = encodeURIComponent(
+    config.mensagem_whatsapp ||
+      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+  );
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : "#";
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <img
@@ -79,7 +87,9 @@ function Hero() {
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <a
-              href="#"
+              href={waHref}
+              target={waHref === "#" ? undefined : "_blank"}
+              rel={waHref === "#" ? undefined : "noreferrer"}
               className="inline-flex items-center gap-3 border border-background/30 text-background px-8 py-4 text-xs uppercase tracking-[0.2em] font-medium hover:bg-background hover:text-foreground transition-all duration-500"
             >
               Falar no WhatsApp
@@ -159,6 +169,13 @@ function SobreMarca() {
 }
 
 function ExperienciaSensorial() {
+  const { config } = useConfig();
+  const waNumber = (config.whatsapp_pedidos || "").replace(/\D/g, "");
+  const waMessage = encodeURIComponent(
+    config.mensagem_whatsapp ||
+      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+  );
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : "#";
   const cards = [
     {
       tag: "01",
@@ -214,7 +231,9 @@ function ExperienciaSensorial() {
 
         <div className="mt-16 text-center">
           <a
-            href="#"
+            href={waHref}
+            target={waHref === "#" ? undefined : "_blank"}
+            rel={waHref === "#" ? undefined : "noreferrer"}
             className="inline-flex items-center gap-3 text-background border-b border-gold pb-2 text-xs uppercase tracking-[0.2em] hover:text-gold transition-colors"
           >
             Conversar pelo WhatsApp
