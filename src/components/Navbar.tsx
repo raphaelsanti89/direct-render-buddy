@@ -43,11 +43,11 @@ export function Navbar() {
             <img
               src={logo}
               alt="Gama Sensações"
-              className="h-12 lg:h-16 w-auto object-contain"
+              className="h-12 md:h-14 w-auto object-contain"
             />
           ) : (
-            <span className="font-display text-2xl tracking-wide text-foreground">
-              Gama <span className="text-gold italic">Sensações</span>
+            <span className="font-display text-lg md:text-xl tracking-wide text-foreground">
+              Gama <span className="text-gold italic ml-1">Sensações</span>
             </span>
           )}
         </Link>
