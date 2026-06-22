@@ -231,7 +231,9 @@ function ExperienciaSensorial() {
 
         <div className="mt-16 text-center">
           <a
-            href="#"
+            href={waHref}
+            target={waHref === "#" ? undefined : "_blank"}
+            rel={waHref === "#" ? undefined : "noreferrer"}
             className="inline-flex items-center gap-3 text-background border-b border-gold pb-2 text-xs uppercase tracking-[0.2em] hover:text-gold transition-colors"
           >
             Conversar pelo WhatsApp
