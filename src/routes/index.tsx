@@ -169,6 +169,13 @@ function SobreMarca() {
 }
 
 function ExperienciaSensorial() {
+  const { config } = useConfig();
+  const waNumber = (config.whatsapp_pedidos || "").replace(/\D/g, "");
+  const waMessage = encodeURIComponent(
+    config.mensagem_whatsapp ||
+      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+  );
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : "#";
   const cards = [
     {
       tag: "01",
