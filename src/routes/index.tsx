@@ -87,7 +87,9 @@ function Hero() {
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <a
-              href="#"
+              href={waHref}
+              target={waHref === "#" ? undefined : "_blank"}
+              rel={waHref === "#" ? undefined : "noreferrer"}
               className="inline-flex items-center gap-3 border border-background/30 text-background px-8 py-4 text-xs uppercase tracking-[0.2em] font-medium hover:bg-background hover:text-foreground transition-all duration-500"
             >
               Falar no WhatsApp
