@@ -38,6 +38,13 @@ function HomePage() {
 }
 
 function Hero() {
+  const { config } = useConfig();
+  const waNumber = (config.whatsapp_pedidos || "").replace(/\D/g, "");
+  const waMessage = encodeURIComponent(
+    config.mensagem_whatsapp ||
+      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+  );
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : "#";
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <img
