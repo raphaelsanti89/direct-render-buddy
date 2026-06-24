@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KitsRouteImport } from './routes/kits'
 import { Route as CategoriasRouteImport } from './routes/categorias'
@@ -39,6 +40,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhaContaRoute = MinhaContaRouteImport.update({
+  id: '/minha-conta',
+  path: '/minha-conta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/categorias': typeof CategoriasRoute
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
+  '/minha-conta': typeof MinhaContaRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/categorias': typeof CategoriasRoute
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
+  '/minha-conta': typeof MinhaContaRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/categorias': typeof CategoriasRoute
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
+  '/minha-conta': typeof MinhaContaRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/kits'
     | '/login'
+    | '/minha-conta'
     | '/produtos'
     | '/sitemap.xml'
     | '/admin/categorias'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/kits'
     | '/login'
+    | '/minha-conta'
     | '/produtos'
     | '/sitemap.xml'
     | '/admin/categorias'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/kits'
     | '/login'
+    | '/minha-conta'
     | '/produtos'
     | '/sitemap.xml'
     | '/admin/categorias'
@@ -286,6 +298,7 @@ export interface RootRouteChildren {
   CategoriasRoute: typeof CategoriasRoute
   KitsRoute: typeof KitsRoute
   LoginRoute: typeof LoginRoute
+  MinhaContaRoute: typeof MinhaContaRoute
   ProdutosRoute: typeof ProdutosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   KitSlugRoute: typeof KitSlugRoute
@@ -307,6 +320,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minha-conta': {
+      id: '/minha-conta'
+      path: '/minha-conta'
+      fullPath: '/minha-conta'
+      preLoaderRoute: typeof MinhaContaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -488,6 +508,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriasRoute: CategoriasRoute,
   KitsRoute: KitsRoute,
   LoginRoute: LoginRoute,
+  MinhaContaRoute: MinhaContaRoute,
   ProdutosRoute: ProdutosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   KitSlugRoute: KitSlugRoute,
