@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useConfig } from "@/hooks/useConfig";
+import { supabase } from "@/integrations/supabase/client";
 
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Início" },
-  { to: "/categorias", label: "Categorias" },
   { to: "/produtos", label: "Produtos" },
   { to: "/kits", label: "Kits" },
   { to: "/cadastro-b2b", label: "B2B" },
