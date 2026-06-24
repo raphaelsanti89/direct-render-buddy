@@ -17,16 +17,27 @@ const baseLinks = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [authed, setAuthed] = useState(false);
   const { count } = useCart();
   const { config } = useConfig();
   const logo = config.logo_url_clara || "";
 
+  const links = authed
+    ? [...baseLinks, { to: "/minha-conta", label: "Minha Conta" } as const]
+    : baseLinks;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthed(!!session);
+    });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   return (
