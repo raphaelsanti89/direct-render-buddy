@@ -185,7 +185,7 @@ function ProdutosAdmin() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {items.map((p) => (
-              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} onEdit={() => setEditing(p)} onDelete={() => del(p)} />
+              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
             ))}
           </div>
         )}
