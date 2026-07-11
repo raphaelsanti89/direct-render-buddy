@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify, brl } from "@/lib/slug";
 import { toast } from "sonner";
-import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy } from "lucide-react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Empty, Field, FormActions, FormDrawer } from "./admin.categorias";
 import * as XLSX from "xlsx";
@@ -121,6 +121,54 @@ function ProdutosAdmin() {
     load();
   }
 
+  async function duplicate(p: Prod) {
+    // Copia todos os campos relevantes; novo slug único; ativo=false até revisão.
+    const baseSlug = slugify(`${p.nome}-copia`);
+    let novoSlug = baseSlug;
+    // Garante unicidade acrescentando -2, -3... se necessário
+    for (let i = 2; i < 50; i++) {
+      const { data: existente } = await supabase
+        .from("produtos")
+        .select("id")
+        .eq("slug", novoSlug)
+        .maybeSingle();
+      if (!existente) break;
+      novoSlug = `${baseSlug}-${i}`;
+    }
+    const payload = {
+      nome: `${p.nome} (cópia)`,
+      slug: novoSlug,
+      descricao_curta: p.descricao_curta,
+      descricao: p.descricao,
+      preco_custo: p.preco_custo,
+      margem_varejo_pct: p.margem_varejo_pct,
+      preco_varejo: p.preco_varejo,
+      preco_assinatura: p.preco_assinatura,
+      preco_b2b_1: p.preco_b2b_1,
+      preco_b2b_2: p.preco_b2b_2,
+      preco_b2b_3: p.preco_b2b_3,
+      categoria_id: p.categoria_id,
+      imagens: p.imagens ?? [],
+      volume: p.volume,
+      intensidade: p.intensidade,
+      sensacao_transmitida: p.sensacao_transmitida,
+      durabilidade_media: p.durabilidade_media,
+      ativo: false, // rascunho até revisão manual
+      destaque: false,
+      lancamento: p.lancamento,
+      mais_vendido: false,
+    };
+    const { data, error } = await supabase
+      .from("produtos")
+      .insert(payload)
+      .select("*")
+      .single();
+    if (error) return toast.error(error.message);
+    toast.success("Produto duplicado — ajuste e ative para publicar");
+    await load();
+    setEditing(data as Prod);
+  }
+
   return (
     <>
       <ProdutosHeader
@@ -137,7 +185,7 @@ function ProdutosAdmin() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {items.map((p) => (
-              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} onEdit={() => setEditing(p)} onDelete={() => del(p)} />
+              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
             ))}
           </div>
         )}
@@ -263,7 +311,7 @@ function ProdutosAdmin() {
   );
 }
 
-function ProductCard({ p, catName, onEdit, onDelete }: { p: Prod; catName?: string; onEdit: () => void; onDelete: () => void }) {
+function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
   const img = p.imagens?.[0];
   return (
     <div className="bg-background flex flex-col">
@@ -294,10 +342,13 @@ function ProductCard({ p, catName, onEdit, onDelete }: { p: Prod; catName?: stri
         <div className="mt-auto pt-4 flex items-center justify-between">
           <span className="font-display text-lg text-foreground">{brl(p.preco_varejo)}</span>
           <div className="flex gap-2">
-            <button onClick={onEdit} className="p-2 text-foreground/60 hover:text-gold" aria-label="Editar">
+            <button onClick={onEdit} className="p-2 text-foreground/60 hover:text-gold" aria-label="Editar" title="Editar">
               <Pencil size={15} />
             </button>
-            <button onClick={onDelete} className="p-2 text-foreground/60 hover:text-destructive" aria-label="Excluir">
+            <button onClick={onDuplicate} className="p-2 text-foreground/60 hover:text-gold" aria-label="Duplicar" title="Duplicar">
+              <Copy size={15} />
+            </button>
+            <button onClick={onDelete} className="p-2 text-foreground/60 hover:text-destructive" aria-label="Excluir" title="Excluir">
               <Trash2 size={15} />
             </button>
           </div>
