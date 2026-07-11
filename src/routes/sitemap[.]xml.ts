@@ -63,5 +63,5 @@ ${[...staticUrls, ...dynamicUrls].join("\n")}
         });
       },
     },
-  },
+  } } as Record<string, unknown>),
 });
