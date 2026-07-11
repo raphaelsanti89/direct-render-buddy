@@ -311,7 +311,7 @@ function ProdutosAdmin() {
   );
 }
 
-function ProductCard({ p, catName, onEdit, onDelete }: { p: Prod; catName?: string; onEdit: () => void; onDelete: () => void }) {
+function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
   const img = p.imagens?.[0];
   return (
     <div className="bg-background flex flex-col">
