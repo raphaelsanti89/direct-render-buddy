@@ -121,6 +121,54 @@ function ProdutosAdmin() {
     load();
   }
 
+  async function duplicate(p: Prod) {
+    // Copia todos os campos relevantes; novo slug único; ativo=false até revisão.
+    const baseSlug = slugify(`${p.nome}-copia`);
+    let novoSlug = baseSlug;
+    // Garante unicidade acrescentando -2, -3... se necessário
+    for (let i = 2; i < 50; i++) {
+      const { data: existente } = await supabase
+        .from("produtos")
+        .select("id")
+        .eq("slug", novoSlug)
+        .maybeSingle();
+      if (!existente) break;
+      novoSlug = `${baseSlug}-${i}`;
+    }
+    const payload = {
+      nome: `${p.nome} (cópia)`,
+      slug: novoSlug,
+      descricao_curta: p.descricao_curta,
+      descricao: p.descricao,
+      preco_custo: p.preco_custo,
+      margem_varejo_pct: p.margem_varejo_pct,
+      preco_varejo: p.preco_varejo,
+      preco_assinatura: p.preco_assinatura,
+      preco_b2b_1: p.preco_b2b_1,
+      preco_b2b_2: p.preco_b2b_2,
+      preco_b2b_3: p.preco_b2b_3,
+      categoria_id: p.categoria_id,
+      imagens: p.imagens ?? [],
+      volume: p.volume,
+      intensidade: p.intensidade,
+      sensacao_transmitida: p.sensacao_transmitida,
+      durabilidade_media: p.durabilidade_media,
+      ativo: false, // rascunho até revisão manual
+      destaque: false,
+      lancamento: p.lancamento,
+      mais_vendido: false,
+    };
+    const { data, error } = await supabase
+      .from("produtos")
+      .insert(payload)
+      .select("*")
+      .single();
+    if (error) return toast.error(error.message);
+    toast.success("Produto duplicado — ajuste e ative para publicar");
+    await load();
+    setEditing(data as Prod);
+  }
+
   return (
     <>
       <ProdutosHeader
