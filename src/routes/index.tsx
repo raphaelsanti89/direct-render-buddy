@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Leaf, Heart, Truck, Building2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useConfig } from "@/hooks/useConfig";
+import { brl } from "@/lib/slug";
 import heroImg from "@/assets/hero-aroma.jpg";
 import sobreImg from "@/assets/sobre-marca.jpg";
 import expImg from "@/assets/experiencia-sensorial.jpg";
