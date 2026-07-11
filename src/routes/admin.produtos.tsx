@@ -342,10 +342,13 @@ function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; c
         <div className="mt-auto pt-4 flex items-center justify-between">
           <span className="font-display text-lg text-foreground">{brl(p.preco_varejo)}</span>
           <div className="flex gap-2">
-            <button onClick={onEdit} className="p-2 text-foreground/60 hover:text-gold" aria-label="Editar">
+            <button onClick={onEdit} className="p-2 text-foreground/60 hover:text-gold" aria-label="Editar" title="Editar">
               <Pencil size={15} />
             </button>
-            <button onClick={onDelete} className="p-2 text-foreground/60 hover:text-destructive" aria-label="Excluir">
+            <button onClick={onDuplicate} className="p-2 text-foreground/60 hover:text-gold" aria-label="Duplicar" title="Duplicar">
+              <Copy size={15} />
+            </button>
+            <button onClick={onDelete} className="p-2 text-foreground/60 hover:text-destructive" aria-label="Excluir" title="Excluir">
               <Trash2 size={15} />
             </button>
           </div>
