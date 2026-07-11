@@ -1,11 +1,13 @@
-/// <reference path="../../node_modules/@tanstack/start-client-core/dist/esm/serverRoute.d.ts" />
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const BASE_URL = "https://gamasensacoes.com.br";
 
 export const Route = createFileRoute("/sitemap.xml")({
-  server: {
+  // `server.handlers` is added by @tanstack/start-client-core via module
+  // augmentation. The augmentation isn't picked up in this project's
+  // strict tsconfig, so we cast the options here.
+  ...({ server: {
     handlers: {
       GET: async () => {
         const staticEntries = [
