@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import "@tanstack/start-client-core/serverRoute";
+import "@tanstack/start-client-core";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const BASE_URL = "https://gamasensacoes.com.br";
