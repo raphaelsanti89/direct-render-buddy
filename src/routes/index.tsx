@@ -30,6 +30,7 @@ function HomePage() {
   return (
     <div className="bg-background">
       <Hero />
+      <ProdutosDestaque />
       <SobreMarca />
       <ExperienciaSensorial />
       <ComoFunciona />
@@ -37,6 +38,123 @@ function HomePage() {
       <RedesSociais />
       <Newsletter />
     </div>
+  );
+}
+
+type ProdDestaque = {
+  id: string;
+  nome: string;
+  slug: string;
+  preco_varejo: number;
+  imagens: string[] | null;
+  categoria_id: string | null;
+  categorias?: { nome: string } | null;
+};
+
+function ProdutosDestaque() {
+  const [items, setItems] = useState<ProdDestaque[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      // Preferência: produtos marcados como destaque e ativos.
+      const { data: destaques } = await supabase
+        .from("produtos")
+        .select("id,nome,slug,preco_varejo,imagens,categoria_id,categorias(nome)")
+        .eq("ativo", true)
+        .eq("destaque", true)
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      let lista = (destaques as ProdDestaque[]) ?? [];
+
+      // Fallback: se nada marcado, traz os mais recentes.
+      if (lista.length === 0) {
+        const { data: recentes } = await supabase
+          .from("produtos")
+          .select("id,nome,slug,preco_varejo,imagens,categoria_id,categorias(nome)")
+          .eq("ativo", true)
+          .order("created_at", { ascending: false })
+          .limit(8);
+        lista = (recentes as ProdDestaque[]) ?? [];
+      }
+
+      setItems(lista);
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading || items.length === 0) return null;
+
+  return (
+    <section className="py-24 md:py-32 bg-surface">
+      <div className="container-editorial">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-6">— destaques</p>
+          <h2 className="font-display text-4xl md:text-5xl leading-[1.05] text-foreground">
+            Nossos <em className="text-gold not-italic">Aromas.</em>
+          </h2>
+          <p className="mt-6 text-foreground/70 leading-relaxed">
+            Uma seleção de aromas em destaque para você conhecer a nossa curadoria.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+          {items.map((p) => {
+            const img = p.imagens?.[0];
+            return (
+              <Link
+                key={p.id}
+                to="/produto/$slug"
+                params={{ slug: p.slug }}
+                className="group bg-background flex flex-col shadow-soft hover:shadow-lg transition-shadow"
+              >
+                <div className="aspect-[4/5] bg-surface overflow-hidden">
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={p.nome}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                      sem imagem
+                    </div>
+                  )}
+                </div>
+                <div className="p-5 md:p-6 flex-1 flex flex-col">
+                  {p.categorias?.nome && (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gold mb-2">
+                      {p.categorias.nome}
+                    </p>
+                  )}
+                  <h3 className="font-display text-lg md:text-xl text-foreground leading-tight">
+                    {p.nome}
+                  </h3>
+                  <div className="mt-auto pt-4 flex items-center justify-between">
+                    <span className="font-display text-lg text-foreground">{brl(p.preco_varejo)}</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-gold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                      Ver produto <ArrowRight size={12} />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-16 text-center">
+          <Link
+            to="/produtos"
+            className="inline-flex items-center gap-3 bg-foreground text-background px-8 py-4 text-xs uppercase tracking-[0.2em] font-medium hover:bg-gold hover:text-foreground transition-colors"
+          >
+            Ver catálogo completo
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
