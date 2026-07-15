@@ -58,7 +58,7 @@ function MinhaContaPage() {
           .maybeSingle(),
         supabase
           .from("pedidos")
-          .select("id, numero_pedido, status, total, created_at")
+          .select("id, numero_pedido, codigo_rastreio, status, total, created_at")
           .or(
             userEmail
               ? `cliente_id.eq.${uid},email.eq.${userEmail.toLowerCase()}`
