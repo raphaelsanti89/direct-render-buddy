@@ -129,7 +129,7 @@ function CarrinhoPage() {
         `*Acompanhar:* ${trackingLink}`,
       ].filter(Boolean).join("\n");
 
-      window.open(`https://wa.me/${empresaWa}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+      window.open(buildWhatsAppLink(config.whatsapp_pedidos, msg), "_blank", "noopener");
       clear();
       setSucesso({ numero: pedido.numero_pedido, link: trackingLink });
     } catch (e) {
