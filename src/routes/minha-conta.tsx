@@ -126,7 +126,13 @@ function MinhaContaPage() {
 
               {/* Pedidos */}
               <section className="bg-white border border-[#C8A96E]/30 rounded-sm p-6">
-                <h2 className="font-display text-2xl mb-5">Histórico de pedidos</h2>
+                <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
+                  <h2 className="font-display text-2xl">Histórico de pedidos</h2>
+                  <div className="text-right">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-[#2C4A35]/60">Prazo de entrega</p>
+                    <p className="text-sm mt-1">7 a 10 dias úteis · <Link to="/politica-de-trocas" className="text-[#C8A96E] hover:underline">ver política</Link></p>
+                  </div>
+                </div>
                 {pedidos.length === 0 ? (
                   <p className="text-sm text-[#2C4A35]/60">
                     Você ainda não fez pedidos.
