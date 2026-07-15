@@ -211,7 +211,7 @@ function ManageDrawer({ profile, onClose, onChanged }: { profile: Profile; onClo
   async function doApprove() {
     setBusy(true);
     try {
-      await approve({ data: { profile_id: profile.id, nivel_b2b: nivel, observacoes_admin: obs || undefined } });
+      await approve({ data: { profile_id: profile.id!, nivel_b2b: nivel, observacoes_admin: obs || undefined } });
       toast.success(`Aprovado como B2B Nível ${nivel}.`);
       onChanged();
     } catch (e) {
@@ -222,7 +222,7 @@ function ManageDrawer({ profile, onClose, onChanged }: { profile: Profile; onClo
   async function doReject() {
     setBusy(true);
     try {
-      await reject({ data: { profile_id: profile.id, observacoes_admin: obs || undefined } });
+      await reject({ data: { profile_id: profile.id!, observacoes_admin: obs || undefined } });
       toast.success("Solicitação rejeitada.");
       onChanged();
     } catch (e) {
@@ -234,7 +234,7 @@ function ManageDrawer({ profile, onClose, onChanged }: { profile: Profile; onClo
     if (!confirm("Voltar este cliente para Varejo? Ele perderá nível B2B / Assinante.")) return;
     setBusy(true);
     try {
-      await reset({ data: { profile_id: profile.id } });
+      await reset({ data: { profile_id: profile.id! } });
       toast.success("Cliente voltou para Varejo.");
       onChanged();
     } catch (e) {
