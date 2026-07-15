@@ -37,6 +37,15 @@ function DashboardPage() {
     pedidosHoje: 0, pedidosMes: 0, faturamentoMes: 0, ticketMedio: 0, aguardando: 0, estoqueBaixo: 0,
   });
   const [recentes, setRecentes] = useState<Recent[]>([]);
+  const [custoFixo, setCustoFixo] = useState(0);
+  const [pontoEquilibrio, setPontoEquilibrio] = useState(0);
+  const [reservaGiro, setReservaGiro] = useState(0);
+  const [metaDia, setMetaDia] = useState(0);
+  const [receitaMes, setReceitaMes] = useState(0);
+  const [perfis, setPerfis] = useState<Array<{ perfil: string; receita: number; num_pedidos: number }>>([]);
+  const [fornecedores, setFornecedores] = useState<Array<{ id: string; nome: string; pedido_minimo: number; margem: number; abaixoPiso: boolean }>>([]);
+  const [fornTotalMin, setFornTotalMin] = useState(0);
+  const [margemPiso, setMargemPiso] = useState(50);
 
   useEffect(() => {
     (async () => {
@@ -46,7 +55,7 @@ function DashboardPage() {
       inicioMes.setDate(1);
       inicioMes.setHours(0, 0, 0, 0);
 
-      const [prodCountRes, kitCountRes, estoqueBaixoRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes] = await Promise.all([
+      const [prodCountRes, kitCountRes, estoqueBaixoRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes, custosFixosRes, cfgRes, metricasRes, perfisRes, fornRes] = await Promise.all([
         supabase.rpc("admin_count_produtos"),
         supabase.rpc("admin_count_kits"),
         supabase.rpc("admin_count_estoque_baixo"),
@@ -56,6 +65,11 @@ function DashboardPage() {
         supabase.from("pedidos").select("total", { count: "exact" }).gte("created_at", inicioHoje.toISOString()),
         supabase.from("pedidos").select("total", { count: "exact" }).gte("created_at", inicioMes.toISOString()).neq("status", "cancelado"),
         supabase.from("pedidos").select("id,numero_pedido,nome_cliente,total,status,created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("custos_fixos").select("valor_mensal"),
+        supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["meses_reserva", "dias_uteis_mes", "margem_piso", "margem_meta"]),
+        supabase.rpc("admin_metricas_vendas_30d"),
+        supabase.rpc("admin_vendas_mes_por_perfil"),
+        supabase.from("fornecedores").select("id,nome,pedido_minimo,custo_medio,preco_medio"),
       ]);
 
       const totalMes = (mes.data ?? []).reduce((s, r: any) => s + Number(r.total ?? 0), 0);
@@ -63,6 +77,32 @@ function DashboardPage() {
       const p = (prodCountRes.data as number | null) ?? 0;
       const k = (kitCountRes.data as number | null) ?? 0;
       const eb = (estoqueBaixoRes.data as number | null) ?? 0;
+
+      const totalFixo = (custosFixosRes.data ?? []).reduce((s, r: any) => s + Number(r.valor_mensal ?? 0), 0);
+      const cfgMap = new Map((cfgRes.data ?? []).map((r: any) => [r.chave, r.valor]));
+      const meses = Number(cfgMap.get("meses_reserva") ?? 3);
+      const diasU = Number(cfgMap.get("dias_uteis_mes") ?? 26);
+      const piso = Number(cfgMap.get("margem_piso") ?? 50);
+      const metricas: any = metricasRes.data ?? {};
+      const margemReal = Number(metricas.margem_real ?? 0);
+      const pe = margemReal > 0 ? totalFixo / margemReal : 0;
+      setCustoFixo(totalFixo);
+      setPontoEquilibrio(pe);
+      setReservaGiro(totalFixo * meses);
+      setMetaDia(diasU > 0 ? pe / diasU : 0);
+      setMargemPiso(piso);
+
+      const perfisData = (perfisRes.data as Array<{ perfil: string; receita: number; num_pedidos: number }>) ?? [];
+      setPerfis(perfisData);
+      setReceitaMes(perfisData.reduce((s, r) => s + Number(r.receita ?? 0), 0));
+
+      const fornData = (fornRes.data as Array<{ id: string; nome: string; pedido_minimo: number; custo_medio: number; preco_medio: number }>) ?? [];
+      const fornMap = fornData.map((f) => {
+        const margem = Number(f.preco_medio) > 0 ? ((Number(f.preco_medio) - Number(f.custo_medio)) / Number(f.preco_medio)) * 100 : 0;
+        return { id: f.id, nome: f.nome, pedido_minimo: Number(f.pedido_minimo), margem, abaixoPiso: margem < piso };
+      });
+      setFornecedores(fornMap);
+      setFornTotalMin(fornMap.reduce((s, f) => s + f.pedido_minimo, 0));
 
       setStats({
         produtos: p, kits: k, categorias: c ?? 0, leads: l ?? 0,
@@ -76,6 +116,9 @@ function DashboardPage() {
       setRecentes((recentesRes.data as Recent[]) ?? []);
     })();
   }, []);
+
+  const progressoMeta = pontoEquilibrio > 0 ? Math.min(100, (receitaMes / pontoEquilibrio) * 100) : 0;
+  const PERFIL_LABEL: Record<string, string> = { varejo: "Varejo", assinante: "Assinante", b2b_1: "B2B 1", b2b_2: "B2B 2", b2b_3: "B2B 3" };
 
   return (
     <>
