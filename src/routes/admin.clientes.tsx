@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin/clientes")({
 });
 
 type Profile = {
-  id: string;
+  id: string | null;
   nome: string | null;
   email: string | null;
   tipo_cliente: "varejo" | "assinante" | "b2b";
@@ -27,9 +27,12 @@ type Profile = {
   whatsapp: string | null;
   observacoes_admin: string | null;
   created_at: string;
+  is_guest: boolean;
+  total_pedidos: number;
+  total_gasto: number;
 };
 
-type Filter = "todos" | "pendentes" | "b2b" | "assinantes" | "varejo";
+type Filter = "todos" | "pendentes" | "b2b" | "assinantes" | "varejo" | "guest";
 
 function AdminClientesPage() {
   return (
@@ -42,18 +45,19 @@ function AdminClientesPage() {
 function ClientesContent() {
   const [items, setItems] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("pendentes");
+  const [filter, setFilter] = useState<Filter>("todos");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
 
   async function reload() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await (supabase.rpc as any)("admin_list_clientes");
     if (error) toast.error(error.message);
-    setItems((data as Profile[]) ?? []);
+    setItems(((data as Profile[]) ?? []).map((r) => ({
+      ...r,
+      total_pedidos: Number(r.total_pedidos ?? 0),
+      total_gasto: Number(r.total_gasto ?? 0),
+    })));
     setLoading(false);
   }
 
@@ -63,10 +67,11 @@ function ClientesContent() {
     if (filter === "pendentes" && !(p.tipo_cliente === "b2b" && p.status_aprovacao === "pendente")) return false;
     if (filter === "b2b" && p.tipo_cliente !== "b2b") return false;
     if (filter === "assinantes" && p.tipo_cliente !== "assinante") return false;
-    if (filter === "varejo" && p.tipo_cliente !== "varejo") return false;
+    if (filter === "varejo" && (p.tipo_cliente !== "varejo" || p.is_guest)) return false;
+    if (filter === "guest" && !p.is_guest) return false;
     if (search) {
       const q = search.toLowerCase();
-      const blob = [p.nome, p.email, p.empresa_nome, p.cnpj].filter(Boolean).join(" ").toLowerCase();
+      const blob = [p.nome, p.email, p.empresa_nome, p.cnpj, p.whatsapp].filter(Boolean).join(" ").toLowerCase();
       if (!blob.includes(q)) return false;
     }
     return true;
