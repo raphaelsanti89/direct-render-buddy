@@ -25,29 +25,57 @@ type Row = {
 
 type Vel = { produto_id: string; qtd_30d: number; media_diaria: number; sugestao_minimo: number; campeao: boolean };
 type Resumo = { valor_total: number; comprar_agora: number; comprar_em_breve: number };
+type Campeao = {
+  produto_id: string;
+  nome: string;
+  qtd_vendida: number;
+  media_diaria: number;
+  estoque_atual: number;
+  estoque_minimo_atual: number;
+  estoque_ideal_atual: number;
+};
 
 function EstoquePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [velMap, setVelMap] = useState<Map<string, Vel>>(new Map());
   const [resumo, setResumo] = useState<Resumo>({ valor_total: 0, comprar_agora: 0, comprar_em_breve: 0 });
+  const [campeoes, setCampeoes] = useState<Campeao[]>([]);
+  const [coberturaMin, setCoberturaMin] = useState<number>(15);
+  const [coberturaIdeal, setCoberturaIdeal] = useState<number>(30);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
 
   async function load() {
     setLoading(true);
-    const [{ data: posicao }, { data: res }, { data: vel }] = await Promise.all([
+    const [{ data: posicao }, { data: res }, { data: vel }, { data: camp }, { data: cfg }] = await Promise.all([
       supabase.rpc("admin_estoque_posicao"),
       supabase.rpc("admin_estoque_resumo"),
       supabase.rpc("admin_produtos_velocidade"),
+      supabase.rpc("admin_produtos_mais_vendidos", { dias_periodo: 30 }),
+      supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["cobertura_minimo_dias", "cobertura_ideal_dias"]),
     ]);
     setRows((posicao as Row[]) ?? []);
     if (res) setResumo(res as unknown as Resumo);
     const m = new Map<string, Vel>();
     ((vel as Vel[]) ?? []).forEach((v) => m.set(v.produto_id, v));
     setVelMap(m);
+    setCampeoes((camp as Campeao[]) ?? []);
+    const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
+    setCoberturaMin(Number(cfgMap.get("cobertura_minimo_dias") ?? 15));
+    setCoberturaIdeal(Number(cfgMap.get("cobertura_ideal_dias") ?? 30));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
+
+  async function aplicarSugestaoCampeao(c: Campeao) {
+    const sugMin = Math.ceil(Number(c.media_diaria) * coberturaMin);
+    const sugIdeal = Math.ceil(Number(c.media_diaria) * coberturaIdeal);
+    if (!confirm(`Aplicar em "${c.nome}"?\nMínimo: ${c.estoque_minimo_atual} → ${sugMin}\nIdeal: ${c.estoque_ideal_atual} → ${sugIdeal}`)) return;
+    const { error } = await supabase.from("produtos").update({ estoque_minimo: sugMin, estoque_ideal: sugIdeal }).eq("id", c.produto_id);
+    if (error) return toast.error(error.message);
+    toast.success("Sugestão aplicada.");
+    load();
+  }
 
   const sugestoesPendentes = useMemo(
     () => rows.filter((r) => {
@@ -108,6 +136,74 @@ function EstoquePage() {
         <StatCard label="Valor investido em estoque" value={brl(resumo.valor_total)} icon={Wallet} />
         <StatCard label="Comprar agora" value={String(resumo.comprar_agora)} icon={AlertTriangle} tone="destructive" />
         <StatCard label="Comprar em breve" value={String(resumo.comprar_em_breve)} icon={PackageCheck} tone="amber" />
+      </div>
+
+
+      {/* Campeões de venda */}
+      <div className="bg-background border border-border mb-10">
+        <div className="p-6 pb-3 flex items-center gap-3">
+          <Trophy className="text-gold" size={16} />
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— campeões de venda (últimos 30 dias)</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sugestões calculadas com cobertura de {coberturaMin} dias (mínimo) e {coberturaIdeal} dias (ideal).
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          {campeoes.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">Ainda não há vendas suficientes para gerar campeões.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-surface/50 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <tr>
+                  <th className="text-left px-4 py-3">Produto</th>
+                  <th className="text-right px-4 py-3">Vendas 30d</th>
+                  <th className="text-right px-4 py-3">Média/dia</th>
+                  <th className="text-right px-4 py-3">Atual</th>
+                  <th className="text-right px-4 py-3">Mín. atual</th>
+                  <th className="text-right px-4 py-3">Sug. mín.</th>
+                  <th className="text-right px-4 py-3">Ideal atual</th>
+                  <th className="text-right px-4 py-3">Sug. ideal</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {campeoes.map((c) => {
+                  const sugMin = Math.ceil(Number(c.media_diaria) * coberturaMin);
+                  const sugIdeal = Math.ceil(Number(c.media_diaria) * coberturaIdeal);
+                  const precisaMin = sugMin > c.estoque_minimo_atual;
+                  const precisaIdeal = sugIdeal > c.estoque_ideal_atual;
+                  const pendente = precisaMin || precisaIdeal;
+                  return (
+                    <tr key={c.produto_id}>
+                      <td className="px-4 py-3 text-foreground">{c.nome}</td>
+                      <td className="px-4 py-3 text-right font-mono">{c.qtd_vendida}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground text-xs">{Number(c.media_diaria).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">{c.estoque_atual}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{c.estoque_minimo_atual}</td>
+                      <td className={`px-4 py-3 text-right ${precisaMin ? "text-amber-700 dark:text-amber-400 font-medium" : "text-muted-foreground"}`}>{sugMin}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{c.estoque_ideal_atual}</td>
+                      <td className={`px-4 py-3 text-right ${precisaIdeal ? "text-amber-700 dark:text-amber-400 font-medium" : "text-muted-foreground"}`}>{sugIdeal}</td>
+                      <td className="px-4 py-3 text-right">
+                        {pendente ? (
+                          <button
+                            onClick={() => aplicarSugestaoCampeao(c)}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 border border-gold text-gold hover:bg-gold hover:text-background transition-colors"
+                          >
+                            <Check size={10} /> Aplicar
+                          </button>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-[0.18em] text-green-700 dark:text-green-400">OK</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
       <div className="bg-background border border-border overflow-x-auto">

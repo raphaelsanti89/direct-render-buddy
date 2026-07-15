@@ -995,6 +995,18 @@ export type Database = {
         }
       }
       admin_metricas_vendas_30d: { Args: never; Returns: Json }
+      admin_produtos_mais_vendidos: {
+        Args: { dias_periodo?: number }
+        Returns: {
+          estoque_atual: number
+          estoque_ideal_atual: number
+          estoque_minimo_atual: number
+          media_diaria: number
+          nome: string
+          produto_id: string
+          qtd_vendida: number
+        }[]
+      }
       admin_produtos_velocidade: {
         Args: never
         Returns: {
