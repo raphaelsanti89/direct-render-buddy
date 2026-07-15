@@ -178,6 +178,7 @@ function NovoPedidoManualPage() {
       const { data: pedidoCriado, error: errPedido } = await supabase
         .from("pedidos")
         .insert({
+          numero_pedido: "",
           cliente_id,
           nome_cliente: nome,
           telefone,
