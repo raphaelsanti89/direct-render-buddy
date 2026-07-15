@@ -25,29 +25,57 @@ type Row = {
 
 type Vel = { produto_id: string; qtd_30d: number; media_diaria: number; sugestao_minimo: number; campeao: boolean };
 type Resumo = { valor_total: number; comprar_agora: number; comprar_em_breve: number };
+type Campeao = {
+  produto_id: string;
+  nome: string;
+  qtd_vendida: number;
+  media_diaria: number;
+  estoque_atual: number;
+  estoque_minimo_atual: number;
+  estoque_ideal_atual: number;
+};
 
 function EstoquePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [velMap, setVelMap] = useState<Map<string, Vel>>(new Map());
   const [resumo, setResumo] = useState<Resumo>({ valor_total: 0, comprar_agora: 0, comprar_em_breve: 0 });
+  const [campeoes, setCampeoes] = useState<Campeao[]>([]);
+  const [coberturaMin, setCoberturaMin] = useState<number>(15);
+  const [coberturaIdeal, setCoberturaIdeal] = useState<number>(30);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
 
   async function load() {
     setLoading(true);
-    const [{ data: posicao }, { data: res }, { data: vel }] = await Promise.all([
+    const [{ data: posicao }, { data: res }, { data: vel }, { data: camp }, { data: cfg }] = await Promise.all([
       supabase.rpc("admin_estoque_posicao"),
       supabase.rpc("admin_estoque_resumo"),
       supabase.rpc("admin_produtos_velocidade"),
+      supabase.rpc("admin_produtos_mais_vendidos", { dias_periodo: 30 }),
+      supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["cobertura_minimo_dias", "cobertura_ideal_dias"]),
     ]);
     setRows((posicao as Row[]) ?? []);
     if (res) setResumo(res as unknown as Resumo);
     const m = new Map<string, Vel>();
     ((vel as Vel[]) ?? []).forEach((v) => m.set(v.produto_id, v));
     setVelMap(m);
+    setCampeoes((camp as Campeao[]) ?? []);
+    const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
+    setCoberturaMin(Number(cfgMap.get("cobertura_minimo_dias") ?? 15));
+    setCoberturaIdeal(Number(cfgMap.get("cobertura_ideal_dias") ?? 30));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
+
+  async function aplicarSugestaoCampeao(c: Campeao) {
+    const sugMin = Math.ceil(Number(c.media_diaria) * coberturaMin);
+    const sugIdeal = Math.ceil(Number(c.media_diaria) * coberturaIdeal);
+    if (!confirm(`Aplicar em "${c.nome}"?\nMínimo: ${c.estoque_minimo_atual} → ${sugMin}\nIdeal: ${c.estoque_ideal_atual} → ${sugIdeal}`)) return;
+    const { error } = await supabase.from("produtos").update({ estoque_minimo: sugMin, estoque_ideal: sugIdeal }).eq("id", c.produto_id);
+    if (error) return toast.error(error.message);
+    toast.success("Sugestão aplicada.");
+    load();
+  }
 
   const sugestoesPendentes = useMemo(
     () => rows.filter((r) => {
