@@ -184,7 +184,15 @@ function AdminPedidosPage() {
                       {STATUS_ADMIN_LABEL[p.status]}
                     </span>
                   </td>
-                  <td className="p-4 text-xs text-muted-foreground">{p.origem_pedido}</td>
+                  <td className="p-4">
+                    <span className={`text-[10px] px-2 py-1 uppercase tracking-[0.18em] ${
+                      p.origem_pedido === "manual"
+                        ? "bg-gold/15 text-gold"
+                        : "bg-surface text-muted-foreground"
+                    }`}>
+                      {p.origem_pedido}
+                    </span>
+                  </td>
                   <td className="p-4 text-xs text-muted-foreground">
                     {new Date(p.created_at).toLocaleDateString("pt-BR")}
                   </td>
