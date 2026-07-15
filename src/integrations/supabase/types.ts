@@ -366,7 +366,7 @@ export type Database = {
           canal_contato?: Database["public"]["Enums"]["pedido_canal"]
           cliente_id?: string | null
           codigo_rastreamento?: string | null
-          codigo_rastreio: string
+          codigo_rastreio?: string
           created_at?: string
           desconto?: number
           email?: string | null

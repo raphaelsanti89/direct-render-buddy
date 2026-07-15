@@ -1,0 +1,1 @@
+ALTER TABLE public.pedidos ALTER COLUMN codigo_rastreio SET DEFAULT '';
