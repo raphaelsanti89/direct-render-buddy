@@ -165,9 +165,10 @@ export async function criarPedido(input: CreatePedidoInput): Promise<CreatedPedi
     throw new Error(error?.message ?? "Falha ao registrar pedido.");
   }
 
-  const result = data as unknown as { id: string; numero_pedido: string };
-  return { id: result.id, numero_pedido: result.numero_pedido };
+  const result = data as unknown as { id: string; numero_pedido: string; codigo_rastreio: string };
+  return { id: result.id, numero_pedido: result.numero_pedido, codigo_rastreio: result.codigo_rastreio };
 }
+
 
 
 export function perfilLabel(p: {
