@@ -138,11 +138,6 @@ function EstoquePage() {
         <StatCard label="Comprar em breve" value={String(resumo.comprar_em_breve)} icon={PackageCheck} tone="amber" />
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-px bg-border mb-10">
-        <StatCard label="Valor investido em estoque" value={brl(resumo.valor_total)} icon={Wallet} />
-        <StatCard label="Comprar agora" value={String(resumo.comprar_agora)} icon={AlertTriangle} tone="destructive" />
-        <StatCard label="Comprar em breve" value={String(resumo.comprar_em_breve)} icon={PackageCheck} tone="amber" />
-      </div>
 
       {/* Campeões de venda */}
       <div className="bg-background border border-border mb-10">
