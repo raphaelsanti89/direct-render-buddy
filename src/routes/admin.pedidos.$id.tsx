@@ -183,11 +183,8 @@ function AdminPedidoDetalhePage() {
     );
   }
 
-  const waNumber = pedido.telefone.replace(/\D/g, "");
   const waMessage = buildWhatsMessage(pedido);
-  const waLink = waNumber
-    ? `https://wa.me/${waNumber}${waMessage ? `?text=${encodeURIComponent(waMessage)}` : ""}`
-    : null;
+  const waLink = buildWhatsAppLink(pedido.telefone, waMessage) || null;
 
   return (
     <div>
