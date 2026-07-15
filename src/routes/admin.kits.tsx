@@ -83,7 +83,7 @@ function KitsAdmin() {
     ]);
     if (error) toast.error(error.message);
     setItems((kitsData as Kit[]) ?? []);
-    setProdutos((prodData as Produto[]) ?? []);
+    setProdutos(((prodData as Produto[]) ?? []).filter((p: any) => p.ativo !== false));
     const cats: Record<string, string> = {};
     (catData ?? []).forEach((c: any) => { cats[c.id] = c.nome; });
     setCategorias(cats);
