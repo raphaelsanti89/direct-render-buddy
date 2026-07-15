@@ -428,7 +428,12 @@ function ProductCard({ p, catName, margemPiso, margemMeta, campeao, qtd30d, onEd
             sem imagem
           </div>
         )}
-        <div className="absolute top-3 left-3 flex gap-1">
+        <div className="absolute top-3 left-3 flex gap-1 flex-wrap">
+          {campeao && (
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] bg-gold text-background px-2 py-1 inline-flex items-center gap-1" title={`Top 20% em vendas — ${qtd30d} un. em 30 dias`}>
+              <Trophy size={10} /> Campeão
+            </span>
+          )}
           {p.destaque && <Badge>Destaque</Badge>}
           {p.lancamento && <Badge>Novo</Badge>}
         </div>
