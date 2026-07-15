@@ -616,11 +616,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_count_kits: { Args: never; Returns: number }
+      admin_count_produtos: { Args: never; Returns: number }
       admin_get_kit_componentes: {
         Args: { p_kit_id: string }
         Returns: {
           produto_id: string
           quantidade: number
+        }[]
+      }
+      admin_list_clientes: {
+        Args: never
+        Returns: {
+          cnpj: string
+          created_at: string
+          email: string
+          empresa_nome: string
+          id: string
+          is_guest: boolean
+          nivel_b2b: number
+          nome: string
+          observacoes_admin: string
+          status_aprovacao: string
+          tipo_cliente: string
+          total_gasto: number
+          total_pedidos: number
+          whatsapp: string
         }[]
       }
       admin_list_kits: {
