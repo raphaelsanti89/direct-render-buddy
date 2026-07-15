@@ -409,7 +409,7 @@ function ProdutosAdmin() {
   );
 }
 
-function ProductCard({ p, catName, margemPiso, margemMeta, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; margemPiso: number; margemMeta: number; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
+function ProductCard({ p, catName, margemPiso, margemMeta, campeao, qtd30d, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; margemPiso: number; margemMeta: number; campeao: boolean; qtd30d: number; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
   const img = p.imagens?.[0];
   const custo = Number(p.preco_custo ?? 0);
   const varejo = Number(p.preco_varejo ?? 0);
