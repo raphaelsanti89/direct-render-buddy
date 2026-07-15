@@ -392,3 +392,23 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
     </div>
   );
 }
+
+function buildWhatsMessage(p: Pedido): string {
+  const nome = p.nome_cliente?.split(" ")[0] || p.nome_cliente || "";
+  const numero = p.numero_pedido;
+  const rastreio = p.codigo_rastreamento?.trim();
+  switch (p.status) {
+    case "confirmado":
+      return `Olá ${nome}! Seu pedido ${numero} foi confirmado. Em breve você recebe as próximas atualizações por aqui.`;
+    case "em_separacao":
+      return `Seu pedido ${numero} está sendo separado com carinho.`;
+    case "enviado":
+      return `Seu pedido ${numero} foi enviado! Prazo estimado de entrega: 7 a 10 dias úteis.${rastreio ? ` Código de rastreio: ${rastreio}` : ""}`;
+    case "entregue":
+      return `Seu pedido ${numero} foi entregue! Esperamos que goste. Qualquer dúvida, é só chamar por aqui.`;
+    case "cancelado":
+      return `Seu pedido ${numero} foi cancelado. Qualquer dúvida, estamos à disposição.`;
+    default:
+      return "";
+  }
+}
