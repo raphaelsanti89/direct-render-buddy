@@ -68,19 +68,26 @@ function ProdutosAdmin() {
   const { filter } = Route.useSearch();
   const [items, setItems] = useState<Prod[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [margemPiso, setMargemPiso] = useState(50);
+  const [margemMeta, setMargemMeta] = useState(55);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Prod> | null>(null);
 
   async function load() {
     setLoading(true);
-    const [{ data: p }, { data: c }] = await Promise.all([
-      // RPC (SECURITY DEFINER + admin check) — retorna colunas de custo/margem que
-      // ficam ocultas para o role `authenticated` na tabela base.
+    const [{ data: p }, { data: c }, { data: f }, { data: cfg }] = await Promise.all([
       supabase.rpc("admin_list_produtos"),
       supabase.from("categorias").select("id,nome").order("nome"),
+      supabase.from("fornecedores").select("id,nome").order("nome"),
+      supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["margem_piso", "margem_meta"]),
     ]);
     setItems((p as Prod[]) ?? []);
     setCats((c as Cat[]) ?? []);
+    setFornecedores((f as Fornecedor[]) ?? []);
+    const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
+    setMargemPiso(Number(cfgMap.get("margem_piso") ?? 50));
+    setMargemMeta(Number(cfgMap.get("margem_meta") ?? 55));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
