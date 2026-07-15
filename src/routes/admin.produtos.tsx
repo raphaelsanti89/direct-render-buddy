@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify, brl } from "@/lib/slug";
 import { toast } from "sonner";
-import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy, AlertTriangle } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy, AlertTriangle, Trophy } from "lucide-react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Empty, Field, FormActions, FormDrawer } from "./admin.categorias";
 import * as XLSX from "xlsx";
