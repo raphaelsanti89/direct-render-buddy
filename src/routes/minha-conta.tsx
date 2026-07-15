@@ -27,6 +27,8 @@ type Profile = {
 type Pedido = {
   id: string;
   numero_pedido: string;
+  codigo_rastreio: string;
+
   status: PedidoStatus;
   total: number;
   created_at: string;
