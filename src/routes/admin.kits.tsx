@@ -301,13 +301,13 @@ function KitsAdmin() {
                 <div className="border border-border">
                   {componentes.map((c, i) => {
                     const p = produtos.find((x) => x.id === c.produto_id);
-                    const semEst = p && (p.estoque ?? 0) < c.quantidade;
+                    const semEst = p && (p.estoque_atual ?? 0) < c.quantidade;
                     return (
                       <div key={c.produto_id} className="flex items-center gap-3 p-3 border-b border-border last:border-b-0">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-foreground truncate">{p?.nome ?? "(produto removido)"}</div>
                           <div className="text-xs text-muted-foreground">
-                            Custo {brl(Number(p?.preco_custo ?? 0))} · Varejo {brl(Number(p?.preco_varejo ?? 0))} · Estoque {p?.estoque ?? 0}
+                            Custo {brl(Number(p?.preco_custo ?? 0))} · Varejo {brl(Number(p?.preco_varejo ?? 0))} · Estoque {p?.estoque_atual ?? 0}
                           </div>
                         </div>
                         <input
@@ -462,7 +462,7 @@ function ProdutoPicker({
             >
               <div className="text-sm text-foreground">{p.nome}</div>
               <div className="text-xs text-muted-foreground">
-                {categorias[p.categoria_id ?? ""] ?? "—"} · Varejo {brl(Number(p.preco_varejo))} · Estoque {p.estoque ?? 0}
+                {categorias[p.categoria_id ?? ""] ?? "—"} · Varejo {brl(Number(p.preco_varejo))} · Estoque {p.estoque_atual ?? 0}
               </div>
             </button>
           ))}
