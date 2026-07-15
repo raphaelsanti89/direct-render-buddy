@@ -187,6 +187,7 @@ function Hero() {
       config.mensagem_whatsapp ||
         "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
     ) || "#";
+  return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <img
         src={heroImg}
