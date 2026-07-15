@@ -610,32 +610,7 @@ export type Database = {
       }
     }
     Views: {
-      kit_composicao_publica: {
-        Row: {
-          kit_id: string | null
-          produto_id: string | null
-          produto_imagens: string[] | null
-          produto_nome: string | null
-          produto_slug: string | null
-          quantidade: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "kit_componentes_kit_id_fkey"
-            columns: ["kit_id"]
-            isOneToOne: false
-            referencedRelation: "kits"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "kit_componentes_produto_id_fkey"
-            columns: ["produto_id"]
-            isOneToOne: false
-            referencedRelation: "produtos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_get_kit_componentes: {
@@ -719,6 +694,16 @@ export type Database = {
         }
       }
       criar_pedido_publico: { Args: { payload: Json }; Returns: Json }
+      get_kit_composicao_publica: {
+        Args: { p_kit_id: string }
+        Returns: {
+          produto_id: string
+          produto_imagens: string[]
+          produto_nome: string
+          produto_slug: string
+          quantidade: number
+        }[]
+      }
       get_pedido_publico: { Args: { p_numero: string }; Returns: Json }
       has_role: {
         Args: {
