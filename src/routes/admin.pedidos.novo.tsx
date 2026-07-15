@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Plus, Trash2, UserPlus, Loader2 } from "lucide-react";
+import { ArrowLeft, Search, Plus, Trash2, UserPlus, Loader2, Package, Boxes } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { PEDIDO_STATUS, STATUS_ADMIN_LABEL, type PedidoStatus } from "@/lib/pedidos";
 
@@ -21,7 +21,7 @@ type Cliente = {
   status_aprovacao: string | null;
 };
 
-type Produto = {
+type Precificavel = {
   id: string;
   nome: string;
   imagens: string[] | null;
@@ -32,8 +32,11 @@ type Produto = {
   preco_b2b_3: number | null;
 };
 
+type CatalogoItem = Precificavel & { kind: "produto" | "kit" };
+
 type ItemLinha = {
-  produto: Produto;
+  kind: "produto" | "kit";
+  item: Precificavel;
   quantidade: number;
   preco_unitario: number;
 };
@@ -46,7 +49,7 @@ const PERFIS = [
   { value: "b2b_3", label: "B2B Nível 3" },
 ] as const;
 
-function precoDoPerfil(p: Produto, perfil: string): number {
+function precoDoPerfil(p: Precificavel, perfil: string): number {
   switch (perfil) {
     case "assinante": return Number(p.preco_assinatura ?? p.preco_varejo);
     case "b2b_1": return Number(p.preco_b2b_1 ?? p.preco_varejo);
@@ -70,10 +73,11 @@ function NovoPedidoManualPage() {
   // Perfil de preço
   const [perfil, setPerfil] = useState<string>("varejo");
 
-  // Produtos
-  const [buscaProduto, setBuscaProduto] = useState("");
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [carregandoProdutos, setCarregandoProdutos] = useState(false);
+  // Catálogo
+  const [aba, setAba] = useState<"produto" | "kit">("produto");
+  const [buscaCatalogo, setBuscaCatalogo] = useState("");
+  const [catalogo, setCatalogo] = useState<CatalogoItem[]>([]);
+  const [carregandoCatalogo, setCarregandoCatalogo] = useState(false);
   const [itens, setItens] = useState<ItemLinha[]>([]);
 
   // Pedido meta
@@ -85,7 +89,6 @@ function NovoPedidoManualPage() {
   const [desconto, setDesconto] = useState(0);
   const [salvando, setSalvando] = useState(false);
 
-  // Sugestão inicial de perfil quando um cliente é selecionado
   useEffect(() => {
     if (!cliente) return;
     if (cliente.tipo_cliente === "b2b" && cliente.status_aprovacao === "aprovado") {
@@ -97,9 +100,8 @@ function NovoPedidoManualPage() {
     }
   }, [cliente]);
 
-  // Recalcula preços dos itens quando perfil muda
   useEffect(() => {
-    setItens((prev) => prev.map((l) => ({ ...l, preco_unitario: precoDoPerfil(l.produto, perfil) })));
+    setItens((prev) => prev.map((l) => ({ ...l, preco_unitario: precoDoPerfil(l.item, perfil) })));
   }, [perfil]);
 
   async function buscarClientes() {
@@ -115,65 +117,61 @@ function NovoPedidoManualPage() {
     setBuscando(false);
   }
 
-  async function buscarProdutos() {
-    setCarregandoProdutos(true);
+  async function buscarCatalogo() {
+    setCarregandoCatalogo(true);
+    const tabela = aba === "kit" ? "kits" : "produtos";
     let query = supabase
-      .from("produtos")
+      .from(tabela)
       .select("id,nome,imagens,preco_varejo,preco_assinatura,preco_b2b_1,preco_b2b_2,preco_b2b_3")
       .eq("ativo", true)
       .order("nome")
       .limit(30);
-    const q = buscaProduto.trim();
+    const q = buscaCatalogo.trim();
     if (q) query = query.ilike("nome", `%${q}%`);
     const { data } = await query;
-    setProdutos((data as Produto[]) ?? []);
-    setCarregandoProdutos(false);
+    setCatalogo(((data as Precificavel[]) ?? []).map((d) => ({ ...d, kind: aba })));
+    setCarregandoCatalogo(false);
   }
 
-  useEffect(() => { buscarProdutos(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { buscarCatalogo(); /* eslint-disable-next-line */ }, [aba]);
 
-  function adicionarProduto(p: Produto) {
+  function adicionar(item: CatalogoItem) {
     setItens((prev) => {
-      const existe = prev.find((l) => l.produto.id === p.id);
+      const existe = prev.find((l) => l.kind === item.kind && l.item.id === item.id);
       if (existe) {
-        return prev.map((l) => l.produto.id === p.id ? { ...l, quantidade: l.quantidade + 1 } : l);
+        return prev.map((l) => l.kind === item.kind && l.item.id === item.id ? { ...l, quantidade: l.quantidade + 1 } : l);
       }
-      return [...prev, { produto: p, quantidade: 1, preco_unitario: precoDoPerfil(p, perfil) }];
+      return [...prev, { kind: item.kind, item, quantidade: 1, preco_unitario: precoDoPerfil(item, perfil) }];
     });
   }
 
-  function removerItem(id: string) {
-    setItens((prev) => prev.filter((l) => l.produto.id !== id));
+  function removerItem(kind: "produto" | "kit", id: string) {
+    setItens((prev) => prev.filter((l) => !(l.kind === kind && l.item.id === id)));
   }
 
-  function atualizarQtd(id: string, qtd: number) {
-    if (qtd <= 0) return removerItem(id);
-    setItens((prev) => prev.map((l) => l.produto.id === id ? { ...l, quantidade: qtd } : l));
+  function atualizarQtd(kind: "produto" | "kit", id: string, qtd: number) {
+    if (qtd <= 0) return removerItem(kind, id);
+    setItens((prev) => prev.map((l) => l.kind === kind && l.item.id === id ? { ...l, quantidade: qtd } : l));
   }
 
-  function atualizarPreco(id: string, preco: number) {
-    setItens((prev) => prev.map((l) => l.produto.id === id ? { ...l, preco_unitario: preco } : l));
+  function atualizarPreco(kind: "produto" | "kit", id: string, preco: number) {
+    setItens((prev) => prev.map((l) => l.kind === kind && l.item.id === id ? { ...l, preco_unitario: preco } : l));
   }
 
   const subtotal = useMemo(() => itens.reduce((s, l) => s + l.preco_unitario * l.quantidade, 0), [itens]);
   const total = Math.max(0, subtotal - desconto);
 
   async function salvar() {
-    // Validação
     const nome = (cliente?.nome || novoCliente.nome).trim();
     const email = (cliente?.email || novoCliente.email).trim().toLowerCase();
     const telefone = (cliente?.whatsapp || novoCliente.whatsapp).trim();
     if (nome.length < 2) return toast.error("Informe o nome do cliente.");
     if (telefone.length < 6) return toast.error("Informe o telefone/WhatsApp.");
-    if (itens.length === 0) return toast.error("Adicione ao menos um produto.");
+    if (itens.length === 0) return toast.error("Adicione ao menos um item.");
 
     setSalvando(true);
     try {
-      let cliente_id: string | null = cliente?.id ?? null;
-
-      // Cria profile "fantasma" (sem auth) quando não há cliente existente e há email.
-      // Não é obrigatório: o histórico em /minha-conta funciona por email.
-      // Aqui apenas registramos o pedido sem cliente_id quando não há cadastro.
+      const cliente_id: string | null = cliente?.id ?? null;
 
       const { data: pedidoCriado, error: errPedido } = await supabase
         .from("pedidos")
@@ -202,10 +200,10 @@ function NovoPedidoManualPage() {
 
       const itensPayload = itens.map((l) => ({
         pedido_id: pedidoCriado.id,
-        kind: "produto" as const,
-        produto_id: l.produto.id,
-        nome_produto: l.produto.nome,
-        imagem_snapshot: l.produto.imagens?.[0] ?? null,
+        kind: l.kind,
+        produto_id: l.item.id,
+        nome_produto: l.item.nome,
+        imagem_snapshot: l.item.imagens?.[0] ?? null,
         quantidade: l.quantidade,
         preco_unitario: l.preco_unitario,
         subtotal: l.preco_unitario * l.quantidade,
@@ -307,32 +305,47 @@ function NovoPedidoManualPage() {
             )}
           </section>
 
-          {/* PRODUTOS */}
+          {/* ITENS */}
           <section className="bg-background border border-border p-6">
-            <h2 className="font-display text-xl mb-4">2. Produtos</h2>
+            <h2 className="font-display text-xl mb-4">2. Produtos e kits</h2>
+
+            <div className="flex border border-border mb-4 w-fit">
+              <button
+                onClick={() => setAba("produto")}
+                className={`inline-flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-[0.18em] ${aba === "produto" ? "bg-foreground text-background" : "hover:text-gold"}`}
+              >
+                <Package size={14} /> Produtos
+              </button>
+              <button
+                onClick={() => setAba("kit")}
+                className={`inline-flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-[0.18em] border-l border-border ${aba === "kit" ? "bg-foreground text-background" : "hover:text-gold"}`}
+              >
+                <Boxes size={14} /> Kits
+              </button>
+            </div>
 
             <div className="flex gap-2 mb-4">
               <div className="relative flex-1">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   className="form-input pl-9 w-full"
-                  placeholder="Buscar produto…"
-                  value={buscaProduto}
-                  onChange={(e) => setBuscaProduto(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), buscarProdutos())}
+                  placeholder={aba === "kit" ? "Buscar kit…" : "Buscar produto…"}
+                  value={buscaCatalogo}
+                  onChange={(e) => setBuscaCatalogo(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), buscarCatalogo())}
                 />
               </div>
-              <button onClick={buscarProdutos} className="border border-border bg-background px-4 text-xs uppercase tracking-[0.18em] hover:border-gold hover:text-gold">
+              <button onClick={buscarCatalogo} className="border border-border bg-background px-4 text-xs uppercase tracking-[0.18em] hover:border-gold hover:text-gold">
                 Buscar
               </button>
             </div>
 
-            {carregandoProdutos ? (
+            {carregandoCatalogo ? (
               <p className="text-xs text-muted-foreground">Carregando…</p>
             ) : (
               <div className="border border-border max-h-72 overflow-auto divide-y divide-border">
-                {produtos.map((p) => (
-                  <button key={p.id} onClick={() => adicionarProduto(p)} className="w-full flex items-center justify-between p-3 hover:bg-surface text-left">
+                {catalogo.map((p) => (
+                  <button key={`${p.kind}-${p.id}`} onClick={() => adicionar(p)} className="w-full flex items-center justify-between p-3 hover:bg-surface text-left">
                     <div className="flex items-center gap-3">
                       {p.imagens?.[0] && <img src={p.imagens[0]} alt="" className="w-10 h-10 object-cover" />}
                       <div>
@@ -343,7 +356,7 @@ function NovoPedidoManualPage() {
                     <Plus size={14} className="text-gold" />
                   </button>
                 ))}
-                {produtos.length === 0 && <p className="p-3 text-xs text-muted-foreground">Nenhum produto.</p>}
+                {catalogo.length === 0 && <p className="p-3 text-xs text-muted-foreground">Nenhum {aba === "kit" ? "kit" : "produto"}.</p>}
               </div>
             )}
 
@@ -352,7 +365,8 @@ function NovoPedidoManualPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-surface text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                     <tr>
-                      <th className="p-3">Produto</th>
+                      <th className="p-3">Item</th>
+                      <th className="p-3 w-20">Tipo</th>
                       <th className="p-3 w-24">Qtd</th>
                       <th className="p-3 w-32">Preço unit.</th>
                       <th className="p-3 w-28 text-right">Subtotal</th>
@@ -361,21 +375,26 @@ function NovoPedidoManualPage() {
                   </thead>
                   <tbody>
                     {itens.map((l) => (
-                      <tr key={l.produto.id} className="border-t border-border">
-                        <td className="p-3">{l.produto.nome}</td>
+                      <tr key={`${l.kind}-${l.item.id}`} className="border-t border-border">
+                        <td className="p-3">{l.item.nome}</td>
+                        <td className="p-3">
+                          <span className={`text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 border ${l.kind === "kit" ? "border-gold text-gold" : "border-border text-muted-foreground"}`}>
+                            {l.kind}
+                          </span>
+                        </td>
                         <td className="p-3">
                           <input type="number" min={1} value={l.quantidade}
-                            onChange={(e) => atualizarQtd(l.produto.id, Number(e.target.value))}
+                            onChange={(e) => atualizarQtd(l.kind, l.item.id, Number(e.target.value))}
                             className="form-input w-20" />
                         </td>
                         <td className="p-3">
                           <input type="number" step="0.01" min={0} value={l.preco_unitario}
-                            onChange={(e) => atualizarPreco(l.produto.id, Number(e.target.value))}
+                            onChange={(e) => atualizarPreco(l.kind, l.item.id, Number(e.target.value))}
                             className="form-input w-28" />
                         </td>
                         <td className="p-3 text-right font-medium">{brl(l.preco_unitario * l.quantidade)}</td>
                         <td className="p-3">
-                          <button onClick={() => removerItem(l.produto.id)} className="text-foreground/50 hover:text-destructive">
+                          <button onClick={() => removerItem(l.kind, l.item.id)} className="text-foreground/50 hover:text-destructive">
                             <Trash2 size={14} />
                           </button>
                         </td>
@@ -383,6 +402,9 @@ function NovoPedidoManualPage() {
                     ))}
                   </tbody>
                 </table>
+                <p className="p-3 text-[11px] text-muted-foreground border-t border-border">
+                  Kits baixam o estoque dos produtos componentes automaticamente ao registrar o pedido.
+                </p>
               </div>
             )}
           </section>
