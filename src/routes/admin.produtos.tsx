@@ -116,6 +116,7 @@ function ProdutosAdmin() {
       preco_b2b_2: editing.preco_b2b_2 != null && editing.preco_b2b_2 !== ('' as any) ? Number(editing.preco_b2b_2) : null,
       preco_b2b_3: editing.preco_b2b_3 != null && editing.preco_b2b_3 !== ('' as any) ? Number(editing.preco_b2b_3) : null,
       categoria_id: editing.categoria_id || null,
+      fornecedor_id: editing.fornecedor_id || null,
       imagens: editing.imagens ?? [],
       volume: editing.volume || null,
       intensidade: editing.intensidade ?? null,
