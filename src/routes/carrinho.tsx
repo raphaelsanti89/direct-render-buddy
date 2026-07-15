@@ -8,6 +8,7 @@ import { getPrecoForProfile } from "@/lib/preco";
 import { brl } from "@/lib/slug";
 import { toast } from "sonner";
 import { criarPedido, perfilLabel } from "@/lib/pedidos";
+import { buildWhatsAppLink, normalizeWhatsAppNumber } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({
