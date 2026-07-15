@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin/clientes")({
 });
 
 type Profile = {
-  id: string;
+  id: string | null;
   nome: string | null;
   email: string | null;
   tipo_cliente: "varejo" | "assinante" | "b2b";
@@ -27,9 +27,12 @@ type Profile = {
   whatsapp: string | null;
   observacoes_admin: string | null;
   created_at: string;
+  is_guest: boolean;
+  total_pedidos: number;
+  total_gasto: number;
 };
 
-type Filter = "todos" | "pendentes" | "b2b" | "assinantes" | "varejo";
+type Filter = "todos" | "pendentes" | "b2b" | "assinantes" | "varejo" | "guest";
 
 function AdminClientesPage() {
   return (
@@ -42,18 +45,19 @@ function AdminClientesPage() {
 function ClientesContent() {
   const [items, setItems] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("pendentes");
+  const [filter, setFilter] = useState<Filter>("todos");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
 
   async function reload() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await (supabase.rpc as any)("admin_list_clientes");
     if (error) toast.error(error.message);
-    setItems((data as Profile[]) ?? []);
+    setItems(((data as Profile[]) ?? []).map((r) => ({
+      ...r,
+      total_pedidos: Number(r.total_pedidos ?? 0),
+      total_gasto: Number(r.total_gasto ?? 0),
+    })));
     setLoading(false);
   }
 
@@ -63,10 +67,11 @@ function ClientesContent() {
     if (filter === "pendentes" && !(p.tipo_cliente === "b2b" && p.status_aprovacao === "pendente")) return false;
     if (filter === "b2b" && p.tipo_cliente !== "b2b") return false;
     if (filter === "assinantes" && p.tipo_cliente !== "assinante") return false;
-    if (filter === "varejo" && p.tipo_cliente !== "varejo") return false;
+    if (filter === "varejo" && (p.tipo_cliente !== "varejo" || p.is_guest)) return false;
+    if (filter === "guest" && !p.is_guest) return false;
     if (search) {
       const q = search.toLowerCase();
-      const blob = [p.nome, p.email, p.empresa_nome, p.cnpj].filter(Boolean).join(" ").toLowerCase();
+      const blob = [p.nome, p.email, p.empresa_nome, p.cnpj, p.whatsapp].filter(Boolean).join(" ").toLowerCase();
       if (!blob.includes(q)) return false;
     }
     return true;
@@ -99,6 +104,7 @@ function ClientesContent() {
         <FilterBtn active={filter === "b2b"} onClick={() => setFilter("b2b")}>B2B</FilterBtn>
         <FilterBtn active={filter === "assinantes"} onClick={() => setFilter("assinantes")}>Assinantes</FilterBtn>
         <FilterBtn active={filter === "varejo"} onClick={() => setFilter("varejo")}>Varejo</FilterBtn>
+        <FilterBtn active={filter === "guest"} onClick={() => setFilter("guest")}>Sem cadastro</FilterBtn>
         <FilterBtn active={filter === "todos"} onClick={() => setFilter("todos")}>Todos</FilterBtn>
       </div>
 
@@ -112,33 +118,43 @@ function ClientesContent() {
             <thead className="bg-surface text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               <tr>
                 <th className="p-4">Cliente</th>
+                <th className="p-4">Contato</th>
                 <th className="p-4">Tipo</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">Empresa / CNPJ</th>
+                <th className="p-4 text-right">Pedidos</th>
                 <th className="p-4 text-right">Ação</th>
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-surface/50">
+              {filtrados.map((p, idx) => (
+                <tr key={(p.id ?? "guest-") + idx} className="border-t border-border hover:bg-surface/50">
                   <td className="p-4">
                     <div className="font-medium text-foreground">{p.nome ?? "—"}</div>
-                    <div className="text-xs text-muted-foreground">{p.email}</div>
+                    {p.empresa_nome && <div className="text-xs text-muted-foreground">{p.empresa_nome}{p.cnpj ? ` — ${p.cnpj}` : ""}</div>}
                   </td>
-                  <td className="p-4"><TipoBadge tipo={p.tipo_cliente} nivel={p.nivel_b2b} /></td>
-                  <td className="p-4"><StatusBadge status={p.status_aprovacao} /></td>
                   <td className="p-4 text-xs">
-                    {p.empresa_nome ? (
-                      <>
-                        <div className="text-foreground">{p.empresa_nome}</div>
-                        <div className="text-muted-foreground">{p.cnpj}</div>
-                      </>
-                    ) : "—"}
+                    {p.whatsapp && <div className="text-foreground">{p.whatsapp}</div>}
+                    {p.email && <div className="text-muted-foreground">{p.email}</div>}
+                    {!p.whatsapp && !p.email && "—"}
+                  </td>
+                  <td className="p-4">
+                    {p.is_guest
+                      ? <span className="text-xs px-2 py-1 bg-surface text-muted-foreground uppercase tracking-[0.18em]">Sem cadastro</span>
+                      : <TipoBadge tipo={p.tipo_cliente} nivel={p.nivel_b2b} />}
+                  </td>
+                  <td className="p-4"><StatusBadge status={p.status_aprovacao} /></td>
+                  <td className="p-4 text-right text-xs">
+                    <div className="text-foreground">{p.total_pedidos}</div>
+                    <div className="text-muted-foreground">R$ {p.total_gasto.toFixed(2)}</div>
                   </td>
                   <td className="p-4 text-right">
-                    <button onClick={() => setSelected(p)} className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
-                      Gerenciar
-                    </button>
+                    {p.is_guest ? (
+                      <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground/60">—</span>
+                    ) : (
+                      <button onClick={() => setSelected(p)} className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
+                        Gerenciar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -195,7 +211,7 @@ function ManageDrawer({ profile, onClose, onChanged }: { profile: Profile; onClo
   async function doApprove() {
     setBusy(true);
     try {
-      await approve({ data: { profile_id: profile.id, nivel_b2b: nivel, observacoes_admin: obs || undefined } });
+      await approve({ data: { profile_id: profile.id!, nivel_b2b: nivel, observacoes_admin: obs || undefined } });
       toast.success(`Aprovado como B2B Nível ${nivel}.`);
       onChanged();
     } catch (e) {
@@ -206,7 +222,7 @@ function ManageDrawer({ profile, onClose, onChanged }: { profile: Profile; onClo
   async function doReject() {
     setBusy(true);
     try {
-      await reject({ data: { profile_id: profile.id, observacoes_admin: obs || undefined } });
+      await reject({ data: { profile_id: profile.id!, observacoes_admin: obs || undefined } });
       toast.success("Solicitação rejeitada.");
       onChanged();
     } catch (e) {
@@ -218,7 +234,7 @@ function ManageDrawer({ profile, onClose, onChanged }: { profile: Profile; onClo
     if (!confirm("Voltar este cliente para Varejo? Ele perderá nível B2B / Assinante.")) return;
     setBusy(true);
     try {
-      await reset({ data: { profile_id: profile.id } });
+      await reset({ data: { profile_id: profile.id! } });
       toast.success("Cliente voltou para Varejo.");
       onChanged();
     } catch (e) {
