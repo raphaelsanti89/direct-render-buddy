@@ -402,8 +402,17 @@ function ProdutosAdmin() {
   );
 }
 
-function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
+function ProductCard({ p, catName, margemPiso, margemMeta, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; margemPiso: number; margemMeta: number; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
   const img = p.imagens?.[0];
+  const custo = Number(p.preco_custo ?? 0);
+  const varejo = Number(p.preco_varejo ?? 0);
+  const margemPct = varejo > 0 && custo > 0 ? ((varejo - custo) / varejo) * 100 : null;
+  let margemCls = "bg-surface text-foreground/60 border-border";
+  if (margemPct != null) {
+    if (margemPct < margemPiso) margemCls = "bg-destructive/15 text-destructive border-destructive/30";
+    else if (margemPct < margemMeta) margemCls = "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
+    else margemCls = "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30";
+  }
   return (
     <div className="bg-background flex flex-col">
       <div className="aspect-[4/5] bg-surface relative overflow-hidden">
@@ -430,8 +439,13 @@ function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; c
         {p.descricao_curta && (
           <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.descricao_curta}</p>
         )}
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap gap-2">
           <StockBadge p={p} />
+          {margemPct != null && (
+            <span className={`inline-flex items-center text-[10px] uppercase tracking-[0.18em] px-2 py-1 border ${margemCls}`}>
+              Margem {margemPct.toFixed(0)}%
+            </span>
+          )}
         </div>
         <div className="mt-auto pt-4 flex items-center justify-between">
           <span className="font-display text-lg text-foreground">{brl(p.preco_varejo)}</span>
