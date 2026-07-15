@@ -35,6 +35,8 @@ type Pedido = {
   total: number;
   status: PedidoStatus;
   codigo_rastreamento: string | null;
+  codigo_rastreio: string;
+
   tags: string[];
   created_at: string;
 };
