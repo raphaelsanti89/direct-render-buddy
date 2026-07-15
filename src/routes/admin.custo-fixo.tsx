@@ -268,11 +268,14 @@ function CustoFixoPage() {
       </div>
 
       {/* Métricas reais */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-10">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border mb-4">
         <MetricCard label="Ticket médio (30d)" value={brl(metricas.ticket_medio)} />
-        <MetricCard label="Margem real (30d)" value={metricas.margem_real > 0 ? `${(metricas.margem_real * 100).toFixed(1)}%` : "—"} />
         <MetricCard label="Receita (30d)" value={brl(metricas.receita_total)} />
         <MetricCard label="Nº pedidos (30d)" value={String(metricas.num_pedidos)} />
+      </div>
+      <div className="grid sm:grid-cols-2 gap-px bg-border mb-10">
+        <MetricCard label="Margem bruta (produto)" value={metricas.margem_real > 0 ? `${(metricas.margem_real * 100).toFixed(1)}%` : "—"} />
+        <MetricCard label={`Margem líquida real (após ${totalVarPct.toFixed(1)}% variáveis)`} value={margemLiquida > 0 ? `${(margemLiquida * 100).toFixed(1)}%` : "—"} highlight />
       </div>
 
       {/* Resultados calculados */}
