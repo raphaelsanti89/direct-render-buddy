@@ -104,6 +104,33 @@ export type Database = {
         }
         Relationships: []
       }
+      custos_variaveis: {
+        Row: {
+          created_at: string
+          id: string
+          item: string
+          ordem: number
+          percentual: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item: string
+          ordem?: number
+          percentual?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item?: string
+          ordem?: number
+          percentual?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fornecedores: {
         Row: {
           created_at: string
@@ -968,6 +995,16 @@ export type Database = {
         }
       }
       admin_metricas_vendas_30d: { Args: never; Returns: Json }
+      admin_produtos_velocidade: {
+        Args: never
+        Returns: {
+          campeao: boolean
+          media_diaria: number
+          produto_id: string
+          qtd_30d: number
+          sugestao_minimo: number
+        }[]
+      }
       admin_reposicao_fornecedor: {
         Args: { p_fornecedor_id: string }
         Returns: number

@@ -11,7 +11,8 @@ export const Route = createFileRoute("/admin/custo-fixo")({
 });
 
 type CustoRow = { id?: string; item: string; categoria: string | null; valor_mensal: number; ordem: number };
-type Metricas = { receita_total: number; custo_total: number; num_pedidos: number; ticket_medio: number; margem_real: number };
+type VarRow = { id?: string; item: string; percentual: number; ordem: number };
+type Metricas = { receita_total: number; custo_total: number; num_pedidos: number; ticket_medio: number; margem_real: number; variaveis_pct: number; margem_liquida: number };
 type PerfilRow = { perfil: string; num_pedidos: number; receita: number };
 
 const PERFIL_LABEL: Record<string, string> = {
@@ -24,21 +25,24 @@ const PERFIL_LABEL: Record<string, string> = {
 
 function CustoFixoPage() {
   const [rows, setRows] = useState<CustoRow[]>([]);
+  const [varRows, setVarRows] = useState<VarRow[]>([]);
   const [mesesReserva, setMesesReserva] = useState<number>(3);
   const [diasUteis, setDiasUteis] = useState<number>(26);
-  const [metricas, setMetricas] = useState<Metricas>({ receita_total: 0, custo_total: 0, num_pedidos: 0, ticket_medio: 0, margem_real: 0 });
+  const [metricas, setMetricas] = useState<Metricas>({ receita_total: 0, custo_total: 0, num_pedidos: 0, ticket_medio: 0, margem_real: 0, variaveis_pct: 0, margem_liquida: 0 });
   const [perfis, setPerfis] = useState<PerfilRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function loadAll() {
     setLoading(true);
-    const [{ data: c }, { data: cfg }, { data: m }, { data: pf }] = await Promise.all([
+    const [{ data: c }, { data: v }, { data: cfg }, { data: m }, { data: pf }] = await Promise.all([
       supabase.from("custos_fixos").select("*").order("ordem").order("created_at"),
+      supabase.from("custos_variaveis").select("*").order("ordem").order("created_at"),
       supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["meses_reserva", "dias_uteis_mes"]),
       supabase.rpc("admin_metricas_vendas_30d"),
       supabase.rpc("admin_vendas_mes_por_perfil"),
     ]);
     setRows((c as CustoRow[]) ?? []);
+    setVarRows((v as VarRow[]) ?? []);
     const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
     setMesesReserva(Number(cfgMap.get("meses_reserva") ?? 3));
     setDiasUteis(Number(cfgMap.get("dias_uteis_mes") ?? 26));
@@ -49,8 +53,10 @@ function CustoFixoPage() {
   useEffect(() => { loadAll(); }, []);
 
   const totalFixo = useMemo(() => rows.reduce((s, r) => s + Number(r.valor_mensal || 0), 0), [rows]);
+  const totalVarPct = useMemo(() => varRows.reduce((s, r) => s + Number(r.percentual || 0), 0), [varRows]);
   const reservaGiro = totalFixo * mesesReserva;
-  const pontoEquilibrio = metricas.margem_real > 0 ? totalFixo / metricas.margem_real : 0;
+  const margemLiquida = Math.max(0, metricas.margem_real - totalVarPct / 100);
+  const pontoEquilibrio = margemLiquida > 0 ? totalFixo / margemLiquida : 0;
   const metaDiaUtil = diasUteis > 0 ? pontoEquilibrio / diasUteis : 0;
   const vendasPorDia = metricas.ticket_medio > 0 ? metaDiaUtil / metricas.ticket_medio : 0;
 
@@ -89,6 +95,41 @@ function CustoFixoPage() {
       if (error) return toast.error(error.message);
     }
     setRows(rows.filter((_, i) => i !== idx));
+  }
+
+  function addVar() {
+    setVarRows([...varRows, { item: "", percentual: 0, ordem: varRows.length }]);
+  }
+  function updateVar(idx: number, patch: Partial<VarRow>) {
+    setVarRows(varRows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  }
+  async function saveVar(idx: number) {
+    const r = varRows[idx];
+    if (!r.item.trim()) return toast.error("Informe o item.");
+    if (r.id) {
+      const { error } = await supabase.from("custos_variaveis").update({
+        item: r.item, percentual: r.percentual, ordem: r.ordem,
+      }).eq("id", r.id);
+      if (error) return toast.error(error.message);
+      toast.success("Custo variável salvo.");
+    } else {
+      const { data, error } = await supabase.from("custos_variaveis").insert({
+        item: r.item, percentual: r.percentual, ordem: r.ordem,
+      }).select().single();
+      if (error) return toast.error(error.message);
+      updateVar(idx, { id: (data as VarRow).id });
+      toast.success("Custo variável criado.");
+    }
+    loadAll();
+  }
+  async function delVar(idx: number) {
+    const r = varRows[idx];
+    if (!confirm(`Remover "${r.item || "linha"}"?`)) return;
+    if (r.id) {
+      const { error } = await supabase.from("custos_variaveis").delete().eq("id", r.id);
+      if (error) return toast.error(error.message);
+    }
+    setVarRows(varRows.filter((_, i) => i !== idx));
   }
 
   async function salvarPremissas() {
@@ -161,6 +202,53 @@ function CustoFixoPage() {
         </div>
       </div>
 
+      {/* Custos variáveis */}
+      <div className="bg-background border border-border mb-10">
+        <div className="flex items-center justify-between p-6 pb-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— custos variáveis (%)</p>
+            <p className="text-xs text-muted-foreground mt-1">Impostos e taxas incidentes sobre a receita (DAS, cartão, etc.). Reduzem a margem líquida real.</p>
+          </div>
+          <button onClick={addVar} className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-gold hover:underline">
+            <Plus size={12} /> Adicionar linha
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-surface/50 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <tr>
+                <th className="text-left px-4 py-3 w-2/3">Item</th>
+                <th className="text-right px-4 py-3">Percentual (%)</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {varRows.length === 0 && (
+                <tr><td colSpan={3} className="p-6 text-center text-muted-foreground">Nenhum custo variável cadastrado.</td></tr>
+              )}
+              {varRows.map((r, i) => (
+                <tr key={r.id ?? `newv-${i}`}>
+                  <td className="px-3 py-2">
+                    <input className="form-input" value={r.item} onChange={(e) => updateVar(i, { item: e.target.value })} onBlur={() => saveVar(i)} placeholder="ex.: DAS Simples Nacional" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input type="number" step="0.01" min={0} className="form-input text-right" value={r.percentual} onChange={(e) => updateVar(i, { percentual: Number(e.target.value) })} onBlur={() => saveVar(i)} />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <button onClick={() => delVar(i)} className="p-2 text-foreground/60 hover:text-destructive" aria-label="Remover"><Trash2 size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-surface/30 font-medium">
+                <td className="px-4 py-3 text-right uppercase tracking-[0.18em] text-[11px]">Total variáveis</td>
+                <td className="px-4 py-3 text-right font-display text-lg">{totalVarPct.toFixed(2)}%</td>
+                <td />
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Premissas */}
       <div className="bg-background border border-border p-6 mb-10">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— premissas</p>
@@ -180,11 +268,14 @@ function CustoFixoPage() {
       </div>
 
       {/* Métricas reais */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-10">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border mb-4">
         <MetricCard label="Ticket médio (30d)" value={brl(metricas.ticket_medio)} />
-        <MetricCard label="Margem real (30d)" value={metricas.margem_real > 0 ? `${(metricas.margem_real * 100).toFixed(1)}%` : "—"} />
         <MetricCard label="Receita (30d)" value={brl(metricas.receita_total)} />
         <MetricCard label="Nº pedidos (30d)" value={String(metricas.num_pedidos)} />
+      </div>
+      <div className="grid sm:grid-cols-2 gap-px bg-border mb-10">
+        <MetricCard label="Margem bruta (produto)" value={metricas.margem_real > 0 ? `${(metricas.margem_real * 100).toFixed(1)}%` : "—"} />
+        <MetricCard label={`Margem líquida real (após ${totalVarPct.toFixed(1)}% variáveis)`} value={margemLiquida > 0 ? `${(margemLiquida * 100).toFixed(1)}%` : "—"} highlight />
       </div>
 
       {/* Resultados calculados */}

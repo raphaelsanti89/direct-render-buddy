@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify, brl } from "@/lib/slug";
 import { toast } from "sonner";
-import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy, AlertTriangle } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy, AlertTriangle, Trophy } from "lucide-react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Empty, Field, FormActions, FormDrawer } from "./admin.categorias";
 import * as XLSX from "xlsx";
@@ -71,16 +71,18 @@ function ProdutosAdmin() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [margemPiso, setMargemPiso] = useState(50);
   const [margemMeta, setMargemMeta] = useState(55);
+  const [velocidade, setVelocidade] = useState<Map<string, { campeao: boolean; qtd_30d: number }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Prod> | null>(null);
 
   async function load() {
     setLoading(true);
-    const [{ data: p }, { data: c }, { data: f }, { data: cfg }] = await Promise.all([
+    const [{ data: p }, { data: c }, { data: f }, { data: cfg }, { data: vel }] = await Promise.all([
       supabase.rpc("admin_list_produtos"),
       supabase.from("categorias").select("id,nome").order("nome"),
       supabase.from("fornecedores").select("id,nome").order("nome"),
       supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["margem_piso", "margem_meta"]),
+      supabase.rpc("admin_produtos_velocidade"),
     ]);
     setItems((p as Prod[]) ?? []);
     setCats((c as Cat[]) ?? []);
@@ -88,6 +90,11 @@ function ProdutosAdmin() {
     const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
     setMargemPiso(Number(cfgMap.get("margem_piso") ?? 50));
     setMargemMeta(Number(cfgMap.get("margem_meta") ?? 55));
+    const velMap = new Map<string, { campeao: boolean; qtd_30d: number }>();
+    ((vel as Array<{ produto_id: string; campeao: boolean; qtd_30d: number }>) ?? []).forEach((v) => {
+      velMap.set(v.produto_id, { campeao: !!v.campeao, qtd_30d: v.qtd_30d });
+    });
+    setVelocidade(velMap);
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
@@ -230,7 +237,7 @@ function ProdutosAdmin() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {visibleItems.map((p) => (
-              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} margemPiso={margemPiso} margemMeta={margemMeta} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
+              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} margemPiso={margemPiso} margemMeta={margemMeta} campeao={velocidade.get(p.id)?.campeao ?? false} qtd30d={velocidade.get(p.id)?.qtd_30d ?? 0} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
             ))}
           </div>
         )}
@@ -402,7 +409,7 @@ function ProdutosAdmin() {
   );
 }
 
-function ProductCard({ p, catName, margemPiso, margemMeta, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; margemPiso: number; margemMeta: number; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
+function ProductCard({ p, catName, margemPiso, margemMeta, campeao, qtd30d, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; margemPiso: number; margemMeta: number; campeao: boolean; qtd30d: number; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
   const img = p.imagens?.[0];
   const custo = Number(p.preco_custo ?? 0);
   const varejo = Number(p.preco_varejo ?? 0);
@@ -421,7 +428,12 @@ function ProductCard({ p, catName, margemPiso, margemMeta, onEdit, onDelete, onD
             sem imagem
           </div>
         )}
-        <div className="absolute top-3 left-3 flex gap-1">
+        <div className="absolute top-3 left-3 flex gap-1 flex-wrap">
+          {campeao && (
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] bg-gold text-background px-2 py-1 inline-flex items-center gap-1" title={`Top 20% em vendas — ${qtd30d} un. em 30 dias`}>
+              <Trophy size={10} /> Campeão
+            </span>
+          )}
           {p.destaque && <Badge>Destaque</Badge>}
           {p.lancamento && <Badge>Novo</Badge>}
         </div>
