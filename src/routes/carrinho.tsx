@@ -93,7 +93,9 @@ function CarrinhoPage() {
         itens: linhas.map((l) => ({ item: l.item, preco_unitario: l.unit, subtotal: l.subtotal })),
       });
 
-      const trackingLink = `${window.location.origin}/pedido/${pedido.numero_pedido}`;
+      const telDigits = whats.replace(/\D/g, "");
+      const trackingLink = `${window.location.origin}/pedido/${pedido.codigo_rastreio}?t=${encodeURIComponent(telDigits.slice(-4))}`;
+
 
       // 2) Montar mensagem WhatsApp
       const linhasMsg = linhas
