@@ -35,6 +35,8 @@ type Pedido = {
   total: number;
   status: PedidoStatus;
   codigo_rastreamento: string | null;
+  codigo_rastreio: string;
+
   tags: string[];
   created_at: string;
 };
@@ -234,9 +236,10 @@ function AdminPedidoDetalhePage() {
               <button onClick={copiarResumo} className="inline-flex items-center gap-2 border border-border px-4 py-2 text-xs uppercase tracking-[0.18em] hover:bg-surface">
                 <Copy size={14} /> Copiar resumo
               </button>
-              <Link to="/pedido/$numero" params={{ numero: pedido.numero_pedido }} target="_blank" className="inline-flex items-center gap-2 border border-border px-4 py-2 text-xs uppercase tracking-[0.18em] hover:bg-surface">
+              <Link to="/pedido/$numero" params={{ numero: pedido.codigo_rastreio }} target="_blank" className="inline-flex items-center gap-2 border border-border px-4 py-2 text-xs uppercase tracking-[0.18em] hover:bg-surface">
                 Ver tracking público
               </Link>
+
             </div>
           </section>
 

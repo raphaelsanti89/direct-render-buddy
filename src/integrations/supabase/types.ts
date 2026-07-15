@@ -341,6 +341,7 @@ export type Database = {
           canal_contato: Database["public"]["Enums"]["pedido_canal"]
           cliente_id: string | null
           codigo_rastreamento: string | null
+          codigo_rastreio: string
           created_at: string
           desconto: number
           email: string | null
@@ -365,6 +366,7 @@ export type Database = {
           canal_contato?: Database["public"]["Enums"]["pedido_canal"]
           cliente_id?: string | null
           codigo_rastreamento?: string | null
+          codigo_rastreio?: string
           created_at?: string
           desconto?: number
           email?: string | null
@@ -389,6 +391,7 @@ export type Database = {
           canal_contato?: Database["public"]["Enums"]["pedido_canal"]
           cliente_id?: string | null
           codigo_rastreamento?: string | null
+          codigo_rastreio?: string
           created_at?: string
           desconto?: number
           email?: string | null
@@ -704,7 +707,10 @@ export type Database = {
           quantidade: number
         }[]
       }
-      get_pedido_publico: { Args: { p_numero: string }; Returns: Json }
+      get_pedido_publico: {
+        Args: { p_codigo: string; p_identificador?: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -6,6 +6,8 @@ import { brl } from "@/lib/slug";
 import { STATUS_LABEL, type PedidoStatus } from "@/lib/pedidos";
 import { ArrowLeft } from "lucide-react";
 
+type Search = { t?: string };
+
 export const Route = createFileRoute("/pedido/$numero")({
   head: ({ params }) => ({
     meta: [
@@ -14,12 +16,16 @@ export const Route = createFileRoute("/pedido/$numero")({
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): Search => ({
+    t: typeof search.t === "string" ? search.t : undefined,
+  }),
   component: PedidoPublicoPage,
 });
 
 type Pedido = {
   id: string;
   numero_pedido: string;
+  codigo_rastreio: string;
   nome_cliente: string;
   status: PedidoStatus;
   forma_entrega: string | null;
@@ -40,35 +46,60 @@ type Item = {
   subtotal: number;
 };
 
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "need_identifier" }
+  | { kind: "not_found" }
+  | { kind: "ok"; pedido: Pedido; itens: Item[] };
+
 function PedidoPublicoPage() {
   const { numero } = Route.useParams();
-  const [pedido, setPedido] = useState<Pedido | null | undefined>(undefined);
-  const [itens, setItens] = useState<Item[]>([]);
+  const { t } = Route.useSearch();
+  const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [identificador, setIdentificador] = useState(t ?? "");
+  const [submitting, setSubmitting] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function tentar(ident: string | null) {
+    setErro(null);
+    const { data, error } = await supabase.rpc("get_pedido_publico", {
+      p_codigo: numero,
+      p_identificador: ident ?? undefined,
+    } as { p_codigo: string; p_identificador?: string });
+
+    if (error) {
+      console.error(error);
+      setState({ kind: "not_found" });
+      return;
+    }
+    const payload = data as unknown as { pedido: Pedido | null; itens: Item[] } | null;
+    if (!payload || !payload.pedido) {
+      if (ident) {
+        setErro("Não encontramos um pedido com esses dados. Verifique o telefone/email informado.");
+      }
+      setState({ kind: "need_identifier" });
+      return;
+    }
+    setState({ kind: "ok", pedido: payload.pedido, itens: payload.itens ?? [] });
+  }
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { data, error } = await supabase.rpc("get_pedido_publico", { p_numero: numero });
-      if (!mounted) return;
-      if (error || !data) {
-        setPedido(null);
-        return;
-      }
-      const payload = data as unknown as { pedido: Pedido | null; itens: Item[] } | null;
-      if (!payload || !payload.pedido) {
-        setPedido(null);
-        return;
-      }
-      setPedido(payload.pedido);
-      setItens(payload.itens ?? []);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [numero]);
+    tentar(t ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [numero, t]);
 
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (identificador.trim().length < 4) {
+      setErro("Informe o telefone ou email usado no pedido.");
+      return;
+    }
+    setSubmitting(true);
+    await tentar(identificador.trim());
+    setSubmitting(false);
+  }
 
-  if (pedido === undefined) {
+  if (state.kind === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground animate-pulse">
@@ -78,14 +109,47 @@ function PedidoPublicoPage() {
     );
   }
 
-  if (pedido === null) {
+  if (state.kind === "need_identifier") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <form onSubmit={onSubmit} className="w-full max-w-md text-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-3">— pedido</p>
+          <h1 className="font-display text-3xl text-foreground mb-2">Confirme sua identidade</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Para exibir os dados do pedido, informe o telefone ou email usado na compra.
+          </p>
+          <input
+            type="text"
+            value={identificador}
+            onChange={(e) => setIdentificador(e.target.value)}
+            placeholder="Telefone ou email"
+            className="form-input w-full mb-3 text-center"
+            autoFocus
+          />
+          {erro && <p className="text-xs text-red-600 mb-3">{erro}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-foreground text-background py-3 text-xs uppercase tracking-[0.2em] hover:opacity-90 disabled:opacity-50"
+          >
+            {submitting ? "Verificando…" : "Ver pedido"}
+          </button>
+          <Link to="/" className="block mt-6 text-xs uppercase tracking-[0.18em] text-foreground/60 hover:text-gold">
+            ← Voltar ao site
+          </Link>
+        </form>
+      </div>
+    );
+  }
+
+  if (state.kind === "not_found") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 text-center">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-3">— pedido</p>
           <h1 className="font-display text-3xl text-foreground mb-2">Pedido não encontrado</h1>
           <p className="text-sm text-muted-foreground mb-6">
-            Verifique se o número {numero} está correto.
+            Verifique se o link está correto.
           </p>
           <Link to="/" className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
             ← Voltar ao site
@@ -95,6 +159,7 @@ function PedidoPublicoPage() {
     );
   }
 
+  const { pedido, itens } = state;
   const data = new Date(pedido.created_at).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -117,9 +182,7 @@ function PedidoPublicoPage() {
         <h1 className="font-display text-3xl lg:text-4xl text-foreground">
           Olá, {pedido.nome_cliente.split(" ")[0]}.
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Pedido realizado em {data}.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">Pedido realizado em {data}.</p>
 
         <section className="mt-10 border border-border p-6 bg-surface/30">
           <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-5">
@@ -129,20 +192,13 @@ function PedidoPublicoPage() {
         </section>
 
         <section className="mt-8 border border-border p-6 bg-background">
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-5">
-            — itens
-          </p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-5">— itens</p>
           <ul className="divide-y divide-border">
             {itens.map((it) => (
               <li key={it.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="h-14 w-14 shrink-0 bg-surface overflow-hidden">
                   {it.imagem_snapshot ? (
-                    <img
-                      src={it.imagem_snapshot}
-                      alt=""
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={it.imagem_snapshot} alt="" loading="lazy" className="h-full w-full object-cover" />
                   ) : null}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -156,9 +212,7 @@ function PedidoPublicoPage() {
             ))}
           </ul>
           <div className="mt-5 pt-4 border-t border-border flex justify-between items-baseline">
-            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">
-              Total
-            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">Total</span>
             <span className="font-display text-2xl text-foreground">{brl(pedido.total)}</span>
           </div>
         </section>
@@ -187,9 +241,7 @@ function PedidoPublicoPage() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-background p-4">
-      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60 mb-1">
-        {label}
-      </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60 mb-1">{label}</p>
       <p className="text-sm text-foreground">{value}</p>
     </div>
   );
