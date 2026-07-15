@@ -202,6 +202,53 @@ function CustoFixoPage() {
         </div>
       </div>
 
+      {/* Custos variáveis */}
+      <div className="bg-background border border-border mb-10">
+        <div className="flex items-center justify-between p-6 pb-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— custos variáveis (%)</p>
+            <p className="text-xs text-muted-foreground mt-1">Impostos e taxas incidentes sobre a receita (DAS, cartão, etc.). Reduzem a margem líquida real.</p>
+          </div>
+          <button onClick={addVar} className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-gold hover:underline">
+            <Plus size={12} /> Adicionar linha
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-surface/50 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <tr>
+                <th className="text-left px-4 py-3 w-2/3">Item</th>
+                <th className="text-right px-4 py-3">Percentual (%)</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {varRows.length === 0 && (
+                <tr><td colSpan={3} className="p-6 text-center text-muted-foreground">Nenhum custo variável cadastrado.</td></tr>
+              )}
+              {varRows.map((r, i) => (
+                <tr key={r.id ?? `newv-${i}`}>
+                  <td className="px-3 py-2">
+                    <input className="form-input" value={r.item} onChange={(e) => updateVar(i, { item: e.target.value })} onBlur={() => saveVar(i)} placeholder="ex.: DAS Simples Nacional" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input type="number" step="0.01" min={0} className="form-input text-right" value={r.percentual} onChange={(e) => updateVar(i, { percentual: Number(e.target.value) })} onBlur={() => saveVar(i)} />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <button onClick={() => delVar(i)} className="p-2 text-foreground/60 hover:text-destructive" aria-label="Remover"><Trash2 size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-surface/30 font-medium">
+                <td className="px-4 py-3 text-right uppercase tracking-[0.18em] text-[11px]">Total variáveis</td>
+                <td className="px-4 py-3 text-right font-display text-lg">{totalVarPct.toFixed(2)}%</td>
+                <td />
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Premissas */}
       <div className="bg-background border border-border p-6 mb-10">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— premissas</p>
