@@ -202,12 +202,24 @@ function ProdutosAdmin() {
         onImported={load}
       />
 
+      {filter === "baixo" && (
+        <div className="mb-6 flex items-center justify-between gap-4 border border-destructive/40 bg-destructive/5 px-5 py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <AlertTriangle size={16} className="text-destructive" />
+            <span className="text-foreground">Filtro: produtos com estoque abaixo (ou igual) ao mínimo — {visibleItems.length} item(ns)</span>
+          </div>
+          <Link to="/admin/produtos" search={{ filter: undefined }} className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
+            Limpar filtro
+          </Link>
+        </div>
+      )}
+
       <div className="bg-background border border-border">
-        {loading ? <Empty text="Carregando…" /> : items.length === 0 ? (
-          <Empty text="Nenhum produto ainda." />
+        {loading ? <Empty text="Carregando…" /> : visibleItems.length === 0 ? (
+          <Empty text={filter === "baixo" ? "Nenhum produto com estoque baixo." : "Nenhum produto ainda."} />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {items.map((p) => (
+            {visibleItems.map((p) => (
               <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
             ))}
           </div>
@@ -325,6 +337,42 @@ function ProdutosAdmin() {
                 ))}
               </div>
             </Field>
+
+            <div className="border border-border p-5 bg-surface/30 space-y-4">
+              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-gold">— estoque</p>
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Estoque atual">
+                  <input
+                    type="number"
+                    min={0}
+                    className="form-input"
+                    value={editing.estoque_atual ?? 0}
+                    onChange={(e) => setEditing({ ...editing, estoque_atual: Number(e.target.value) })}
+                  />
+                </Field>
+                <Field label="Mínimo (comprar agora)">
+                  <input
+                    type="number"
+                    min={0}
+                    className="form-input"
+                    value={editing.estoque_minimo ?? 0}
+                    onChange={(e) => setEditing({ ...editing, estoque_minimo: Number(e.target.value) })}
+                  />
+                </Field>
+                <Field label="Ideal (comprar em breve)">
+                  <input
+                    type="number"
+                    min={0}
+                    className="form-input"
+                    value={editing.estoque_ideal ?? 0}
+                    onChange={(e) => setEditing({ ...editing, estoque_ideal: Number(e.target.value) })}
+                  />
+                </Field>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Abaixo (ou igual) ao mínimo aparece como <span className="text-destructive">comprar agora</span>; entre mínimo e ideal, como <span className="text-amber-600">comprar em breve</span>. A baixa acontece automaticamente quando o pedido é confirmado.
+              </p>
+            </div>
 
             <FormActions onCancel={() => setEditing(null)} saveLabel={editing.id ? "Salvar" : "Criar"} />
           </form>
