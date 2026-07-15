@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Leaf, Heart, Truck, Building2 } from "lucide-reac
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConfig } from "@/hooks/useConfig";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { brl } from "@/lib/slug";
 import heroImg from "@/assets/hero-aroma.jpg";
 import sobreImg from "@/assets/sobre-marca.jpg";
