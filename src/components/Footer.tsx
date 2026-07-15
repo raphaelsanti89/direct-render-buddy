@@ -83,7 +83,8 @@ export function Footer() {
 
       <div className="container-editorial mt-16 pt-8 border-t border-background/10 flex flex-col md:flex-row justify-between gap-4 text-xs text-background/50">
         <p>© {new Date().getFullYear()} Gama Sensações — Todos os direitos reservados.</p>
-        <div className="flex gap-6">
+        <div className="flex gap-6 flex-wrap">
+          <Link to="/politica-de-trocas" className="hover:text-gold">Política de Entrega e Trocas</Link>
           <a href="#" className="hover:text-gold">Política de Privacidade</a>
           <a href="#" className="hover:text-gold">Termos de Uso</a>
         </div>

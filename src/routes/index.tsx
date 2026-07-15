@@ -30,6 +30,7 @@ function HomePage() {
   return (
     <div className="bg-background">
       <Hero />
+      <FreteGratisBanner />
       <ProdutosDestaque />
       <SobreMarca />
       <ExperienciaSensorial />
@@ -37,6 +38,25 @@ function HomePage() {
       <Depoimentos />
       <RedesSociais />
       <Newsletter />
+    </div>
+  );
+}
+
+function FreteGratisBanner() {
+  return (
+    <div className="bg-gold text-foreground">
+      <div className="container-editorial py-3 flex items-center justify-center gap-3 text-center">
+        <Truck size={16} strokeWidth={1.75} />
+        <p className="text-xs md:text-sm uppercase tracking-[0.2em] font-medium">
+          Frete grátis para compras acima de <span className="font-display normal-case tracking-normal text-base">R$ 150,00</span>
+        </p>
+        <Link
+          to="/politica-de-trocas"
+          className="hidden md:inline-block text-[10px] uppercase tracking-[0.25em] underline underline-offset-4 hover:opacity-70"
+        >
+          Ver política
+        </Link>
+      </div>
     </div>
   );
 }

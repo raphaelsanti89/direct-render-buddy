@@ -272,6 +272,17 @@ function CarrinhoPage() {
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">Total</p>
                 <p className="font-display text-4xl text-foreground">{brl(total)}</p>
+                {exigeEndereco && (
+                  total >= 150 ? (
+                    <p className="mt-3 text-xs px-3 py-2 bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/30">
+                      ✓ Frete grátis aplicado
+                    </p>
+                  ) : (
+                    <p className="mt-3 text-xs px-3 py-2 bg-gold/10 text-foreground/80 border border-gold/30 leading-relaxed">
+                      Este pedido pode ter custo adicional de frete, que será confirmado via WhatsApp antes da finalização. Frete grátis a partir de {brl(150)}.
+                    </p>
+                  )
+                )}
                 {!loadingProfile && !profile && (
                   <p className="mt-2 text-xs text-muted-foreground">
                     <Link to="/cadastro-b2b" className="text-gold hover:underline">Empresa? Solicite B2B</Link>
@@ -358,6 +369,14 @@ function CarrinhoPage() {
               </button>
               <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                 Vamos abrir o WhatsApp da empresa com seu pedido pronto. A confirmação e o pagamento são feitos na conversa.
+              </p>
+              <p className="text-center">
+                <Link
+                  to="/politica-de-trocas"
+                  className="text-[11px] uppercase tracking-[0.2em] text-foreground/60 hover:text-gold underline underline-offset-4"
+                >
+                  Prazos e política de troca
+                </Link>
               </p>
             </aside>
           </div>

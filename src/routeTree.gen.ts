@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as PoliticaDeTrocasRouteImport } from './routes/politica-de-trocas'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KitsRouteImport } from './routes/kits'
@@ -41,6 +42,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliticaDeTrocasRoute = PoliticaDeTrocasRouteImport.update({
+  id: '/politica-de-trocas',
+  path: '/politica-de-trocas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MinhaContaRoute = MinhaContaRouteImport.update({
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/minha-conta': typeof MinhaContaRoute
+  '/politica-de-trocas': typeof PoliticaDeTrocasRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/minha-conta': typeof MinhaContaRoute
+  '/politica-de-trocas': typeof PoliticaDeTrocasRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/minha-conta': typeof MinhaContaRoute
+  '/politica-de-trocas': typeof PoliticaDeTrocasRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categorias': typeof AdminCategoriasRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/minha-conta'
+    | '/politica-de-trocas'
     | '/produtos'
     | '/sitemap.xml'
     | '/admin/categorias'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/minha-conta'
+    | '/politica-de-trocas'
     | '/produtos'
     | '/sitemap.xml'
     | '/admin/categorias'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/minha-conta'
+    | '/politica-de-trocas'
     | '/produtos'
     | '/sitemap.xml'
     | '/admin/categorias'
@@ -311,6 +323,7 @@ export interface RootRouteChildren {
   KitsRoute: typeof KitsRoute
   LoginRoute: typeof LoginRoute
   MinhaContaRoute: typeof MinhaContaRoute
+  PoliticaDeTrocasRoute: typeof PoliticaDeTrocasRoute
   ProdutosRoute: typeof ProdutosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   KitSlugRoute: typeof KitSlugRoute
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politica-de-trocas': {
+      id: '/politica-de-trocas'
+      path: '/politica-de-trocas'
+      fullPath: '/politica-de-trocas'
+      preLoaderRoute: typeof PoliticaDeTrocasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/minha-conta': {
@@ -530,6 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   KitsRoute: KitsRoute,
   LoginRoute: LoginRoute,
   MinhaContaRoute: MinhaContaRoute,
+  PoliticaDeTrocasRoute: PoliticaDeTrocasRoute,
   ProdutosRoute: ProdutosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   KitSlugRoute: KitSlugRoute,
