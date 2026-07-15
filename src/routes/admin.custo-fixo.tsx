@@ -29,9 +29,6 @@ function CustoFixoPage() {
   const [mesesReserva, setMesesReserva] = useState<number>(3);
   const [diasUteis, setDiasUteis] = useState<number>(26);
   const [metricas, setMetricas] = useState<Metricas>({ receita_total: 0, custo_total: 0, num_pedidos: 0, ticket_medio: 0, margem_real: 0, variaveis_pct: 0, margem_liquida: 0 });
-  const [mesesReserva, setMesesReserva] = useState<number>(3);
-  const [diasUteis, setDiasUteis] = useState<number>(26);
-  const [metricas, setMetricas] = useState<Metricas>({ receita_total: 0, custo_total: 0, num_pedidos: 0, ticket_medio: 0, margem_real: 0 });
   const [perfis, setPerfis] = useState<PerfilRow[]>([]);
   const [loading, setLoading] = useState(true);
 
