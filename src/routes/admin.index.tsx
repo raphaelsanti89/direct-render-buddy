@@ -144,20 +144,82 @@ function DashboardPage() {
       </Link>
 
       {stats.estoqueBaixo > 0 && (
-        <Link to="/admin/produtos" search={{ filter: "baixo" }} className="block mb-8">
+        <Link to="/admin/estoque" className="block mb-8">
           <div className="border border-destructive/40 bg-destructive/5 p-6 flex items-center justify-between hover:bg-destructive/10 transition-colors">
             <div className="flex items-center gap-4">
-              <AlertTriangle size={24} className="text-destructive" />
+              <Warehouse size={24} className="text-destructive" />
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-destructive mb-1">— estoque</p>
                 <p className="font-display text-2xl text-foreground">
-                  {stats.estoqueBaixo} {stats.estoqueBaixo === 1 ? "produto com estoque baixo" : "produtos com estoque baixo"}
+                  {stats.estoqueBaixo} {stats.estoqueBaixo === 1 ? "produto precisando de atenção" : "produtos precisando de atenção"}
                 </p>
               </div>
             </div>
-            <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver lista →</span>
+            <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver estoque →</span>
           </div>
         </Link>
+      )}
+
+      {/* Custo Fixo & Metas */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— finanças</p>
+        <Link to="/admin/custo-fixo" className="text-xs uppercase tracking-[0.18em] text-gold hover:underline">Custo fixo →</Link>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-10">
+        <Stat label="Custo fixo mensal" value={brl(custoFixo)} icon={Calculator} />
+        <Stat label="Ponto de equilíbrio" value={brl(pontoEquilibrio)} icon={Calculator} />
+        <Stat label="Reserva de giro" value={brl(reservaGiro)} icon={Calculator} />
+        <Stat label="Meta / dia útil" value={brl(metaDia)} icon={Calculator} />
+      </div>
+
+      {/* Vendas do mês vs meta */}
+      {pontoEquilibrio > 0 && (
+        <div className="bg-background border border-border p-6 mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— vendas do mês vs meta</p>
+            <span className="font-mono text-xs text-gold">{progressoMeta.toFixed(1)}%</span>
+          </div>
+          <div className="flex items-center justify-between mb-2 text-sm">
+            <span className="text-foreground">{brl(receitaMes)} de {brl(pontoEquilibrio)}</span>
+          </div>
+          <div className="h-2 bg-surface overflow-hidden mb-4">
+            <div className="h-full bg-gold transition-all" style={{ width: `${progressoMeta}%` }} />
+          </div>
+          {perfis.length > 0 && (
+            <div className="space-y-1.5 text-xs">
+              {perfis.map((p) => {
+                const pct = receitaMes > 0 ? (Number(p.receita) / receitaMes) * 100 : 0;
+                return (
+                  <div key={p.perfil} className="flex items-center justify-between py-1 border-b border-border last:border-0">
+                    <span className="text-foreground">{PERFIL_LABEL[p.perfil] ?? p.perfil}</span>
+                    <span className="font-mono text-muted-foreground">{brl(p.receita)} <span className="text-foreground/50">({pct.toFixed(0)}%)</span></span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Fornecedores */}
+      {fornecedores.length > 0 && (
+        <div className="bg-background border border-border p-6 mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— fornecedores</p>
+            <Link to="/admin/fornecedores" className="text-xs uppercase tracking-[0.18em] text-gold hover:underline">Ver todos →</Link>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Total investido em pedidos mínimos: <span className="text-foreground font-mono">{brl(fornTotalMin)}</span></p>
+          <ul className="space-y-1.5 text-xs">
+            {fornecedores.map((f) => (
+              <li key={f.id} className="flex items-center justify-between py-1 border-b border-border last:border-0">
+                <span className="text-foreground">{f.nome}</span>
+                <span className={`font-mono ${f.abaixoPiso ? "text-destructive" : "text-muted-foreground"}`}>
+                  {f.margem.toFixed(1)}% {f.abaixoPiso && `· abaixo do piso (${margemPiso}%)`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* Stats pedidos */}
