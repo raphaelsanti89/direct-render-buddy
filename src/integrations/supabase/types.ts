@@ -74,6 +74,72 @@ export type Database = {
         }
         Relationships: []
       }
+      custos_fixos: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          id: string
+          item: string
+          ordem: number
+          updated_at: string
+          valor_mensal: number
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          item: string
+          ordem?: number
+          updated_at?: string
+          valor_mensal?: number
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          item?: string
+          ordem?: number
+          updated_at?: string
+          valor_mensal?: number
+        }
+        Relationships: []
+      }
+      fornecedores: {
+        Row: {
+          created_at: string
+          custo_medio: number
+          id: string
+          linha: string | null
+          nome: string
+          observacoes: string | null
+          pedido_minimo: number
+          preco_medio: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custo_medio?: number
+          id?: string
+          linha?: string | null
+          nome: string
+          observacoes?: string | null
+          pedido_minimo?: number
+          preco_medio?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custo_medio?: number
+          id?: string
+          linha?: string | null
+          nome?: string
+          observacoes?: string | null
+          pedido_minimo?: number
+          preco_medio?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kit_componentes: {
         Row: {
           created_at: string
@@ -449,6 +515,7 @@ export type Database = {
           estoque_atual: number
           estoque_ideal: number
           estoque_minimo: number
+          fornecedor_id: string | null
           id: string
           imagens: string[] | null
           intensidade: number | null
@@ -485,6 +552,7 @@ export type Database = {
           estoque_atual?: number
           estoque_ideal?: number
           estoque_minimo?: number
+          fornecedor_id?: string | null
           id?: string
           imagens?: string[] | null
           intensidade?: number | null
@@ -521,6 +589,7 @@ export type Database = {
           estoque_atual?: number
           estoque_ideal?: number
           estoque_minimo?: number
+          fornecedor_id?: string | null
           id?: string
           imagens?: string[] | null
           intensidade?: number | null
@@ -547,6 +616,13 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produtos_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
             referencedColumns: ["id"]
           },
         ]
@@ -602,6 +678,147 @@ export type Database = {
         }
         Relationships: []
       }
+      referencia_capital_timeline: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          ordem: number
+          periodo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          periodo: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          periodo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      referencia_checklist: {
+        Row: {
+          created_at: string
+          id: string
+          item: string
+          ordem: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item: string
+          ordem?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item?: string
+          ordem?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      referencia_custos_abertura: {
+        Row: {
+          created_at: string
+          id: string
+          item: string
+          observacao: string | null
+          ordem: number
+          tag: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item: string
+          observacao?: string | null
+          ordem?: number
+          tag?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item?: string
+          observacao?: string | null
+          ordem?: number
+          tag?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      referencia_custos_manutencao: {
+        Row: {
+          created_at: string
+          id: string
+          item: string
+          observacao: string | null
+          ordem: number
+          tag: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item: string
+          observacao?: string | null
+          ordem?: number
+          tag?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item?: string
+          observacao?: string | null
+          ordem?: number
+          tag?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      referencia_decisao: {
+        Row: {
+          id: string
+          texto: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          texto: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          texto?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -631,6 +848,22 @@ export type Database = {
       admin_count_estoque_baixo: { Args: never; Returns: number }
       admin_count_kits: { Args: never; Returns: number }
       admin_count_produtos: { Args: never; Returns: number }
+      admin_estoque_posicao: {
+        Args: never
+        Returns: {
+          estoque_atual: number
+          estoque_ideal: number
+          estoque_minimo: number
+          fornecedor_id: string
+          fornecedor_nome: string
+          id: string
+          nome: string
+          preco_custo: number
+          status: string
+          valor_investido: number
+        }[]
+      }
+      admin_estoque_resumo: { Args: never; Returns: Json }
       admin_get_kit_componentes: {
         Args: { p_kit_id: string }
         Returns: {
@@ -706,6 +939,7 @@ export type Database = {
           estoque_atual: number
           estoque_ideal: number
           estoque_minimo: number
+          fornecedor_id: string | null
           id: string
           imagens: string[] | null
           intensidade: number | null
@@ -732,6 +966,19 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      admin_metricas_vendas_30d: { Args: never; Returns: Json }
+      admin_reposicao_fornecedor: {
+        Args: { p_fornecedor_id: string }
+        Returns: number
+      }
+      admin_vendas_mes_por_perfil: {
+        Args: never
+        Returns: {
+          num_pedidos: number
+          perfil: string
+          receita: number
+        }[]
       }
       criar_pedido_publico: { Args: { payload: Json }; Returns: Json }
       get_kit_composicao_publica: {

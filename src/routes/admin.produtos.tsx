@@ -19,6 +19,7 @@ export const Route = createFileRoute("/admin/produtos")({
 });
 
 type Cat = { id: string; nome: string };
+type Fornecedor = { id: string; nome: string };
 type Prod = {
   id: string;
   nome: string;
@@ -33,6 +34,7 @@ type Prod = {
   preco_b2b_2: number | null;
   preco_b2b_3: number | null;
   categoria_id: string | null;
+  fornecedor_id: string | null;
   imagens: string[] | null;
   volume: string | null;
   intensidade: number | null;
@@ -52,7 +54,7 @@ const EMPTY: Partial<Prod> = {
   preco_custo: null, margem_varejo_pct: 60,
   preco_varejo: 0, preco_assinatura: null,
   preco_b2b_1: null, preco_b2b_2: null, preco_b2b_3: null,
-  categoria_id: null,
+  categoria_id: null, fornecedor_id: null,
   imagens: [], volume: "", intensidade: 3, sensacao_transmitida: "",
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
   estoque_atual: 0, estoque_minimo: 0, estoque_ideal: 0,
@@ -66,19 +68,26 @@ function ProdutosAdmin() {
   const { filter } = Route.useSearch();
   const [items, setItems] = useState<Prod[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [margemPiso, setMargemPiso] = useState(50);
+  const [margemMeta, setMargemMeta] = useState(55);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Prod> | null>(null);
 
   async function load() {
     setLoading(true);
-    const [{ data: p }, { data: c }] = await Promise.all([
-      // RPC (SECURITY DEFINER + admin check) — retorna colunas de custo/margem que
-      // ficam ocultas para o role `authenticated` na tabela base.
+    const [{ data: p }, { data: c }, { data: f }, { data: cfg }] = await Promise.all([
       supabase.rpc("admin_list_produtos"),
       supabase.from("categorias").select("id,nome").order("nome"),
+      supabase.from("fornecedores").select("id,nome").order("nome"),
+      supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["margem_piso", "margem_meta"]),
     ]);
     setItems((p as Prod[]) ?? []);
     setCats((c as Cat[]) ?? []);
+    setFornecedores((f as Fornecedor[]) ?? []);
+    const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
+    setMargemPiso(Number(cfgMap.get("margem_piso") ?? 50));
+    setMargemMeta(Number(cfgMap.get("margem_meta") ?? 55));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
@@ -107,6 +116,7 @@ function ProdutosAdmin() {
       preco_b2b_2: editing.preco_b2b_2 != null && editing.preco_b2b_2 !== ('' as any) ? Number(editing.preco_b2b_2) : null,
       preco_b2b_3: editing.preco_b2b_3 != null && editing.preco_b2b_3 !== ('' as any) ? Number(editing.preco_b2b_3) : null,
       categoria_id: editing.categoria_id || null,
+      fornecedor_id: editing.fornecedor_id || null,
       imagens: editing.imagens ?? [],
       volume: editing.volume || null,
       intensidade: editing.intensidade ?? null,
@@ -220,7 +230,7 @@ function ProdutosAdmin() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {visibleItems.map((p) => (
-              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
+              <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} margemPiso={margemPiso} margemMeta={margemMeta} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />
             ))}
           </div>
         )}
@@ -252,6 +262,16 @@ function ProdutosAdmin() {
               >
                 <option value="">— sem categoria —</option>
                 {cats.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+            </Field>
+            <Field label="Fornecedor">
+              <select
+                className="form-input"
+                value={editing.fornecedor_id ?? ""}
+                onChange={(e) => setEditing({ ...editing, fornecedor_id: e.target.value || null })}
+              >
+                <option value="">— sem fornecedor —</option>
+                {fornecedores.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
               </select>
             </Field>
             <Field label="Descrição curta">
@@ -382,8 +402,17 @@ function ProdutosAdmin() {
   );
 }
 
-function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
+function ProductCard({ p, catName, margemPiso, margemMeta, onEdit, onDelete, onDuplicate }: { p: Prod; catName?: string; margemPiso: number; margemMeta: number; onEdit: () => void; onDelete: () => void; onDuplicate: () => void }) {
   const img = p.imagens?.[0];
+  const custo = Number(p.preco_custo ?? 0);
+  const varejo = Number(p.preco_varejo ?? 0);
+  const margemPct = varejo > 0 && custo > 0 ? ((varejo - custo) / varejo) * 100 : null;
+  let margemCls = "bg-surface text-foreground/60 border-border";
+  if (margemPct != null) {
+    if (margemPct < margemPiso) margemCls = "bg-destructive/15 text-destructive border-destructive/30";
+    else if (margemPct < margemMeta) margemCls = "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
+    else margemCls = "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30";
+  }
   return (
     <div className="bg-background flex flex-col">
       <div className="aspect-[4/5] bg-surface relative overflow-hidden">
@@ -410,8 +439,13 @@ function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; c
         {p.descricao_curta && (
           <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.descricao_curta}</p>
         )}
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap gap-2">
           <StockBadge p={p} />
+          {margemPct != null && (
+            <span className={`inline-flex items-center text-[10px] uppercase tracking-[0.18em] px-2 py-1 border ${margemCls}`}>
+              Margem {margemPct.toFixed(0)}%
+            </span>
+          )}
         </div>
         <div className="mt-auto pt-4 flex items-center justify-between">
           <span className="font-display text-lg text-foreground">{brl(p.preco_varejo)}</span>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, AlertTriangle } from "lucide-react";
+import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, Calculator, Truck, Warehouse } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { STATUS_ADMIN_LABEL, statusBadgeClasses, type PedidoStatus } from "@/lib/pedidos";
 
@@ -37,6 +37,15 @@ function DashboardPage() {
     pedidosHoje: 0, pedidosMes: 0, faturamentoMes: 0, ticketMedio: 0, aguardando: 0, estoqueBaixo: 0,
   });
   const [recentes, setRecentes] = useState<Recent[]>([]);
+  const [custoFixo, setCustoFixo] = useState(0);
+  const [pontoEquilibrio, setPontoEquilibrio] = useState(0);
+  const [reservaGiro, setReservaGiro] = useState(0);
+  const [metaDia, setMetaDia] = useState(0);
+  const [receitaMes, setReceitaMes] = useState(0);
+  const [perfis, setPerfis] = useState<Array<{ perfil: string; receita: number; num_pedidos: number }>>([]);
+  const [fornecedores, setFornecedores] = useState<Array<{ id: string; nome: string; pedido_minimo: number; margem: number; abaixoPiso: boolean }>>([]);
+  const [fornTotalMin, setFornTotalMin] = useState(0);
+  const [margemPiso, setMargemPiso] = useState(50);
 
   useEffect(() => {
     (async () => {
@@ -46,7 +55,7 @@ function DashboardPage() {
       inicioMes.setDate(1);
       inicioMes.setHours(0, 0, 0, 0);
 
-      const [prodCountRes, kitCountRes, estoqueBaixoRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes] = await Promise.all([
+      const [prodCountRes, kitCountRes, estoqueBaixoRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes, custosFixosRes, cfgRes, metricasRes, perfisRes, fornRes] = await Promise.all([
         supabase.rpc("admin_count_produtos"),
         supabase.rpc("admin_count_kits"),
         supabase.rpc("admin_count_estoque_baixo"),
@@ -56,6 +65,11 @@ function DashboardPage() {
         supabase.from("pedidos").select("total", { count: "exact" }).gte("created_at", inicioHoje.toISOString()),
         supabase.from("pedidos").select("total", { count: "exact" }).gte("created_at", inicioMes.toISOString()).neq("status", "cancelado"),
         supabase.from("pedidos").select("id,numero_pedido,nome_cliente,total,status,created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("custos_fixos").select("valor_mensal"),
+        supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["meses_reserva", "dias_uteis_mes", "margem_piso", "margem_meta"]),
+        supabase.rpc("admin_metricas_vendas_30d"),
+        supabase.rpc("admin_vendas_mes_por_perfil"),
+        supabase.from("fornecedores").select("id,nome,pedido_minimo,custo_medio,preco_medio"),
       ]);
 
       const totalMes = (mes.data ?? []).reduce((s, r: any) => s + Number(r.total ?? 0), 0);
@@ -63,6 +77,32 @@ function DashboardPage() {
       const p = (prodCountRes.data as number | null) ?? 0;
       const k = (kitCountRes.data as number | null) ?? 0;
       const eb = (estoqueBaixoRes.data as number | null) ?? 0;
+
+      const totalFixo = (custosFixosRes.data ?? []).reduce((s, r: any) => s + Number(r.valor_mensal ?? 0), 0);
+      const cfgMap = new Map((cfgRes.data ?? []).map((r: any) => [r.chave, r.valor]));
+      const meses = Number(cfgMap.get("meses_reserva") ?? 3);
+      const diasU = Number(cfgMap.get("dias_uteis_mes") ?? 26);
+      const piso = Number(cfgMap.get("margem_piso") ?? 50);
+      const metricas: any = metricasRes.data ?? {};
+      const margemReal = Number(metricas.margem_real ?? 0);
+      const pe = margemReal > 0 ? totalFixo / margemReal : 0;
+      setCustoFixo(totalFixo);
+      setPontoEquilibrio(pe);
+      setReservaGiro(totalFixo * meses);
+      setMetaDia(diasU > 0 ? pe / diasU : 0);
+      setMargemPiso(piso);
+
+      const perfisData = (perfisRes.data as Array<{ perfil: string; receita: number; num_pedidos: number }>) ?? [];
+      setPerfis(perfisData);
+      setReceitaMes(perfisData.reduce((s, r) => s + Number(r.receita ?? 0), 0));
+
+      const fornData = (fornRes.data as Array<{ id: string; nome: string; pedido_minimo: number; custo_medio: number; preco_medio: number }>) ?? [];
+      const fornMap = fornData.map((f) => {
+        const margem = Number(f.preco_medio) > 0 ? ((Number(f.preco_medio) - Number(f.custo_medio)) / Number(f.preco_medio)) * 100 : 0;
+        return { id: f.id, nome: f.nome, pedido_minimo: Number(f.pedido_minimo), margem, abaixoPiso: margem < piso };
+      });
+      setFornecedores(fornMap);
+      setFornTotalMin(fornMap.reduce((s, f) => s + f.pedido_minimo, 0));
 
       setStats({
         produtos: p, kits: k, categorias: c ?? 0, leads: l ?? 0,
@@ -76,6 +116,9 @@ function DashboardPage() {
       setRecentes((recentesRes.data as Recent[]) ?? []);
     })();
   }, []);
+
+  const progressoMeta = pontoEquilibrio > 0 ? Math.min(100, (receitaMes / pontoEquilibrio) * 100) : 0;
+  const PERFIL_LABEL: Record<string, string> = { varejo: "Varejo", assinante: "Assinante", b2b_1: "B2B 1", b2b_2: "B2B 2", b2b_3: "B2B 3" };
 
   return (
     <>
@@ -101,20 +144,82 @@ function DashboardPage() {
       </Link>
 
       {stats.estoqueBaixo > 0 && (
-        <Link to="/admin/produtos" search={{ filter: "baixo" }} className="block mb-8">
+        <Link to="/admin/estoque" className="block mb-8">
           <div className="border border-destructive/40 bg-destructive/5 p-6 flex items-center justify-between hover:bg-destructive/10 transition-colors">
             <div className="flex items-center gap-4">
-              <AlertTriangle size={24} className="text-destructive" />
+              <Warehouse size={24} className="text-destructive" />
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-destructive mb-1">— estoque</p>
                 <p className="font-display text-2xl text-foreground">
-                  {stats.estoqueBaixo} {stats.estoqueBaixo === 1 ? "produto com estoque baixo" : "produtos com estoque baixo"}
+                  {stats.estoqueBaixo} {stats.estoqueBaixo === 1 ? "produto precisando de atenção" : "produtos precisando de atenção"}
                 </p>
               </div>
             </div>
-            <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver lista →</span>
+            <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver estoque →</span>
           </div>
         </Link>
+      )}
+
+      {/* Custo Fixo & Metas */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— finanças</p>
+        <Link to="/admin/custo-fixo" className="text-xs uppercase tracking-[0.18em] text-gold hover:underline">Custo fixo →</Link>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-10">
+        <Stat label="Custo fixo mensal" value={brl(custoFixo)} icon={Calculator} />
+        <Stat label="Ponto de equilíbrio" value={brl(pontoEquilibrio)} icon={Calculator} />
+        <Stat label="Reserva de giro" value={brl(reservaGiro)} icon={Calculator} />
+        <Stat label="Meta / dia útil" value={brl(metaDia)} icon={Calculator} />
+      </div>
+
+      {/* Vendas do mês vs meta */}
+      {pontoEquilibrio > 0 && (
+        <div className="bg-background border border-border p-6 mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— vendas do mês vs meta</p>
+            <span className="font-mono text-xs text-gold">{progressoMeta.toFixed(1)}%</span>
+          </div>
+          <div className="flex items-center justify-between mb-2 text-sm">
+            <span className="text-foreground">{brl(receitaMes)} de {brl(pontoEquilibrio)}</span>
+          </div>
+          <div className="h-2 bg-surface overflow-hidden mb-4">
+            <div className="h-full bg-gold transition-all" style={{ width: `${progressoMeta}%` }} />
+          </div>
+          {perfis.length > 0 && (
+            <div className="space-y-1.5 text-xs">
+              {perfis.map((p) => {
+                const pct = receitaMes > 0 ? (Number(p.receita) / receitaMes) * 100 : 0;
+                return (
+                  <div key={p.perfil} className="flex items-center justify-between py-1 border-b border-border last:border-0">
+                    <span className="text-foreground">{PERFIL_LABEL[p.perfil] ?? p.perfil}</span>
+                    <span className="font-mono text-muted-foreground">{brl(p.receita)} <span className="text-foreground/50">({pct.toFixed(0)}%)</span></span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Fornecedores */}
+      {fornecedores.length > 0 && (
+        <div className="bg-background border border-border p-6 mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— fornecedores</p>
+            <Link to="/admin/fornecedores" className="text-xs uppercase tracking-[0.18em] text-gold hover:underline">Ver todos →</Link>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Total investido em pedidos mínimos: <span className="text-foreground font-mono">{brl(fornTotalMin)}</span></p>
+          <ul className="space-y-1.5 text-xs">
+            {fornecedores.map((f) => (
+              <li key={f.id} className="flex items-center justify-between py-1 border-b border-border last:border-0">
+                <span className="text-foreground">{f.nome}</span>
+                <span className={`font-mono ${f.abaixoPiso ? "text-destructive" : "text-muted-foreground"}`}>
+                  {f.margem.toFixed(1)}% {f.abaixoPiso && `· abaixo do piso (${margemPiso}%)`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* Stats pedidos */}
@@ -167,9 +272,12 @@ function DashboardPage() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
         <ModuleCard to="/admin/pedidos" icon={ClipboardList} title="Pedidos" text="Gestão completa de vendas" />
-        <ModuleCard to="/admin/categorias" icon={Tag} title="Categorias" text="Organize o catálogo" />
         <ModuleCard to="/admin/produtos" icon={Package} title="Produtos" text="Cadastro, preços, imagens" />
         <ModuleCard to="/admin/kits" icon={Boxes} title="Kits" text="Combine produtos em kits sensoriais" />
+        <ModuleCard to="/admin/estoque" icon={Warehouse} title="Estoque" text="Posição e alertas de reposição" />
+        <ModuleCard to="/admin/fornecedores" icon={Truck} title="Fornecedores" text="Cadastro, margens e reposição" />
+        <ModuleCard to="/admin/custo-fixo" icon={Calculator} title="Custo fixo & metas" text="Ponto de equilíbrio e reserva" />
+        <ModuleCard to="/admin/categorias" icon={Tag} title="Categorias" text="Organize o catálogo" />
         <ModuleCard to="/admin/clientes" icon={Users} title="Clientes" text="Revendedores e aprovações" />
         <ModuleCard to="/admin/configuracoes" icon={Settings} title="Configurações" text="WhatsApp, redes sociais, logo" />
       </div>
