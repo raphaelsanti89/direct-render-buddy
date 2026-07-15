@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Leaf, Heart, Truck, Building2 } from "lucide-reac
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConfig } from "@/hooks/useConfig";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { brl } from "@/lib/slug";
 import heroImg from "@/assets/hero-aroma.jpg";
 import sobreImg from "@/assets/sobre-marca.jpg";
@@ -180,12 +181,12 @@ function ProdutosDestaque() {
 
 function Hero() {
   const { config } = useConfig();
-  const waNumber = (config.whatsapp_pedidos || "").replace(/\D/g, "");
-  const waMessage = encodeURIComponent(
-    config.mensagem_whatsapp ||
-      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
-  );
-  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : "#";
+  const waHref =
+    buildWhatsAppLink(
+      config.whatsapp_pedidos,
+      config.mensagem_whatsapp ||
+        "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+    ) || "#";
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <img
@@ -311,12 +312,12 @@ function SobreMarca() {
 
 function ExperienciaSensorial() {
   const { config } = useConfig();
-  const waNumber = (config.whatsapp_pedidos || "").replace(/\D/g, "");
-  const waMessage = encodeURIComponent(
-    config.mensagem_whatsapp ||
-      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
-  );
-  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : "#";
+  const waHref =
+    buildWhatsAppLink(
+      config.whatsapp_pedidos,
+      config.mensagem_whatsapp ||
+        "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
+    ) || "#";
   const cards = [
     {
       tag: "01",

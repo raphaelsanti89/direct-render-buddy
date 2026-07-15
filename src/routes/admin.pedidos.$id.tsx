@@ -10,6 +10,7 @@ import {
   statusBadgeClasses,
   type PedidoStatus,
 } from "@/lib/pedidos";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Pedido — Admin" }] }),
@@ -182,11 +183,8 @@ function AdminPedidoDetalhePage() {
     );
   }
 
-  const waNumber = pedido.telefone.replace(/\D/g, "");
   const waMessage = buildWhatsMessage(pedido);
-  const waLink = waNumber
-    ? `https://wa.me/${waNumber}${waMessage ? `?text=${encodeURIComponent(waMessage)}` : ""}`
-    : null;
+  const waLink = buildWhatsAppLink(pedido.telefone, waMessage) || null;
 
   return (
     <div>

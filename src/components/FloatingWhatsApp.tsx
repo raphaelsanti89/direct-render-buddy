@@ -1,15 +1,14 @@
 import { MessageCircle } from "lucide-react";
 import { useConfig } from "@/hooks/useConfig";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 export function FloatingWhatsApp() {
   const { config } = useConfig();
-  const number = (config.whatsapp_pedidos || "").replace(/\D/g, "");
-  const message = encodeURIComponent(
+  const message =
     config.mensagem_whatsapp ||
-      "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿",
-  );
-  if (!number) return null;
-  const href = `https://wa.me/${number}?text=${message}`;
+    "Olá! Vim pelo site e gostaria de mais informações sobre os produtos da Gama Sensações 🌿";
+  const href = buildWhatsAppLink(config.whatsapp_pedidos, message);
+  if (!href) return null;
 
   return (
     <a

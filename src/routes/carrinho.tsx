@@ -8,6 +8,7 @@ import { getPrecoForProfile } from "@/lib/preco";
 import { brl } from "@/lib/slug";
 import { toast } from "sonner";
 import { criarPedido, perfilLabel } from "@/lib/pedidos";
+import { buildWhatsAppLink, normalizeWhatsAppNumber } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({
@@ -63,7 +64,7 @@ function CarrinhoPage() {
   );
 
   const total = linhas.reduce((s, l) => s + l.subtotal, 0);
-  const empresaWa = (config.whatsapp_pedidos || "").replace(/\D/g, "");
+  const empresaWa = normalizeWhatsAppNumber(config.whatsapp_pedidos);
   const exigeEndereco = entrega !== "Retirada" && entrega !== "A combinar";
 
   async function finalizarWhatsApp() {
@@ -128,7 +129,7 @@ function CarrinhoPage() {
         `*Acompanhar:* ${trackingLink}`,
       ].filter(Boolean).join("\n");
 
-      window.open(`https://wa.me/${empresaWa}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+      window.open(buildWhatsAppLink(config.whatsapp_pedidos, msg), "_blank", "noopener");
       clear();
       setSucesso({ numero: pedido.numero_pedido, link: trackingLink });
     } catch (e) {
