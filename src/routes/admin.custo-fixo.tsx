@@ -11,7 +11,8 @@ export const Route = createFileRoute("/admin/custo-fixo")({
 });
 
 type CustoRow = { id?: string; item: string; categoria: string | null; valor_mensal: number; ordem: number };
-type Metricas = { receita_total: number; custo_total: number; num_pedidos: number; ticket_medio: number; margem_real: number };
+type VarRow = { id?: string; item: string; percentual: number; ordem: number };
+type Metricas = { receita_total: number; custo_total: number; num_pedidos: number; ticket_medio: number; margem_real: number; variaveis_pct: number; margem_liquida: number };
 type PerfilRow = { perfil: string; num_pedidos: number; receita: number };
 
 const PERFIL_LABEL: Record<string, string> = {
