@@ -84,9 +84,17 @@ function AdminPedidosPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-2">— operação</p>
-        <h1 className="font-display text-4xl text-foreground">Pedidos</h1>
+      <div className="mb-8 flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-2">— operação</p>
+          <h1 className="font-display text-4xl text-foreground">Pedidos</h1>
+        </div>
+        <Link
+          to="/admin/pedidos/novo"
+          className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors"
+        >
+          <Plus size={14} /> Novo pedido manual
+        </Link>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_auto] gap-4 mb-6">
