@@ -74,14 +74,16 @@ function KitsAdmin() {
 
   async function load() {
     setLoading(true);
+    // RPCs SECURITY DEFINER (com checagem de admin) — necessárias porque a role
+    // `authenticated` não enxerga mais colunas de custo/margem/embalagem na tabela base.
     const [{ data: kitsData, error }, { data: prodData }, { data: catData }] = await Promise.all([
-      supabase.from("kits").select("*").order("created_at", { ascending: false }),
-      supabase.from("produtos").select("id,nome,categoria_id,preco_custo,preco_varejo,preco_assinatura,preco_b2b_1,preco_b2b_2,preco_b2b_3,estoque").eq("ativo", true).order("nome"),
+      supabase.rpc("admin_list_kits"),
+      supabase.rpc("admin_list_produtos"),
       supabase.from("categorias").select("id,nome"),
     ]);
     if (error) toast.error(error.message);
     setItems((kitsData as Kit[]) ?? []);
-    setProdutos((prodData as Produto[]) ?? []);
+    setProdutos(((prodData as Produto[]) ?? []).filter((p: any) => p.ativo !== false));
     const cats: Record<string, string> = {};
     (catData ?? []).forEach((c: any) => { cats[c.id] = c.nome; });
     setCategorias(cats);
@@ -92,12 +94,13 @@ function KitsAdmin() {
   async function openEdit(k: Partial<Kit>) {
     setEditing(k);
     if (k.id) {
-      const { data } = await (supabase as any).from("kit_componentes").select("produto_id,quantidade").eq("kit_id", k.id);
+      const { data } = await supabase.rpc("admin_get_kit_componentes", { p_kit_id: k.id });
       setComponentes(((data as any[]) ?? []).map((c) => ({ produto_id: c.produto_id, quantidade: c.quantidade })));
     } else {
       setComponentes([]);
     }
   }
+
 
   // cálculos derivados
   const calc = useMemo(() => {

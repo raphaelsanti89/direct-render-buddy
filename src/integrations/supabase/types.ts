@@ -613,7 +613,97 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_kit_componentes: {
+        Args: { p_kit_id: string }
+        Returns: {
+          produto_id: string
+          quantidade: number
+        }[]
+      }
+      admin_list_kits: {
+        Args: never
+        Returns: {
+          ativo: boolean | null
+          created_at: string | null
+          custo_embalagem: number
+          desconto_kit_pct: number
+          descricao: string | null
+          descricao_curta: string | null
+          destaque: boolean | null
+          disponivel_assinatura: boolean | null
+          disponivel_b2b: boolean | null
+          id: string
+          imagens: string[] | null
+          nome: string
+          percentual_economia: number | null
+          preco_assinatura: number | null
+          preco_b2b_1: number | null
+          preco_b2b_2: number | null
+          preco_b2b_3: number | null
+          preco_original: number
+          preco_varejo: number
+          slug: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "kits"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_produtos: {
+        Args: never
+        Returns: {
+          ativo: boolean | null
+          categoria_id: string | null
+          composicao: string | null
+          created_at: string | null
+          descricao: string | null
+          descricao_curta: string | null
+          destaque: boolean | null
+          disponivel_assinatura: boolean | null
+          disponivel_b2b: boolean | null
+          disponivel_varejo: boolean | null
+          durabilidade_media: string | null
+          estoque: number | null
+          id: string
+          imagens: string[] | null
+          intensidade: number | null
+          lancamento: boolean | null
+          mais_vendido: boolean | null
+          margem_varejo_pct: number | null
+          modo_de_uso: string | null
+          nome: string
+          notas_olfativas: string[] | null
+          preco_assinatura: number | null
+          preco_b2b_1: number | null
+          preco_b2b_2: number | null
+          preco_b2b_3: number | null
+          preco_custo: number | null
+          preco_varejo: number
+          sensacao_transmitida: string | null
+          slug: string
+          updated_at: string | null
+          volume: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "produtos"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       criar_pedido_publico: { Args: { payload: Json }; Returns: Json }
+      get_kit_composicao_publica: {
+        Args: { p_kit_id: string }
+        Returns: {
+          produto_id: string
+          produto_imagens: string[]
+          produto_nome: string
+          produto_slug: string
+          quantidade: number
+        }[]
+      }
       get_pedido_publico: { Args: { p_numero: string }; Returns: Json }
       has_role: {
         Args: {

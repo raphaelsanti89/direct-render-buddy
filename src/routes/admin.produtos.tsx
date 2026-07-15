@@ -62,7 +62,9 @@ function ProdutosAdmin() {
   async function load() {
     setLoading(true);
     const [{ data: p }, { data: c }] = await Promise.all([
-      supabase.from("produtos").select("*").order("created_at", { ascending: false }),
+      // RPC (SECURITY DEFINER + admin check) — retorna colunas de custo/margem que
+      // ficam ocultas para o role `authenticated` na tabela base.
+      supabase.rpc("admin_list_produtos"),
       supabase.from("categorias").select("id,nome").order("nome"),
     ]);
     setItems((p as Prod[]) ?? []);
@@ -70,6 +72,7 @@ function ProdutosAdmin() {
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
+
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
