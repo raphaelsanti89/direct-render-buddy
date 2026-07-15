@@ -10,6 +10,7 @@ import {
   statusBadgeClasses,
   type PedidoStatus,
 } from "@/lib/pedidos";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Pedido — Admin" }] }),
