@@ -30,6 +30,7 @@ import { Route as AdminKitsRouteImport } from './routes/admin.kits'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
+import { Route as AdminPedidosNovoRouteImport } from './routes/admin.pedidos.novo'
 import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -137,6 +138,11 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   path: '/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPedidosNovoRoute = AdminPedidosNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => AdminPedidosRoute,
+} as any)
 const AdminPedidosIdRoute = AdminPedidosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
+  '/admin/pedidos/novo': typeof AdminPedidosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
+  '/admin/pedidos/novo': typeof AdminPedidosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
+  '/admin/pedidos/novo': typeof AdminPedidosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/produto/$slug'
     | '/admin/'
     | '/admin/pedidos/$id'
+    | '/admin/pedidos/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/produto/$slug'
     | '/admin'
     | '/admin/pedidos/$id'
+    | '/admin/pedidos/novo'
   id:
     | '__root__'
     | '/'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/produto/$slug'
     | '/admin/'
     | '/admin/pedidos/$id'
+    | '/admin/pedidos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -455,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/pedidos/novo': {
+      id: '/admin/pedidos/novo'
+      path: '/novo'
+      fullPath: '/admin/pedidos/novo'
+      preLoaderRoute: typeof AdminPedidosNovoRouteImport
+      parentRoute: typeof AdminPedidosRoute
+    }
     '/admin/pedidos/$id': {
       id: '/admin/pedidos/$id'
       path: '/$id'
@@ -467,10 +486,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminPedidosRouteChildren {
   AdminPedidosIdRoute: typeof AdminPedidosIdRoute
+  AdminPedidosNovoRoute: typeof AdminPedidosNovoRoute
 }
 
 const AdminPedidosRouteChildren: AdminPedidosRouteChildren = {
   AdminPedidosIdRoute: AdminPedidosIdRoute,
+  AdminPedidosNovoRoute: AdminPedidosNovoRoute,
 }
 
 const AdminPedidosRouteWithChildren = AdminPedidosRoute._addFileChildren(

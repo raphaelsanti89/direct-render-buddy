@@ -47,6 +47,7 @@ function MinhaContaPage() {
         return;
       }
       const uid = sess.session.user.id;
+      const userEmail = sess.session.user.email ?? "";
       const [{ data: prof }, { data: peds }] = await Promise.all([
         supabase
           .from("profiles")
@@ -56,7 +57,11 @@ function MinhaContaPage() {
         supabase
           .from("pedidos")
           .select("id, numero_pedido, status, total, created_at")
-          .eq("cliente_id", uid)
+          .or(
+            userEmail
+              ? `cliente_id.eq.${uid},email.eq.${userEmail.toLowerCase()}`
+              : `cliente_id.eq.${uid}`,
+          )
           .order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;

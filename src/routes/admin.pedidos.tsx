@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { brl } from "@/lib/slug";
 import {
   PEDIDO_STATUS,
@@ -29,7 +29,7 @@ type PedidoRow = {
 };
 
 const PERFIS = ["todos", "varejo", "assinante", "b2b_1", "b2b_2", "b2b_3"] as const;
-const ORIGENS = ["todas", "site", "instagram", "whatsapp", "admin", "revendedor"] as const;
+const ORIGENS = ["todas", "site", "manual", "instagram", "whatsapp", "admin", "revendedor"] as const;
 
 function AdminPedidosRoute() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -84,9 +84,17 @@ function AdminPedidosPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-2">— operação</p>
-        <h1 className="font-display text-4xl text-foreground">Pedidos</h1>
+      <div className="mb-8 flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-2">— operação</p>
+          <h1 className="font-display text-4xl text-foreground">Pedidos</h1>
+        </div>
+        <Link
+          to="/admin/pedidos/novo"
+          className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors"
+        >
+          <Plus size={14} /> Novo pedido manual
+        </Link>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_auto] gap-4 mb-6">
@@ -176,7 +184,15 @@ function AdminPedidosPage() {
                       {STATUS_ADMIN_LABEL[p.status]}
                     </span>
                   </td>
-                  <td className="p-4 text-xs text-muted-foreground">{p.origem_pedido}</td>
+                  <td className="p-4">
+                    <span className={`text-[10px] px-2 py-1 uppercase tracking-[0.18em] ${
+                      p.origem_pedido === "manual"
+                        ? "bg-gold/15 text-gold"
+                        : "bg-surface text-muted-foreground"
+                    }`}>
+                      {p.origem_pedido}
+                    </span>
+                  </td>
                   <td className="p-4 text-xs text-muted-foreground">
                     {new Date(p.created_at).toLocaleDateString("pt-BR")}
                   </td>
