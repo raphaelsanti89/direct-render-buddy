@@ -264,6 +264,16 @@ function ProdutosAdmin() {
                 {cats.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
             </Field>
+            <Field label="Fornecedor">
+              <select
+                className="form-input"
+                value={editing.fornecedor_id ?? ""}
+                onChange={(e) => setEditing({ ...editing, fornecedor_id: e.target.value || null })}
+              >
+                <option value="">— sem fornecedor —</option>
+                {fornecedores.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
+              </select>
+            </Field>
             <Field label="Descrição curta">
               <input
                 className="form-input"
