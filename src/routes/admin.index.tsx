@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, AlertTriangle } from "lucide-react";
+import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, AlertTriangle, Calculator, Truck, Warehouse } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { STATUS_ADMIN_LABEL, statusBadgeClasses, type PedidoStatus } from "@/lib/pedidos";
 
