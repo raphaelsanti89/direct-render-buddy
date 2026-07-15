@@ -151,7 +151,8 @@ function MinhaContaPage() {
                           </span>
                           <Link
                             to="/pedido/$numero"
-                            params={{ numero: p.numero_pedido }}
+                            params={{ numero: p.codigo_rastreio }}
+
                             className="text-xs uppercase tracking-[0.18em] text-[#C8A96E] hover:text-[#2C4A35] transition-colors"
                           >
                             Rastrear →
