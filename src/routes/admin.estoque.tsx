@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { brl } from "@/lib/slug";
-import { Warehouse, AlertTriangle, PackageCheck, Wallet } from "lucide-react";
+import { Warehouse, AlertTriangle, PackageCheck, Wallet, Trophy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/admin/estoque")({
   head: () => ({ meta: [{ title: "Estoque — Admin" }] }),
@@ -22,33 +23,85 @@ type Row = {
   fornecedor_nome: string | null;
 };
 
+type Vel = { produto_id: string; qtd_30d: number; media_diaria: number; sugestao_minimo: number; campeao: boolean };
 type Resumo = { valor_total: number; comprar_agora: number; comprar_em_breve: number };
 
 function EstoquePage() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [velMap, setVelMap] = useState<Map<string, Vel>>(new Map());
   const [resumo, setResumo] = useState<Resumo>({ valor_total: 0, comprar_agora: 0, comprar_em_breve: 0 });
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const [{ data: posicao }, { data: res }] = await Promise.all([
-        supabase.rpc("admin_estoque_posicao"),
-        supabase.rpc("admin_estoque_resumo"),
-      ]);
-      setRows((posicao as Row[]) ?? []);
-      if (res) setResumo(res as unknown as Resumo);
-      setLoading(false);
-    })();
-  }, []);
+  async function load() {
+    setLoading(true);
+    const [{ data: posicao }, { data: res }, { data: vel }] = await Promise.all([
+      supabase.rpc("admin_estoque_posicao"),
+      supabase.rpc("admin_estoque_resumo"),
+      supabase.rpc("admin_produtos_velocidade"),
+    ]);
+    setRows((posicao as Row[]) ?? []);
+    if (res) setResumo(res as unknown as Resumo);
+    const m = new Map<string, Vel>();
+    ((vel as Vel[]) ?? []).forEach((v) => m.set(v.produto_id, v));
+    setVelMap(m);
+    setLoading(false);
+  }
+  useEffect(() => { load(); }, []);
+
+  const sugestoesPendentes = useMemo(
+    () => rows.filter((r) => {
+      const s = velMap.get(r.id)?.sugestao_minimo ?? 0;
+      return s > (r.estoque_minimo ?? 0);
+    }),
+    [rows, velMap]
+  );
+
+  async function aplicar(id: string, novoMinimo: number) {
+    const { error } = await supabase.from("produtos").update({ estoque_minimo: novoMinimo }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Estoque mínimo atualizado.");
+    load();
+  }
+
+  async function aplicarTodas() {
+    if (sugestoesPendentes.length === 0) return;
+    if (!confirm(`Aplicar sugestão de estoque mínimo em ${sugestoesPendentes.length} produto(s)?`)) return;
+    setApplying(true);
+    try {
+      for (const r of sugestoesPendentes) {
+        const s = velMap.get(r.id)!.sugestao_minimo;
+        const { error } = await supabase.from("produtos").update({ estoque_minimo: s }).eq("id", r.id);
+        if (error) throw error;
+      }
+      toast.success(`Sugestões aplicadas em ${sugestoesPendentes.length} produto(s).`);
+      await load();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao aplicar.");
+    } finally {
+      setApplying(false);
+    }
+  }
 
   return (
     <>
-      <div className="mb-10">
-        <div className="flex items-center gap-3 mb-2">
-          <Warehouse className="text-gold" size={18} />
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold">— estoque</p>
+      <div className="mb-10 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <Warehouse className="text-gold" size={18} />
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold">— estoque</p>
+          </div>
+          <h1 className="font-display text-4xl text-foreground">Posição de estoque</h1>
         </div>
-        <h1 className="font-display text-4xl text-foreground">Posição de estoque</h1>
+        {sugestoesPendentes.length > 0 && (
+          <button
+            onClick={aplicarTodas}
+            disabled={applying}
+            className="bg-foreground text-background px-5 py-2 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors disabled:opacity-50"
+          >
+            {applying ? "Aplicando…" : `Aplicar todas as sugestões (${sugestoesPendentes.length})`}
+          </button>
+        )}
       </div>
 
       <div className="grid sm:grid-cols-3 gap-px bg-border mb-10">
@@ -69,30 +122,62 @@ function EstoquePage() {
                 <th className="text-left px-4 py-3">Produto</th>
                 <th className="text-right px-4 py-3">Atual</th>
                 <th className="text-right px-4 py-3">Mínimo</th>
+                <th className="text-left px-4 py-3">Sugestão</th>
                 <th className="text-right px-4 py-3">Ideal</th>
+                <th className="text-right px-4 py-3">Vendas/dia (30d)</th>
                 <th className="text-right px-4 py-3">Valor investido</th>
                 <th className="text-left px-4 py-3">Fornecedor</th>
                 <th className="text-left px-4 py-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-3 text-foreground">{r.nome}</td>
-                  <td className="px-4 py-3 text-right">{r.estoque_atual}</td>
-                  <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_minimo}</td>
-                  <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_ideal}</td>
-                  <td className="px-4 py-3 text-right">{brl(r.valor_investido)}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{r.fornecedor_nome ?? "—"}</td>
-                  <td className="px-4 py-3"><StatusPill status={r.status} /></td>
-                </tr>
-              ))}
+              {rows.map((r) => {
+                const v = velMap.get(r.id);
+                const sug = v?.sugestao_minimo ?? 0;
+                const pendente = sug > (r.estoque_minimo ?? 0);
+                return (
+                  <tr key={r.id}>
+                    <td className="px-4 py-3 text-foreground">
+                      <div className="flex items-center gap-2">
+                        {v?.campeao && (
+                          <span title="Campeão de vendas (top 20%)" className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.18em] bg-gold text-background px-1.5 py-0.5">
+                            <Trophy size={9} />
+                          </span>
+                        )}
+                        {r.nome}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">{r.estoque_atual}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_minimo}</td>
+                    <td className="px-4 py-3">
+                      {pendente ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-amber-700 dark:text-amber-400">Sugestão: {sug} — atual: {r.estoque_minimo}</span>
+                          <button
+                            onClick={() => aplicar(r.id, sug)}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 border border-gold text-gold hover:bg-gold hover:text-background transition-colors"
+                          >
+                            <Check size={10} /> Aplicar
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_ideal}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground text-xs">{v ? v.media_diaria.toFixed(2) : "—"}</td>
+                    <td className="px-4 py-3 text-right">{brl(r.valor_investido)}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{r.fornecedor_nome ?? "—"}</td>
+                    <td className="px-4 py-3"><StatusPill status={r.status} /></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
-        Editar níveis e custo em <Link to="/admin/produtos" className="text-gold hover:underline">Produtos</Link>.
+        Editar níveis e custo em <Link to="/admin/produtos" className="text-gold hover:underline">Produtos</Link>. Sugestão = média diária de vendas dos últimos 30 dias × prazo de reposição.
       </p>
     </>
   );
