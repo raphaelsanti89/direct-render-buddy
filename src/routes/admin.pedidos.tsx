@@ -29,7 +29,7 @@ type PedidoRow = {
 };
 
 const PERFIS = ["todos", "varejo", "assinante", "b2b_1", "b2b_2", "b2b_3"] as const;
-const ORIGENS = ["todas", "site", "instagram", "whatsapp", "admin", "revendedor"] as const;
+const ORIGENS = ["todas", "site", "manual", "instagram", "whatsapp", "admin", "revendedor"] as const;
 
 function AdminPedidosRoute() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
