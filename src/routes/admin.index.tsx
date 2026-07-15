@@ -45,9 +45,9 @@ function DashboardPage() {
       inicioMes.setDate(1);
       inicioMes.setHours(0, 0, 0, 0);
 
-      const [{ count: p }, { count: k }, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes] = await Promise.all([
-        supabase.from("produtos").select("*", { count: "exact", head: true }),
-        supabase.from("kits").select("*", { count: "exact", head: true }),
+      const [prodCountRes, kitCountRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes] = await Promise.all([
+        supabase.rpc("admin_count_produtos"),
+        supabase.rpc("admin_count_kits"),
         supabase.from("categorias").select("*", { count: "exact", head: true }),
         supabase.from("leads").select("*", { count: "exact", head: true }),
         supabase.from("pedidos").select("*", { count: "exact", head: true }).eq("status", "novo"),
@@ -58,9 +58,11 @@ function DashboardPage() {
 
       const totalMes = (mes.data ?? []).reduce((s, r: any) => s + Number(r.total ?? 0), 0);
       const ticket = mes.count && mes.count > 0 ? totalMes / mes.count : 0;
+      const p = (prodCountRes.data as number | null) ?? 0;
+      const k = (kitCountRes.data as number | null) ?? 0;
 
       setStats({
-        produtos: p ?? 0, kits: k ?? 0, categorias: c ?? 0, leads: l ?? 0,
+        produtos: p, kits: k, categorias: c ?? 0, leads: l ?? 0,
         aguardando: aguardando ?? 0,
         pedidosHoje: hoje.count ?? 0,
         pedidosMes: mes.count ?? 0,
