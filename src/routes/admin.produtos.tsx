@@ -1,15 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useRef } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify, brl } from "@/lib/slug";
 import { toast } from "sonner";
-import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Sparkles, Upload, Download, FileDown, Plus, X, Copy, AlertTriangle } from "lucide-react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Empty, Field, FormActions, FormDrawer } from "./admin.categorias";
 import * as XLSX from "xlsx";
 
+type SearchParams = { filter?: "baixo" | "todos" };
+
 export const Route = createFileRoute("/admin/produtos")({
   head: () => ({ meta: [{ title: "Produtos — Admin" }] }),
+  validateSearch: (s: Record<string, unknown>): SearchParams => ({
+    filter: s.filter === "baixo" ? "baixo" : undefined,
+  }),
   component: ProdutosAdmin,
 });
 
@@ -37,6 +42,9 @@ type Prod = {
   destaque: boolean | null;
   lancamento: boolean | null;
   mais_vendido: boolean | null;
+  estoque_atual: number | null;
+  estoque_minimo: number | null;
+  estoque_ideal: number | null;
 };
 
 const EMPTY: Partial<Prod> = {
@@ -47,6 +55,7 @@ const EMPTY: Partial<Prod> = {
   categoria_id: null,
   imagens: [], volume: "", intensidade: 3, sensacao_transmitida: "",
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
+  estoque_atual: 0, estoque_minimo: 0, estoque_ideal: 0,
 };
 
 // Descontos sugeridos (sobre o preço de varejo)
@@ -54,6 +63,7 @@ const DESC = { assinante: 0.13, b2b1: 0.15, b2b2: 0.20, b2b3: 0.25 };
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function ProdutosAdmin() {
+  const { filter } = Route.useSearch();
   const [items, setItems] = useState<Prod[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +82,13 @@ function ProdutosAdmin() {
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
+
+  const visibleItems = useMemo(() => {
+    if (filter === "baixo") {
+      return items.filter((p) => (p.estoque_atual ?? 0) <= (p.estoque_minimo ?? 0));
+    }
+    return items;
+  }, [items, filter]);
 
 
   async function save(e: React.FormEvent) {
@@ -99,6 +116,9 @@ function ProdutosAdmin() {
       destaque: editing.destaque ?? false,
       lancamento: editing.lancamento ?? false,
       mais_vendido: editing.mais_vendido ?? false,
+      estoque_atual: Number(editing.estoque_atual ?? 0),
+      estoque_minimo: Number(editing.estoque_minimo ?? 0),
+      estoque_ideal: Number(editing.estoque_ideal ?? 0),
     };
     if (!payload.nome) return toast.error("Nome é obrigatório");
     if (!payload.preco_varejo) return toast.error("Preço é obrigatório");
