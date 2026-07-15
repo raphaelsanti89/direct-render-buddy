@@ -610,9 +610,114 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      kit_composicao_publica: {
+        Row: {
+          kit_id: string | null
+          produto_id: string | null
+          produto_imagens: string[] | null
+          produto_nome: string | null
+          produto_slug: string | null
+          quantidade: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_componentes_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_componentes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      admin_get_kit_componentes: {
+        Args: { p_kit_id: string }
+        Returns: {
+          produto_id: string
+          quantidade: number
+        }[]
+      }
+      admin_list_kits: {
+        Args: never
+        Returns: {
+          ativo: boolean | null
+          created_at: string | null
+          custo_embalagem: number
+          desconto_kit_pct: number
+          descricao: string | null
+          descricao_curta: string | null
+          destaque: boolean | null
+          disponivel_assinatura: boolean | null
+          disponivel_b2b: boolean | null
+          id: string
+          imagens: string[] | null
+          nome: string
+          percentual_economia: number | null
+          preco_assinatura: number | null
+          preco_b2b_1: number | null
+          preco_b2b_2: number | null
+          preco_b2b_3: number | null
+          preco_original: number
+          preco_varejo: number
+          slug: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "kits"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_produtos: {
+        Args: never
+        Returns: {
+          ativo: boolean | null
+          categoria_id: string | null
+          composicao: string | null
+          created_at: string | null
+          descricao: string | null
+          descricao_curta: string | null
+          destaque: boolean | null
+          disponivel_assinatura: boolean | null
+          disponivel_b2b: boolean | null
+          disponivel_varejo: boolean | null
+          durabilidade_media: string | null
+          estoque: number | null
+          id: string
+          imagens: string[] | null
+          intensidade: number | null
+          lancamento: boolean | null
+          mais_vendido: boolean | null
+          margem_varejo_pct: number | null
+          modo_de_uso: string | null
+          nome: string
+          notas_olfativas: string[] | null
+          preco_assinatura: number | null
+          preco_b2b_1: number | null
+          preco_b2b_2: number | null
+          preco_b2b_3: number | null
+          preco_custo: number | null
+          preco_varejo: number
+          sensacao_transmitida: string | null
+          slug: string
+          updated_at: string | null
+          volume: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "produtos"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       criar_pedido_publico: { Args: { payload: Json }; Returns: Json }
       get_pedido_publico: { Args: { p_numero: string }; Returns: Json }
       has_role: {
