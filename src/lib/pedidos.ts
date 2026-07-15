@@ -93,7 +93,9 @@ type CreatePedidoInput = {
 export type CreatedPedido = {
   id: string;
   numero_pedido: string;
+  codigo_rastreio: string;
 };
+
 
 /**
  * Cria o pedido + itens. Faz snapshot de marca/categoria/imagem.
