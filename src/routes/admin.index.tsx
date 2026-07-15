@@ -272,9 +272,12 @@ function DashboardPage() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
         <ModuleCard to="/admin/pedidos" icon={ClipboardList} title="Pedidos" text="Gestão completa de vendas" />
-        <ModuleCard to="/admin/categorias" icon={Tag} title="Categorias" text="Organize o catálogo" />
         <ModuleCard to="/admin/produtos" icon={Package} title="Produtos" text="Cadastro, preços, imagens" />
         <ModuleCard to="/admin/kits" icon={Boxes} title="Kits" text="Combine produtos em kits sensoriais" />
+        <ModuleCard to="/admin/estoque" icon={Warehouse} title="Estoque" text="Posição e alertas de reposição" />
+        <ModuleCard to="/admin/fornecedores" icon={Truck} title="Fornecedores" text="Cadastro, margens e reposição" />
+        <ModuleCard to="/admin/custo-fixo" icon={Calculator} title="Custo fixo & metas" text="Ponto de equilíbrio e reserva" />
+        <ModuleCard to="/admin/categorias" icon={Tag} title="Categorias" text="Organize o catálogo" />
         <ModuleCard to="/admin/clientes" icon={Users} title="Clientes" text="Revendedores e aprovações" />
         <ModuleCard to="/admin/configuracoes" icon={Settings} title="Configurações" text="WhatsApp, redes sociais, logo" />
       </div>
