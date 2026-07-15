@@ -19,6 +19,7 @@ export const Route = createFileRoute("/admin/produtos")({
 });
 
 type Cat = { id: string; nome: string };
+type Fornecedor = { id: string; nome: string };
 type Prod = {
   id: string;
   nome: string;
@@ -33,6 +34,7 @@ type Prod = {
   preco_b2b_2: number | null;
   preco_b2b_3: number | null;
   categoria_id: string | null;
+  fornecedor_id: string | null;
   imagens: string[] | null;
   volume: string | null;
   intensidade: number | null;
@@ -52,7 +54,7 @@ const EMPTY: Partial<Prod> = {
   preco_custo: null, margem_varejo_pct: 60,
   preco_varejo: 0, preco_assinatura: null,
   preco_b2b_1: null, preco_b2b_2: null, preco_b2b_3: null,
-  categoria_id: null,
+  categoria_id: null, fornecedor_id: null,
   imagens: [], volume: "", intensidade: 3, sensacao_transmitida: "",
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
   estoque_atual: 0, estoque_minimo: 0, estoque_ideal: 0,
