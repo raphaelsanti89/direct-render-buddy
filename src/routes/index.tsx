@@ -438,6 +438,14 @@ function Depoimentos() {
 }
 
 function RedesSociais() {
+  const { config } = useConfig();
+  const instagram = config.instagram_url || "";
+  const facebook = config.facebook_url || "";
+  const socials = [
+    { label: "Instagram", href: instagram },
+    { label: "Facebook", href: facebook },
+  ].filter((s) => s.href);
+  if (socials.length === 0) return null;
   return (
     <section className="py-32 bg-background">
       <div className="container-editorial text-center">
@@ -446,18 +454,17 @@ function RedesSociais() {
           Siga a Gama Sensações
         </h2>
         <div className="flex flex-wrap justify-center gap-4">
-          <a
-            href="#"
-            className="inline-flex items-center gap-3 px-8 py-4 border border-foreground/15 hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-[0.2em]"
-          >
-            Instagram
-          </a>
-          <a
-            href="#"
-            className="inline-flex items-center gap-3 px-8 py-4 border border-foreground/15 hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-[0.2em]"
-          >
-            Facebook
-          </a>
+          {socials.map((s) => (
+            <a
+              key={s.label}
+              href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-8 py-4 border border-foreground/15 hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-[0.2em]"
+            >
+              {s.label}
+            </a>
+          ))}
         </div>
       </div>
     </section>
