@@ -410,6 +410,9 @@ function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; c
         {p.descricao_curta && (
           <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.descricao_curta}</p>
         )}
+        <div className="mt-3">
+          <StockBadge p={p} />
+        </div>
         <div className="mt-auto pt-4 flex items-center justify-between">
           <span className="font-display text-lg text-foreground">{brl(p.preco_varejo)}</span>
           <div className="flex gap-2">
@@ -426,6 +429,26 @@ function ProductCard({ p, catName, onEdit, onDelete, onDuplicate }: { p: Prod; c
         </div>
       </div>
     </div>
+  );
+}
+
+function StockBadge({ p }: { p: Prod }) {
+  const atual = p.estoque_atual ?? 0;
+  const min = p.estoque_minimo ?? 0;
+  const ideal = p.estoque_ideal ?? 0;
+  let tone = "bg-surface text-foreground/70 border-border";
+  let label = `Estoque: ${atual}`;
+  if (atual <= min) {
+    tone = "bg-destructive/10 text-destructive border-destructive/30";
+    label = `Estoque: ${atual} · comprar agora`;
+  } else if (atual < ideal) {
+    tone = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30";
+    label = `Estoque: ${atual} · comprar em breve`;
+  }
+  return (
+    <span className={`inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] px-2 py-1 border ${tone}`}>
+      {label}
+    </span>
   );
 }
 
