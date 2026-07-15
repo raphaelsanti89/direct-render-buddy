@@ -44,7 +44,7 @@ type Produto = {
   preco_b2b_1: number | null;
   preco_b2b_2: number | null;
   preco_b2b_3: number | null;
-  estoque: number | null;
+  estoque_atual: number | null;
 };
 
 type Componente = {
@@ -119,7 +119,7 @@ function KitsAdmin() {
     const b2b1 = perfil((p) => Number(p.preco_b2b_1 ?? p.preco_varejo));
     const b2b2 = perfil((p) => Number(p.preco_b2b_2 ?? p.preco_varejo));
     const b2b3 = perfil((p) => Number(p.preco_b2b_3 ?? p.preco_varejo));
-    const semEstoque = rows.filter((c) => (c.produto!.estoque ?? 0) < c.quantidade);
+    const semEstoque = rows.filter((c) => (c.produto!.estoque_atual ?? 0) < c.quantidade);
     return { rows, custoTotal, varejo, assinatura, b2b1, b2b2, b2b3, semEstoque };
   }, [componentes, produtos, editing?.custo_embalagem, editing?.desconto_kit_pct]);
 
@@ -301,13 +301,13 @@ function KitsAdmin() {
                 <div className="border border-border">
                   {componentes.map((c, i) => {
                     const p = produtos.find((x) => x.id === c.produto_id);
-                    const semEst = p && (p.estoque ?? 0) < c.quantidade;
+                    const semEst = p && (p.estoque_atual ?? 0) < c.quantidade;
                     return (
                       <div key={c.produto_id} className="flex items-center gap-3 p-3 border-b border-border last:border-b-0">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-foreground truncate">{p?.nome ?? "(produto removido)"}</div>
                           <div className="text-xs text-muted-foreground">
-                            Custo {brl(Number(p?.preco_custo ?? 0))} · Varejo {brl(Number(p?.preco_varejo ?? 0))} · Estoque {p?.estoque ?? 0}
+                            Custo {brl(Number(p?.preco_custo ?? 0))} · Varejo {brl(Number(p?.preco_varejo ?? 0))} · Estoque {p?.estoque_atual ?? 0}
                           </div>
                         </div>
                         <input
@@ -462,7 +462,7 @@ function ProdutoPicker({
             >
               <div className="text-sm text-foreground">{p.nome}</div>
               <div className="text-xs text-muted-foreground">
-                {categorias[p.categoria_id ?? ""] ?? "—"} · Varejo {brl(Number(p.preco_varejo))} · Estoque {p.estoque ?? 0}
+                {categorias[p.categoria_id ?? ""] ?? "—"} · Varejo {brl(Number(p.preco_varejo))} · Estoque {p.estoque_atual ?? 0}
               </div>
             </button>
           ))}

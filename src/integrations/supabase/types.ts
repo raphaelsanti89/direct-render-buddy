@@ -346,6 +346,7 @@ export type Database = {
           desconto: number
           email: string | null
           endereco: string | null
+          estoque_movimentado: boolean
           forma_entrega: string | null
           forma_pagamento: string | null
           id: string
@@ -371,6 +372,7 @@ export type Database = {
           desconto?: number
           email?: string | null
           endereco?: string | null
+          estoque_movimentado?: boolean
           forma_entrega?: string | null
           forma_pagamento?: string | null
           id?: string
@@ -396,6 +398,7 @@ export type Database = {
           desconto?: number
           email?: string | null
           endereco?: string | null
+          estoque_movimentado?: boolean
           forma_entrega?: string | null
           forma_pagamento?: string | null
           id?: string
@@ -443,6 +446,9 @@ export type Database = {
           disponivel_varejo: boolean | null
           durabilidade_media: string | null
           estoque: number | null
+          estoque_atual: number
+          estoque_ideal: number
+          estoque_minimo: number
           id: string
           imagens: string[] | null
           intensidade: number | null
@@ -476,6 +482,9 @@ export type Database = {
           disponivel_varejo?: boolean | null
           durabilidade_media?: string | null
           estoque?: number | null
+          estoque_atual?: number
+          estoque_ideal?: number
+          estoque_minimo?: number
           id?: string
           imagens?: string[] | null
           intensidade?: number | null
@@ -509,6 +518,9 @@ export type Database = {
           disponivel_varejo?: boolean | null
           durabilidade_media?: string | null
           estoque?: number | null
+          estoque_atual?: number
+          estoque_ideal?: number
+          estoque_minimo?: number
           id?: string
           imagens?: string[] | null
           intensidade?: number | null
@@ -616,6 +628,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_count_estoque_baixo: { Args: never; Returns: number }
       admin_count_kits: { Args: never; Returns: number }
       admin_count_produtos: { Args: never; Returns: number }
       admin_get_kit_componentes: {
@@ -690,6 +703,9 @@ export type Database = {
           disponivel_varejo: boolean | null
           durabilidade_media: string | null
           estoque: number | null
+          estoque_atual: number
+          estoque_ideal: number
+          estoque_minimo: number
           id: string
           imagens: string[] | null
           intensidade: number | null
@@ -738,6 +754,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      movimentar_estoque_pedido: {
+        Args: { _pedido_id: string; _sinal: number }
+        Returns: undefined
       }
     }
     Enums: {

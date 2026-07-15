@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle } from "lucide-react";
+import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, AlertTriangle } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { STATUS_ADMIN_LABEL, statusBadgeClasses, type PedidoStatus } from "@/lib/pedidos";
 
@@ -19,6 +19,7 @@ type Stats = {
   faturamentoMes: number;
   ticketMedio: number;
   aguardando: number;
+  estoqueBaixo: number;
 };
 
 type Recent = {
@@ -33,7 +34,7 @@ type Recent = {
 function DashboardPage() {
   const [stats, setStats] = useState<Stats>({
     produtos: 0, kits: 0, categorias: 0, leads: 0,
-    pedidosHoje: 0, pedidosMes: 0, faturamentoMes: 0, ticketMedio: 0, aguardando: 0,
+    pedidosHoje: 0, pedidosMes: 0, faturamentoMes: 0, ticketMedio: 0, aguardando: 0, estoqueBaixo: 0,
   });
   const [recentes, setRecentes] = useState<Recent[]>([]);
 
@@ -45,9 +46,10 @@ function DashboardPage() {
       inicioMes.setDate(1);
       inicioMes.setHours(0, 0, 0, 0);
 
-      const [prodCountRes, kitCountRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes] = await Promise.all([
+      const [prodCountRes, kitCountRes, estoqueBaixoRes, { count: c }, { count: l }, { count: aguardando }, hoje, mes, recentesRes] = await Promise.all([
         supabase.rpc("admin_count_produtos"),
         supabase.rpc("admin_count_kits"),
+        supabase.rpc("admin_count_estoque_baixo"),
         supabase.from("categorias").select("*", { count: "exact", head: true }),
         supabase.from("leads").select("*", { count: "exact", head: true }),
         supabase.from("pedidos").select("*", { count: "exact", head: true }).eq("status", "novo"),
@@ -60,10 +62,12 @@ function DashboardPage() {
       const ticket = mes.count && mes.count > 0 ? totalMes / mes.count : 0;
       const p = (prodCountRes.data as number | null) ?? 0;
       const k = (kitCountRes.data as number | null) ?? 0;
+      const eb = (estoqueBaixoRes.data as number | null) ?? 0;
 
       setStats({
         produtos: p, kits: k, categorias: c ?? 0, leads: l ?? 0,
         aguardando: aguardando ?? 0,
+        estoqueBaixo: eb,
         pedidosHoje: hoje.count ?? 0,
         pedidosMes: mes.count ?? 0,
         faturamentoMes: totalMes,
@@ -95,6 +99,23 @@ function DashboardPage() {
           <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver →</span>
         </div>
       </Link>
+
+      {stats.estoqueBaixo > 0 && (
+        <Link to="/admin/produtos" search={{ filter: "baixo" }} className="block mb-8">
+          <div className="border border-destructive/40 bg-destructive/5 p-6 flex items-center justify-between hover:bg-destructive/10 transition-colors">
+            <div className="flex items-center gap-4">
+              <AlertTriangle size={24} className="text-destructive" />
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-destructive mb-1">— estoque</p>
+                <p className="font-display text-2xl text-foreground">
+                  {stats.estoqueBaixo} {stats.estoqueBaixo === 1 ? "produto com estoque baixo" : "produtos com estoque baixo"}
+                </p>
+              </div>
+            </div>
+            <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver lista →</span>
+          </div>
+        </Link>
+      )}
 
       {/* Stats pedidos */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-10">
