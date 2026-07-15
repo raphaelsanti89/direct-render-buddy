@@ -71,16 +71,18 @@ function ProdutosAdmin() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [margemPiso, setMargemPiso] = useState(50);
   const [margemMeta, setMargemMeta] = useState(55);
+  const [velocidade, setVelocidade] = useState<Map<string, { campeao: boolean; qtd_30d: number }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Prod> | null>(null);
 
   async function load() {
     setLoading(true);
-    const [{ data: p }, { data: c }, { data: f }, { data: cfg }] = await Promise.all([
+    const [{ data: p }, { data: c }, { data: f }, { data: cfg }, { data: vel }] = await Promise.all([
       supabase.rpc("admin_list_produtos"),
       supabase.from("categorias").select("id,nome").order("nome"),
       supabase.from("fornecedores").select("id,nome").order("nome"),
       supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["margem_piso", "margem_meta"]),
+      supabase.rpc("admin_produtos_velocidade"),
     ]);
     setItems((p as Prod[]) ?? []);
     setCats((c as Cat[]) ?? []);
@@ -88,6 +90,11 @@ function ProdutosAdmin() {
     const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
     setMargemPiso(Number(cfgMap.get("margem_piso") ?? 50));
     setMargemMeta(Number(cfgMap.get("margem_meta") ?? 55));
+    const velMap = new Map<string, { campeao: boolean; qtd_30d: number }>();
+    ((vel as Array<{ produto_id: string; campeao: boolean; qtd_30d: number }>) ?? []).forEach((v) => {
+      velMap.set(v.produto_id, { campeao: !!v.campeao, qtd_30d: v.qtd_30d });
+    });
+    setVelocidade(velMap);
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
