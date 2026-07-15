@@ -97,6 +97,41 @@ function CustoFixoPage() {
     setRows(rows.filter((_, i) => i !== idx));
   }
 
+  function addVar() {
+    setVarRows([...varRows, { item: "", percentual: 0, ordem: varRows.length }]);
+  }
+  function updateVar(idx: number, patch: Partial<VarRow>) {
+    setVarRows(varRows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  }
+  async function saveVar(idx: number) {
+    const r = varRows[idx];
+    if (!r.item.trim()) return toast.error("Informe o item.");
+    if (r.id) {
+      const { error } = await supabase.from("custos_variaveis").update({
+        item: r.item, percentual: r.percentual, ordem: r.ordem,
+      }).eq("id", r.id);
+      if (error) return toast.error(error.message);
+      toast.success("Custo variável salvo.");
+    } else {
+      const { data, error } = await supabase.from("custos_variaveis").insert({
+        item: r.item, percentual: r.percentual, ordem: r.ordem,
+      }).select().single();
+      if (error) return toast.error(error.message);
+      updateVar(idx, { id: (data as VarRow).id });
+      toast.success("Custo variável criado.");
+    }
+    loadAll();
+  }
+  async function delVar(idx: number) {
+    const r = varRows[idx];
+    if (!confirm(`Remover "${r.item || "linha"}"?`)) return;
+    if (r.id) {
+      const { error } = await supabase.from("custos_variaveis").delete().eq("id", r.id);
+      if (error) return toast.error(error.message);
+    }
+    setVarRows(varRows.filter((_, i) => i !== idx));
+  }
+
   async function salvarPremissas() {
     const { error: e1 } = await supabase.from("configuracoes_gerais").update({ valor: String(mesesReserva) }).eq("chave", "meses_reserva");
     const { error: e2 } = await supabase.from("configuracoes_gerais").update({ valor: String(diasUteis) }).eq("chave", "dias_uteis_mes");
