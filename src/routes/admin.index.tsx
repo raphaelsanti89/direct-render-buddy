@@ -100,6 +100,23 @@ function DashboardPage() {
         </div>
       </Link>
 
+      {stats.estoqueBaixo > 0 && (
+        <Link to="/admin/produtos" search={{ filter: "baixo" }} className="block mb-8">
+          <div className="border border-destructive/40 bg-destructive/5 p-6 flex items-center justify-between hover:bg-destructive/10 transition-colors">
+            <div className="flex items-center gap-4">
+              <AlertTriangle size={24} className="text-destructive" />
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-destructive mb-1">— estoque</p>
+                <p className="font-display text-2xl text-foreground">
+                  {stats.estoqueBaixo} {stats.estoqueBaixo === 1 ? "produto com estoque baixo" : "produtos com estoque baixo"}
+                </p>
+              </div>
+            </div>
+            <span className="text-xs uppercase tracking-[0.18em] text-foreground/70">Ver lista →</span>
+          </div>
+        </Link>
+      )}
+
       {/* Stats pedidos */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-10">
         <Stat label="Pedidos hoje" value={String(stats.pedidosHoje)} icon={ClipboardList} />
