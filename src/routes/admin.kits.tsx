@@ -44,7 +44,7 @@ type Produto = {
   preco_b2b_1: number | null;
   preco_b2b_2: number | null;
   preco_b2b_3: number | null;
-  estoque: number | null;
+  estoque_atual: number | null;
 };
 
 type Componente = {
@@ -119,7 +119,7 @@ function KitsAdmin() {
     const b2b1 = perfil((p) => Number(p.preco_b2b_1 ?? p.preco_varejo));
     const b2b2 = perfil((p) => Number(p.preco_b2b_2 ?? p.preco_varejo));
     const b2b3 = perfil((p) => Number(p.preco_b2b_3 ?? p.preco_varejo));
-    const semEstoque = rows.filter((c) => (c.produto!.estoque ?? 0) < c.quantidade);
+    const semEstoque = rows.filter((c) => (c.produto!.estoque_atual ?? 0) < c.quantidade);
     return { rows, custoTotal, varejo, assinatura, b2b1, b2b2, b2b3, semEstoque };
   }, [componentes, produtos, editing?.custo_embalagem, editing?.desconto_kit_pct]);
 
