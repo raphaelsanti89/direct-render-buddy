@@ -34,13 +34,15 @@ function CustoFixoPage() {
 
   async function loadAll() {
     setLoading(true);
-    const [{ data: c }, { data: cfg }, { data: m }, { data: pf }] = await Promise.all([
+    const [{ data: c }, { data: v }, { data: cfg }, { data: m }, { data: pf }] = await Promise.all([
       supabase.from("custos_fixos").select("*").order("ordem").order("created_at"),
+      supabase.from("custos_variaveis").select("*").order("ordem").order("created_at"),
       supabase.from("configuracoes_gerais").select("chave,valor").in("chave", ["meses_reserva", "dias_uteis_mes"]),
       supabase.rpc("admin_metricas_vendas_30d"),
       supabase.rpc("admin_vendas_mes_por_perfil"),
     ]);
     setRows((c as CustoRow[]) ?? []);
+    setVarRows((v as VarRow[]) ?? []);
     const cfgMap = new Map((cfg ?? []).map((r) => [r.chave, r.valor]));
     setMesesReserva(Number(cfgMap.get("meses_reserva") ?? 3));
     setDiasUteis(Number(cfgMap.get("dias_uteis_mes") ?? 26));
@@ -51,8 +53,10 @@ function CustoFixoPage() {
   useEffect(() => { loadAll(); }, []);
 
   const totalFixo = useMemo(() => rows.reduce((s, r) => s + Number(r.valor_mensal || 0), 0), [rows]);
+  const totalVarPct = useMemo(() => varRows.reduce((s, r) => s + Number(r.percentual || 0), 0), [varRows]);
   const reservaGiro = totalFixo * mesesReserva;
-  const pontoEquilibrio = metricas.margem_real > 0 ? totalFixo / metricas.margem_real : 0;
+  const margemLiquida = Math.max(0, metricas.margem_real - totalVarPct / 100);
+  const pontoEquilibrio = margemLiquida > 0 ? totalFixo / margemLiquida : 0;
   const metaDiaUtil = diasUteis > 0 ? pontoEquilibrio / diasUteis : 0;
   const vendasPorDia = metricas.ticket_medio > 0 ? metaDiaUtil / metricas.ticket_medio : 0;
 
