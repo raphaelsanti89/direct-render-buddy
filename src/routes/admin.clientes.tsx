@@ -104,6 +104,7 @@ function ClientesContent() {
         <FilterBtn active={filter === "b2b"} onClick={() => setFilter("b2b")}>B2B</FilterBtn>
         <FilterBtn active={filter === "assinantes"} onClick={() => setFilter("assinantes")}>Assinantes</FilterBtn>
         <FilterBtn active={filter === "varejo"} onClick={() => setFilter("varejo")}>Varejo</FilterBtn>
+        <FilterBtn active={filter === "guest"} onClick={() => setFilter("guest")}>Sem cadastro</FilterBtn>
         <FilterBtn active={filter === "todos"} onClick={() => setFilter("todos")}>Todos</FilterBtn>
       </div>
 
@@ -117,33 +118,43 @@ function ClientesContent() {
             <thead className="bg-surface text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               <tr>
                 <th className="p-4">Cliente</th>
+                <th className="p-4">Contato</th>
                 <th className="p-4">Tipo</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">Empresa / CNPJ</th>
+                <th className="p-4 text-right">Pedidos</th>
                 <th className="p-4 text-right">Ação</th>
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-surface/50">
+              {filtrados.map((p, idx) => (
+                <tr key={(p.id ?? "guest-") + idx} className="border-t border-border hover:bg-surface/50">
                   <td className="p-4">
                     <div className="font-medium text-foreground">{p.nome ?? "—"}</div>
-                    <div className="text-xs text-muted-foreground">{p.email}</div>
+                    {p.empresa_nome && <div className="text-xs text-muted-foreground">{p.empresa_nome}{p.cnpj ? ` — ${p.cnpj}` : ""}</div>}
                   </td>
-                  <td className="p-4"><TipoBadge tipo={p.tipo_cliente} nivel={p.nivel_b2b} /></td>
-                  <td className="p-4"><StatusBadge status={p.status_aprovacao} /></td>
                   <td className="p-4 text-xs">
-                    {p.empresa_nome ? (
-                      <>
-                        <div className="text-foreground">{p.empresa_nome}</div>
-                        <div className="text-muted-foreground">{p.cnpj}</div>
-                      </>
-                    ) : "—"}
+                    {p.whatsapp && <div className="text-foreground">{p.whatsapp}</div>}
+                    {p.email && <div className="text-muted-foreground">{p.email}</div>}
+                    {!p.whatsapp && !p.email && "—"}
+                  </td>
+                  <td className="p-4">
+                    {p.is_guest
+                      ? <span className="text-xs px-2 py-1 bg-surface text-muted-foreground uppercase tracking-[0.18em]">Sem cadastro</span>
+                      : <TipoBadge tipo={p.tipo_cliente} nivel={p.nivel_b2b} />}
+                  </td>
+                  <td className="p-4"><StatusBadge status={p.status_aprovacao} /></td>
+                  <td className="p-4 text-right text-xs">
+                    <div className="text-foreground">{p.total_pedidos}</div>
+                    <div className="text-muted-foreground">R$ {p.total_gasto.toFixed(2)}</div>
                   </td>
                   <td className="p-4 text-right">
-                    <button onClick={() => setSelected(p)} className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
-                      Gerenciar
-                    </button>
+                    {p.is_guest ? (
+                      <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground/60">—</span>
+                    ) : (
+                      <button onClick={() => setSelected(p)} className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
+                        Gerenciar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
