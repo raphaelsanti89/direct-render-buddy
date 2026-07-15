@@ -74,10 +74,54 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_componentes: {
+        Row: {
+          created_at: string
+          id: string
+          kit_id: string
+          produto_id: string
+          quantidade: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kit_id: string
+          produto_id: string
+          quantidade?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kit_id?: string
+          produto_id?: string
+          quantidade?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_componentes_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_componentes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kits: {
         Row: {
           ativo: boolean | null
           created_at: string | null
+          custo_embalagem: number
+          desconto_kit_pct: number
           descricao: string | null
           descricao_curta: string | null
           destaque: boolean | null
@@ -98,6 +142,8 @@ export type Database = {
         Insert: {
           ativo?: boolean | null
           created_at?: string | null
+          custo_embalagem?: number
+          desconto_kit_pct?: number
           descricao?: string | null
           descricao_curta?: string | null
           destaque?: boolean | null
@@ -118,6 +164,8 @@ export type Database = {
         Update: {
           ativo?: boolean | null
           created_at?: string | null
+          custo_embalagem?: number
+          desconto_kit_pct?: number
           descricao?: string | null
           descricao_curta?: string | null
           destaque?: boolean | null
