@@ -64,7 +64,7 @@ function CarrinhoPage() {
   );
 
   const total = linhas.reduce((s, l) => s + l.subtotal, 0);
-  const empresaWa = (config.whatsapp_pedidos || "").replace(/\D/g, "");
+  const empresaWa = normalizeWhatsAppNumber(config.whatsapp_pedidos);
   const exigeEndereco = entrega !== "Retirada" && entrega !== "A combinar";
 
   async function finalizarWhatsApp() {
