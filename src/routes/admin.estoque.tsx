@@ -138,6 +138,79 @@ function EstoquePage() {
         <StatCard label="Comprar em breve" value={String(resumo.comprar_em_breve)} icon={PackageCheck} tone="amber" />
       </div>
 
+      <div className="grid sm:grid-cols-3 gap-px bg-border mb-10">
+        <StatCard label="Valor investido em estoque" value={brl(resumo.valor_total)} icon={Wallet} />
+        <StatCard label="Comprar agora" value={String(resumo.comprar_agora)} icon={AlertTriangle} tone="destructive" />
+        <StatCard label="Comprar em breve" value={String(resumo.comprar_em_breve)} icon={PackageCheck} tone="amber" />
+      </div>
+
+      {/* Campeões de venda */}
+      <div className="bg-background border border-border mb-10">
+        <div className="p-6 pb-3 flex items-center gap-3">
+          <Trophy className="text-gold" size={16} />
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— campeões de venda (últimos 30 dias)</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sugestões calculadas com cobertura de {coberturaMin} dias (mínimo) e {coberturaIdeal} dias (ideal).
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          {campeoes.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">Ainda não há vendas suficientes para gerar campeões.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-surface/50 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <tr>
+                  <th className="text-left px-4 py-3">Produto</th>
+                  <th className="text-right px-4 py-3">Vendas 30d</th>
+                  <th className="text-right px-4 py-3">Média/dia</th>
+                  <th className="text-right px-4 py-3">Atual</th>
+                  <th className="text-right px-4 py-3">Mín. atual</th>
+                  <th className="text-right px-4 py-3">Sug. mín.</th>
+                  <th className="text-right px-4 py-3">Ideal atual</th>
+                  <th className="text-right px-4 py-3">Sug. ideal</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {campeoes.map((c) => {
+                  const sugMin = Math.ceil(Number(c.media_diaria) * coberturaMin);
+                  const sugIdeal = Math.ceil(Number(c.media_diaria) * coberturaIdeal);
+                  const precisaMin = sugMin > c.estoque_minimo_atual;
+                  const precisaIdeal = sugIdeal > c.estoque_ideal_atual;
+                  const pendente = precisaMin || precisaIdeal;
+                  return (
+                    <tr key={c.produto_id}>
+                      <td className="px-4 py-3 text-foreground">{c.nome}</td>
+                      <td className="px-4 py-3 text-right font-mono">{c.qtd_vendida}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground text-xs">{Number(c.media_diaria).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">{c.estoque_atual}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{c.estoque_minimo_atual}</td>
+                      <td className={`px-4 py-3 text-right ${precisaMin ? "text-amber-700 dark:text-amber-400 font-medium" : "text-muted-foreground"}`}>{sugMin}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{c.estoque_ideal_atual}</td>
+                      <td className={`px-4 py-3 text-right ${precisaIdeal ? "text-amber-700 dark:text-amber-400 font-medium" : "text-muted-foreground"}`}>{sugIdeal}</td>
+                      <td className="px-4 py-3 text-right">
+                        {pendente ? (
+                          <button
+                            onClick={() => aplicarSugestaoCampeao(c)}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 border border-gold text-gold hover:bg-gold hover:text-background transition-colors"
+                          >
+                            <Check size={10} /> Aplicar
+                          </button>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-[0.18em] text-green-700 dark:text-green-400">OK</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
       <div className="bg-background border border-border overflow-x-auto">
         {loading ? (
           <p className="p-6 font-mono text-xs text-muted-foreground animate-pulse">Carregando…</p>
