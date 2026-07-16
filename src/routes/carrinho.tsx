@@ -9,6 +9,9 @@ import { brl } from "@/lib/slug";
 import { toast } from "sonner";
 import { criarPedido, perfilLabel } from "@/lib/pedidos";
 import { buildWhatsAppLink, normalizeWhatsAppNumber } from "@/lib/whatsapp";
+import { useServerFn } from "@tanstack/react-start";
+import { calcularFrete, type OpcaoFrete } from "@/lib/frete.functions";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({
