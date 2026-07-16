@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      clientes_crm: {
+        Row: {
+          created_at: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       configuracoes_gerais: {
         Row: {
           chave: string
@@ -998,6 +1031,10 @@ export type Database = {
       admin_pedido_editar_itens: {
         Args: { p_payload: Json; p_pedido_id: string }
         Returns: Json
+      }
+      admin_pedido_excluir: {
+        Args: { p_pedido_id: string }
+        Returns: undefined
       }
       admin_produtos_mais_vendidos: {
         Args: { dias_periodo?: number }

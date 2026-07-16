@@ -1,7 +1,8 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { brl } from "@/lib/slug";
 import {
   PEDIDO_STATUS,
@@ -148,6 +149,7 @@ function AdminPedidosPage() {
                 <th className="p-4">Status</th>
                 <th className="p-4">Origem</th>
                 <th className="p-4">Data</th>
+                <th className="p-4 text-right">Ação</th>
               </tr>
             </thead>
             <tbody>
@@ -195,6 +197,25 @@ function AdminPedidosPage() {
                   </td>
                   <td className="p-4 text-xs text-muted-foreground">
                     {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                  </td>
+                  <td className="p-4 text-right">
+                    {p.status === "cancelado" ? (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Excluir o pedido ${p.numero_pedido}? Esta ação é irreversível.`)) return;
+                          const { error } = await (supabase.rpc as any)("admin_pedido_excluir", { p_pedido_id: p.id });
+                          if (error) return toast.error(error.message);
+                          toast.success("Pedido excluído.");
+                          setItems((prev) => prev.filter((x) => x.id !== p.id));
+                        }}
+                        className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-destructive hover:opacity-70"
+                        title="Excluir pedido cancelado"
+                      >
+                        <Trash2 size={12} /> Excluir
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/50">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

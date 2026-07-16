@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Search, Plus, Trash2, UserPlus, Loader2, Package, Boxes } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { PEDIDO_STATUS, STATUS_ADMIN_LABEL, type PedidoStatus } from "@/lib/pedidos";
+import { FORMAS_PAGAMENTO, FORMAS_ENTREGA } from "@/lib/pedido-opcoes";
 
 export const Route = createFileRoute("/admin/pedidos/novo")({
   head: () => ({ meta: [{ title: "Novo pedido manual — Admin" }] }),
@@ -415,11 +416,17 @@ function NovoPedidoManualPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <label className="block">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Forma de pagamento</span>
-                <input className="form-input w-full mt-1" placeholder="Ex.: Pix, cartão…" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} />
+                <select className="form-input w-full mt-1" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+                  <option value="">— selecione —</option>
+                  {FORMAS_PAGAMENTO.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
               </label>
               <label className="block">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Forma de entrega</span>
-                <input className="form-input w-full mt-1" placeholder="Ex.: Retirada, Correios…" value={formaEntrega} onChange={(e) => setFormaEntrega(e.target.value)} />
+                <select className="form-input w-full mt-1" value={formaEntrega} onChange={(e) => setFormaEntrega(e.target.value)}>
+                  <option value="">— selecione —</option>
+                  {FORMAS_ENTREGA.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
               </label>
               <label className="block md:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Endereço</span>
