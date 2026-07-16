@@ -177,6 +177,23 @@ function NovoPedidoManualPage() {
     }
   }, [freteSel?.opcao?.id, freteSel?.gratis, exigeEnvio]);
 
+  function montarObservacoes(): string {
+    const partes: string[] = [];
+    if (observacoes.trim()) partes.push(observacoes.trim());
+    if (exigeEnvio) {
+      const cep = freteSel?.cep ? ` (CEP ${freteSel.cep})` : "";
+      if (freteGratis) {
+        const via = freteSel?.opcao ? ` via ${freteSel.opcao.nome} (~${freteSel.opcao.prazo_dias}d)` : "";
+        partes.push(`Frete: grátis${via}${cep}`);
+      } else if (freteSel?.opcao) {
+        partes.push(`Frete: ${freteSel.opcao.nome} — ${brl(freteSel.opcao.preco)} (~${freteSel.opcao.prazo_dias}d)${cep}`);
+      } else if (frete > 0) {
+        partes.push(`Frete: ${brl(frete)} (manual)${cep}`);
+      }
+    }
+    return partes.join(" | ");
+  }
+
   async function salvar() {
     const nome = (cliente?.nome || novoCliente.nome).trim();
     const email = (cliente?.email || novoCliente.email).trim().toLowerCase();
