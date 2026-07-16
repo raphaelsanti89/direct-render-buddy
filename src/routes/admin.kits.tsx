@@ -128,9 +128,6 @@ function KitsAdmin() {
     if (!editing) return;
     if (!editing.nome?.trim()) return toast.error("Nome é obrigatório");
     if (componentes.length === 0) return toast.error("Adicione ao menos um produto ao kit");
-    if (editing.ativo && calc.semEstoque.length > 0) {
-      return toast.error(`Não é possível publicar: ${calc.semEstoque.length} componente(s) sem estoque suficiente`);
-    }
     const original = r2(calc.varejo.cheio);
     const venda = calc.varejo.venda;
     const econ = original > venda ? Math.round(((original - venda) / original) * 100) : 0;
@@ -335,9 +332,9 @@ function KitsAdmin() {
                 </div>
               )}
               {calc.semEstoque.length > 0 && (
-                <p className="text-xs text-destructive flex items-center gap-2">
+                <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-2">
                   <AlertTriangle size={14} />
-                  {calc.semEstoque.length} componente(s) sem estoque suficiente — o kit não poderá ficar ativo enquanto isso persistir.
+                  Aviso: {calc.semEstoque.length} componente(s) com estoque abaixo do pedido. O kit continua ativo (backorder permitido).
                 </p>
               )}
             </div>
