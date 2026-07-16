@@ -75,6 +75,14 @@ function AdminPedidoDetalhePage() {
   const [novaNota, setNovaNota] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Edição de itens
+  const [editMode, setEditMode] = useState(false);
+  const [draft, setDraft] = useState<Item[]>([]);
+  const [aba, setAba] = useState<"produto" | "kit">("produto");
+  const [buscaCat, setBuscaCat] = useState("");
+  const [catalogo, setCatalogo] = useState<Catalogo[]>([]);
+  const [buscandoCat, setBuscandoCat] = useState(false);
+
   async function load() {
     const { data: p } = await supabase.from("pedidos").select("*").eq("id", id).maybeSingle();
     if (!p) {
