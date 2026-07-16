@@ -505,8 +505,50 @@ function AdminPedidoDetalhePage() {
           <section className="border border-border p-6 bg-background">
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— entrega</p>
             <div className="grid sm:grid-cols-2 gap-4 text-sm mb-4">
-              <Info label="Pagamento" value={pedido.forma_pagamento ?? "—"} />
-              <Info label="Entrega" value={pedido.forma_entrega ?? "—"} />
+              <label className="block">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60 mb-1 block">Pagamento</span>
+                <select
+                  value={pedido.forma_pagamento ?? ""}
+                  disabled={busy}
+                  onChange={async (e) => {
+                    const v = e.target.value || null;
+                    setBusy(true);
+                    const { error } = await supabase.from("pedidos").update({ forma_pagamento: v }).eq("id", pedido.id);
+                    setBusy(false);
+                    if (error) return toast.error(error.message);
+                    setPedido({ ...pedido, forma_pagamento: v });
+                    toast.success("Pagamento atualizado.");
+                  }}
+                  className="form-input w-full"
+                >
+                  <option value="">—</option>
+                  {opcoesComValorAtual(FORMAS_PAGAMENTO, pedido.forma_pagamento).map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60 mb-1 block">Entrega</span>
+                <select
+                  value={pedido.forma_entrega ?? ""}
+                  disabled={busy}
+                  onChange={async (e) => {
+                    const v = e.target.value || null;
+                    setBusy(true);
+                    const { error } = await supabase.from("pedidos").update({ forma_entrega: v }).eq("id", pedido.id);
+                    setBusy(false);
+                    if (error) return toast.error(error.message);
+                    setPedido({ ...pedido, forma_entrega: v });
+                    toast.success("Entrega atualizada.");
+                  }}
+                  className="form-input w-full"
+                >
+                  <option value="">—</option>
+                  {opcoesComValorAtual(FORMAS_ENTREGA, pedido.forma_entrega).map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
             </div>
             {pedido.endereco && (
               <div className="mb-4">
