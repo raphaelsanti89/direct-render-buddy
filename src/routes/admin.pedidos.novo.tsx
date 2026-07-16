@@ -529,6 +529,12 @@ function NovoPedidoManualPage() {
                   onChange={(e) => setDesconto(Number(e.target.value))}
                   className="form-input w-24 text-right" />
               </div>
+              {exigeEnvio && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Frete</span>
+                  <span>{freteGratis ? <span className="text-green-600">Grátis</span> : brl(freteAplicado)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-lg font-medium text-foreground pt-2 border-t border-border">
                 <span>Total</span><span>{brl(total)}</span>
               </div>
