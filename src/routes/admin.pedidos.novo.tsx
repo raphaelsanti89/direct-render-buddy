@@ -89,7 +89,11 @@ function NovoPedidoManualPage() {
   const [endereco, setEndereco] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [desconto, setDesconto] = useState(0);
+  const [frete, setFrete] = useState(0);
+  const [freteSel, setFreteSel] = useState<FreteSelection | null>(null);
   const [salvando, setSalvando] = useState(false);
+
+  const exigeEnvio = !!formaEntrega && formaEntrega !== "Retirada";
 
   useEffect(() => {
     if (!cliente) return;
