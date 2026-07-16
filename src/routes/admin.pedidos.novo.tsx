@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Search, Plus, Trash2, UserPlus, Loader2, Package, Boxes } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { PEDIDO_STATUS, STATUS_ADMIN_LABEL, type PedidoStatus } from "@/lib/pedidos";
+import { FORMAS_PAGAMENTO, FORMAS_ENTREGA } from "@/lib/pedido-opcoes";
 
 export const Route = createFileRoute("/admin/pedidos/novo")({
   head: () => ({ meta: [{ title: "Novo pedido manual — Admin" }] }),
