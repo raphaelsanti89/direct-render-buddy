@@ -463,9 +463,6 @@ function NovoPedidoManualPage() {
               <label className="block md:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Endereço</span>
                 <input className="form-input w-full mt-1" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
-              <label className="block md:col-span-2">
-                <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Endereço</span>
-                <input className="form-input w-full mt-1" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
               </label>
 
               {exigeEnvio && (
