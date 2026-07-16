@@ -165,7 +165,17 @@ function NovoPedidoManualPage() {
   }
 
   const subtotal = useMemo(() => itens.reduce((s, l) => s + l.preco_unitario * l.quantidade, 0), [itens]);
-  const total = Math.max(0, subtotal - desconto);
+  const freteGratis = exigeEnvio && subtotal >= 150;
+  const freteAplicado = exigeEnvio ? (freteGratis ? 0 : frete) : 0;
+  const total = Math.max(0, subtotal - desconto + freteAplicado);
+
+  // Sincroniza valor do frete manual quando o admin escolhe uma opção calculada
+  useEffect(() => {
+    if (!exigeEnvio) return;
+    if (freteSel?.opcao) {
+      setFrete(freteSel.gratis ? 0 : freteSel.opcao.preco);
+    }
+  }, [freteSel?.opcao?.id, freteSel?.gratis, exigeEnvio]);
 
   async function salvar() {
     const nome = (cliente?.nome || novoCliente.nome).trim();
