@@ -332,9 +332,9 @@ function KitsAdmin() {
                 </div>
               )}
               {calc.semEstoque.length > 0 && (
-                <p className="text-xs text-destructive flex items-center gap-2">
+                <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-2">
                   <AlertTriangle size={14} />
-                  {calc.semEstoque.length} componente(s) sem estoque suficiente — o kit não poderá ficar ativo enquanto isso persistir.
+                  Aviso: {calc.semEstoque.length} componente(s) com estoque abaixo do pedido. O kit continua ativo (backorder permitido).
                 </p>
               )}
             </div>
