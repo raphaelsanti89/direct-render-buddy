@@ -6,6 +6,7 @@ import { ArrowLeft, Search, Plus, Trash2, UserPlus, Loader2, Package, Boxes } fr
 import { brl } from "@/lib/slug";
 import { PEDIDO_STATUS, STATUS_ADMIN_LABEL, type PedidoStatus } from "@/lib/pedidos";
 import { FORMAS_PAGAMENTO, FORMAS_ENTREGA } from "@/lib/pedido-opcoes";
+import { FreteSelector, type FreteSelection } from "@/components/FreteSelector";
 
 export const Route = createFileRoute("/admin/pedidos/novo")({
   head: () => ({ meta: [{ title: "Novo pedido manual — Admin" }] }),
