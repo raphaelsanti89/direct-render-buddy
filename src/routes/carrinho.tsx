@@ -333,19 +333,21 @@ function CarrinhoPage() {
             {/* Checkout */}
             <aside className="space-y-6 lg:sticky lg:top-28 self-start border border-border p-6 bg-surface/30">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">Total</p>
-                <p className="font-display text-4xl text-foreground">{brl(total)}</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">Subtotal</p>
+                <p className="font-display text-2xl text-foreground">{brl(subtotal)}</p>
                 {exigeEndereco && (
-                  total >= 150 ? (
-                    <p className="mt-3 text-xs px-3 py-2 bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/30">
-                      ✓ Frete grátis aplicado
-                    </p>
-                  ) : (
-                    <p className="mt-3 text-xs px-3 py-2 bg-gold/10 text-foreground/80 border border-gold/30 leading-relaxed">
-                      Este pedido pode ter custo adicional de frete, que será confirmado via WhatsApp antes da finalização. Frete grátis a partir de {brl(150)}.
-                    </p>
-                  )
+                  <div className="mt-2 text-xs text-foreground/70">
+                    Frete: <span className="font-medium">{
+                      freteGratis
+                        ? "Grátis"
+                        : freteSel
+                          ? brl(freteSel.preco)
+                          : "—"
+                    }</span>
+                  </div>
                 )}
+                <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">Total</p>
+                <p className="font-display text-4xl text-foreground">{brl(total)}</p>
                 {!loadingProfile && !profile && (
                   <p className="mt-2 text-xs text-muted-foreground">
                     <Link to="/cadastro-b2b" className="text-gold hover:underline">Empresa? Solicite B2B</Link>
@@ -402,12 +404,84 @@ function CarrinhoPage() {
               </Field>
 
               {exigeEndereco && (
-                <Field label="Endereço completo">
-                  <textarea
-                    className="form-input min-h-[80px]"
-                    value={endereco}
-                    onChange={(e) => setEndereco(e.target.value)}
-                    placeholder="Rua, número, complemento, bairro, cidade — CEP"
+                <>
+                  <Field label="CEP de entrega">
+                    <div className="flex gap-2">
+                      <input
+                        className="form-input flex-1"
+                        value={cep}
+                        onChange={(e) => setCep(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                        placeholder="00000000"
+                        inputMode="numeric"
+                        maxLength={9}
+                      />
+                      <button
+                        type="button"
+                        onClick={calcularFreteHandler}
+                        disabled={freteLoading || cep.replace(/\D/g, "").length !== 8}
+                        className="border border-border px-3 text-[11px] uppercase tracking-[0.18em] hover:bg-surface disabled:opacity-50 inline-flex items-center gap-2"
+                      >
+                        {freteLoading ? <Loader2 size={12} className="animate-spin" /> : null}
+                        {freteLoading ? "Calculando" : "Calcular"}
+                      </button>
+                    </div>
+                    {freteOpcoes && freteOpcoes.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {freteOpcoes.map((o) => (
+                          <label
+                            key={o.id}
+                            className={`flex items-center justify-between gap-3 border p-3 cursor-pointer transition-colors ${
+                              freteSelId === o.id ? "border-gold bg-gold/5" : "border-border hover:bg-surface"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="radio"
+                                name="frete"
+                                checked={freteSelId === o.id}
+                                onChange={() => setFreteSelId(o.id)}
+                                className="accent-gold"
+                              />
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{o.nome}</p>
+                                <p className="text-[11px] text-muted-foreground">~{o.prazo_dias} dias úteis</p>
+                              </div>
+                            </div>
+                            <p className="font-mono text-sm text-foreground">
+                              {freteGratis ? <span className="text-green-600">Grátis</span> : brl(o.preco)}
+                            </p>
+                          </label>
+                        ))}
+                        {freteGratis && (
+                          <p className="text-[11px] text-green-700 dark:text-green-400">
+                            ✓ Frete grátis a partir de {brl(150)} — escolha a modalidade para saber o prazo.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {freteErro && (
+                      <p className="mt-2 text-[11px] px-3 py-2 bg-gold/10 text-foreground/80 border border-gold/30 leading-relaxed">
+                        {freteErro} O frete será confirmado via WhatsApp antes da finalização.
+                      </p>
+                    )}
+                    {!freteOpcoes && !freteErro && !freteLoading && (
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        Informe o CEP e clique em Calcular para ver as opções de envio.
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field label="Endereço completo">
+                    <textarea
+                      className="form-input min-h-[80px]"
+                      value={endereco}
+                      onChange={(e) => setEndereco(e.target.value)}
+                      placeholder="Rua, número, complemento, bairro, cidade"
+                      maxLength={500}
+                    />
+                  </Field>
+                </>
+              )}
                     maxLength={500}
                   />
                 </Field>
