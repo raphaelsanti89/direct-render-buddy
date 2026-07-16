@@ -128,9 +128,6 @@ function KitsAdmin() {
     if (!editing) return;
     if (!editing.nome?.trim()) return toast.error("Nome é obrigatório");
     if (componentes.length === 0) return toast.error("Adicione ao menos um produto ao kit");
-    if (editing.ativo && calc.semEstoque.length > 0) {
-      return toast.error(`Não é possível publicar: ${calc.semEstoque.length} componente(s) sem estoque suficiente`);
-    }
     const original = r2(calc.varejo.cheio);
     const venda = calc.varejo.venda;
     const econ = original > venda ? Math.round(((original - venda) / original) * 100) : 0;
