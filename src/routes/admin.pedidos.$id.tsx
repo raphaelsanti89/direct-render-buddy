@@ -167,6 +167,96 @@ function AdminPedidoDetalhePage() {
     setBusy(false);
   }
 
+  // ---- edição de itens ----
+  function entrarEdicao() {
+    setDraft(itens.map((i) => ({ ...i })));
+    setEditMode(true);
+    buscarCatalogo();
+  }
+  function cancelarEdicao() {
+    setEditMode(false);
+    setDraft([]);
+  }
+  async function buscarCatalogo() {
+    setBuscandoCat(true);
+    const tabela = aba === "kit" ? "kits" : "produtos";
+    let q = supabase.from(tabela).select("id,nome,imagens,preco_varejo").eq("ativo", true).order("nome").limit(30);
+    if (buscaCat.trim()) q = q.ilike("nome", `%${buscaCat.trim()}%`);
+    const { data } = await q;
+    setCatalogo(((data as any[]) ?? []).map((d) => ({ ...d, kind: aba })));
+    setBuscandoCat(false);
+  }
+  useEffect(() => { if (editMode) buscarCatalogo(); /* eslint-disable-next-line */ }, [aba]);
+
+  function adicionarDoCatalogo(c: Catalogo) {
+    setDraft((prev) => {
+      const idx = prev.findIndex((l) => l.kind === c.kind && l.produto_id === c.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], quantidade: next[idx].quantidade + 1, subtotal: (next[idx].quantidade + 1) * next[idx].preco_unitario };
+        return next;
+      }
+      return [
+        ...prev,
+        {
+          id: "", // será criado
+          kind: c.kind,
+          produto_id: c.id,
+          nome_produto: c.nome,
+          categoria_snapshot: null,
+          imagem_snapshot: c.imagens?.[0] ?? null,
+          quantidade: 1,
+          preco_unitario: Number(c.preco_varejo),
+          subtotal: Number(c.preco_varejo),
+        },
+      ];
+    });
+  }
+  function alterarDraftQtd(i: number, qtd: number) {
+    setDraft((prev) => {
+      const next = [...prev];
+      const q = Math.max(1, qtd);
+      next[i] = { ...next[i], quantidade: q, subtotal: q * next[i].preco_unitario };
+      return next;
+    });
+  }
+  function alterarDraftPreco(i: number, preco: number) {
+    setDraft((prev) => {
+      const next = [...prev];
+      next[i] = { ...next[i], preco_unitario: preco, subtotal: preco * next[i].quantidade };
+      return next;
+    });
+  }
+  function removerDraft(i: number) {
+    setDraft((prev) => prev.filter((_, j) => j !== i));
+  }
+  async function salvarEdicao() {
+    if (!pedido) return;
+    if (draft.length === 0) return toast.error("Um pedido precisa ter ao menos um item.");
+    setBusy(true);
+    const payload = {
+      itens: draft.map((l) => ({
+        id: l.id || undefined,
+        kind: l.kind,
+        produto_id: l.produto_id,
+        nome_produto: l.nome_produto,
+        imagem_snapshot: l.imagem_snapshot,
+        categoria_snapshot: l.categoria_snapshot,
+        quantidade: l.quantidade,
+        preco_unitario: l.preco_unitario,
+      })),
+    };
+    const { error } = await (supabase.rpc as any)("admin_pedido_editar_itens", {
+      p_pedido_id: pedido.id,
+      p_payload: payload,
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Itens atualizados.");
+    setEditMode(false);
+    await load();
+  }
+
   function copiarResumo() {
     if (!pedido) return;
     const linhas = [
