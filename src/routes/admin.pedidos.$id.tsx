@@ -11,6 +11,7 @@ import {
   type PedidoStatus,
 } from "@/lib/pedidos";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { FORMAS_PAGAMENTO, FORMAS_ENTREGA, opcoesComValorAtual } from "@/lib/pedido-opcoes";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Pedido — Admin" }] }),
