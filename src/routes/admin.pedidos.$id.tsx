@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, MessageCircle, Copy, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Copy, Loader2, Pencil, Plus, Trash2, Search, Package, Boxes, X, Check } from "lucide-react";
 import { brl } from "@/lib/slug";
 import {
   PEDIDO_STATUS,
