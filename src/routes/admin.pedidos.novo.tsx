@@ -463,7 +463,38 @@ function NovoPedidoManualPage() {
               <label className="block md:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Endereço</span>
                 <input className="form-input w-full mt-1" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
+              <label className="block md:col-span-2">
+                <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Endereço</span>
+                <input className="form-input w-full mt-1" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
               </label>
+
+              {exigeEnvio && (
+                <div className="md:col-span-2 border-t border-border pt-4 space-y-3">
+                  <div>
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">
+                      CEP do cliente
+                    </span>
+                    <FreteSelector subtotal={subtotal} onChange={setFreteSel} />
+                  </div>
+                  <label className="block">
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      Valor do frete {freteGratis && <span className="text-green-600 normal-case">— grátis (subtotal ≥ R$150)</span>}
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={freteGratis ? 0 : frete}
+                      disabled={freteGratis}
+                      onChange={(e) => setFrete(Number(e.target.value))}
+                      className="form-input w-full mt-1 disabled:opacity-60"
+                    />
+                    <span className="text-[11px] text-muted-foreground mt-1 block">
+                      Preenche automaticamente ao escolher uma opção acima. Pode editar manualmente se a API falhar.
+                    </span>
+                  </label>
+                </div>
+              )}
               <label className="block md:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Observações</span>
                 <textarea className="form-input w-full mt-1 min-h-24" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
