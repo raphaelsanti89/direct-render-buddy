@@ -6,6 +6,7 @@ import { ArrowLeft, Search, Plus, Trash2, UserPlus, Loader2, Package, Boxes } fr
 import { brl } from "@/lib/slug";
 import { PEDIDO_STATUS, STATUS_ADMIN_LABEL, type PedidoStatus } from "@/lib/pedidos";
 import { FORMAS_PAGAMENTO, FORMAS_ENTREGA } from "@/lib/pedido-opcoes";
+import { FreteSelector, type FreteSelection } from "@/components/FreteSelector";
 
 export const Route = createFileRoute("/admin/pedidos/novo")({
   head: () => ({ meta: [{ title: "Novo pedido manual — Admin" }] }),
@@ -88,7 +89,11 @@ function NovoPedidoManualPage() {
   const [endereco, setEndereco] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [desconto, setDesconto] = useState(0);
+  const [frete, setFrete] = useState(0);
+  const [freteSel, setFreteSel] = useState<FreteSelection | null>(null);
   const [salvando, setSalvando] = useState(false);
+
+  const exigeEnvio = !!formaEntrega && formaEntrega !== "Retirada";
 
   useEffect(() => {
     if (!cliente) return;
@@ -160,7 +165,34 @@ function NovoPedidoManualPage() {
   }
 
   const subtotal = useMemo(() => itens.reduce((s, l) => s + l.preco_unitario * l.quantidade, 0), [itens]);
-  const total = Math.max(0, subtotal - desconto);
+  const freteGratis = exigeEnvio && subtotal >= 150;
+  const freteAplicado = exigeEnvio ? (freteGratis ? 0 : frete) : 0;
+  const total = Math.max(0, subtotal - desconto + freteAplicado);
+
+  // Sincroniza valor do frete manual quando o admin escolhe uma opção calculada
+  useEffect(() => {
+    if (!exigeEnvio) return;
+    if (freteSel?.opcao) {
+      setFrete(freteSel.gratis ? 0 : freteSel.opcao.preco);
+    }
+  }, [freteSel?.opcao?.id, freteSel?.gratis, exigeEnvio]);
+
+  function montarObservacoes(): string {
+    const partes: string[] = [];
+    if (observacoes.trim()) partes.push(observacoes.trim());
+    if (exigeEnvio) {
+      const cep = freteSel?.cep ? ` (CEP ${freteSel.cep})` : "";
+      if (freteGratis) {
+        const via = freteSel?.opcao ? ` via ${freteSel.opcao.nome} (~${freteSel.opcao.prazo_dias}d)` : "";
+        partes.push(`Frete: grátis${via}${cep}`);
+      } else if (freteSel?.opcao) {
+        partes.push(`Frete: ${freteSel.opcao.nome} — ${brl(freteSel.opcao.preco)} (~${freteSel.opcao.prazo_dias}d)${cep}`);
+      } else if (frete > 0) {
+        partes.push(`Frete: ${brl(frete)} (manual)${cep}`);
+      }
+    }
+    return partes.join(" | ");
+  }
 
   async function salvar() {
     const nome = (cliente?.nome || novoCliente.nome).trim();
@@ -188,7 +220,7 @@ function NovoPedidoManualPage() {
           forma_pagamento: formaPagamento || null,
           forma_entrega: formaEntrega || null,
           endereco: endereco || null,
-          observacoes: observacoes || null,
+          observacoes: montarObservacoes() || null,
           subtotal,
           desconto,
           total,
@@ -432,6 +464,34 @@ function NovoPedidoManualPage() {
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Endereço</span>
                 <input className="form-input w-full mt-1" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
               </label>
+
+              {exigeEnvio && (
+                <div className="md:col-span-2 border-t border-border pt-4 space-y-3">
+                  <div>
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">
+                      CEP do cliente
+                    </span>
+                    <FreteSelector subtotal={subtotal} onChange={setFreteSel} />
+                  </div>
+                  <label className="block">
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      Valor do frete {freteGratis && <span className="text-green-600 normal-case">— grátis (subtotal ≥ R$150)</span>}
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={freteGratis ? 0 : frete}
+                      disabled={freteGratis}
+                      onChange={(e) => setFrete(Number(e.target.value))}
+                      className="form-input w-full mt-1 disabled:opacity-60"
+                    />
+                    <span className="text-[11px] text-muted-foreground mt-1 block">
+                      Preenche automaticamente ao escolher uma opção acima. Pode editar manualmente se a API falhar.
+                    </span>
+                  </label>
+                </div>
+              )}
               <label className="block md:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Observações</span>
                 <textarea className="form-input w-full mt-1 min-h-24" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
@@ -469,6 +529,12 @@ function NovoPedidoManualPage() {
                   onChange={(e) => setDesconto(Number(e.target.value))}
                   className="form-input w-24 text-right" />
               </div>
+              {exigeEnvio && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Frete</span>
+                  <span>{freteGratis ? <span className="text-green-600">Grátis</span> : brl(freteAplicado)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-lg font-medium text-foreground pt-2 border-t border-border">
                 <span>Total</span><span>{brl(total)}</span>
               </div>
