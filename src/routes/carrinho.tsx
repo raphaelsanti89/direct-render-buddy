@@ -482,10 +482,6 @@ function CarrinhoPage() {
                   </Field>
                 </>
               )}
-                    maxLength={500}
-                  />
-                </Field>
-              )}
 
               <Field label="Observações (opcional)">
                 <textarea
