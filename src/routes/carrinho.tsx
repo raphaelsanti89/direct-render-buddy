@@ -72,9 +72,45 @@ function CarrinhoPage() {
     [items, profile],
   );
 
-  const total = linhas.reduce((s, l) => s + l.subtotal, 0);
+  const subtotal = linhas.reduce((s, l) => s + l.subtotal, 0);
   const empresaWa = normalizeWhatsAppNumber(config.whatsapp_pedidos);
   const exigeEndereco = entrega !== "Retirada" && entrega !== "A combinar";
+  const freteGratis = subtotal >= 150;
+  const freteSel = freteOpcoes?.find((o) => o.id === freteSelId) ?? null;
+  const freteCusto = exigeEndereco && freteSel && !freteGratis ? freteSel.preco : 0;
+  const total = subtotal + freteCusto;
+
+  // Reset frete quando muda tipo de entrega ou CEP
+  useEffect(() => {
+    setFreteOpcoes(null);
+    setFreteSelId(null);
+    setFreteErro(null);
+  }, [entrega, cep]);
+
+  async function calcularFreteHandler() {
+    const cepDigits = cep.replace(/\D/g, "");
+    if (cepDigits.length !== 8) {
+      setFreteErro("Informe um CEP válido (8 dígitos).");
+      return;
+    }
+    setFreteLoading(true);
+    setFreteErro(null);
+    setFreteOpcoes(null);
+    setFreteSelId(null);
+    try {
+      const res = await calcFrete({ data: { cep_destino: cepDigits, subtotal } });
+      if (res.ok) {
+        setFreteOpcoes(res.opcoes);
+        setFreteSelId(res.opcoes[0]?.id ?? null);
+      } else {
+        setFreteErro(res.erro);
+      }
+    } catch {
+      setFreteErro("Não foi possível calcular. O frete será combinado no WhatsApp.");
+    } finally {
+      setFreteLoading(false);
+    }
+  }
 
   async function finalizarWhatsApp() {
     if (items.length === 0) { toast.error("Seu carrinho está vazio."); return; }
@@ -85,6 +121,20 @@ function CarrinhoPage() {
     setSubmitting(true);
 
     try {
+      const freteDescricao = exigeEndereco
+        ? freteGratis
+          ? freteSel
+            ? `Frete grátis (${freteSel.nome}, ~${freteSel.prazo_dias} dias úteis)`
+            : "Frete grátis"
+          : freteSel
+            ? `${freteSel.nome} — ${brl(freteSel.preco)} (~${freteSel.prazo_dias} dias úteis)`
+            : "A confirmar via WhatsApp"
+        : null;
+
+      const observacoesFinais = [obs.trim() || null, freteDescricao ? `Frete: ${freteDescricao}` : null]
+        .filter(Boolean)
+        .join(" | ") || null;
+
       // 1) Registrar pedido no banco
       const pedido = await criarPedido({
         cliente_id: profile?.id ?? null,
@@ -95,9 +145,9 @@ function CarrinhoPage() {
         forma_pagamento: pagamento,
         forma_entrega: entrega,
         endereco: exigeEndereco ? endereco.trim() : null,
-        observacoes: obs.trim() || null,
+        observacoes: observacoesFinais,
         canal_contato: "whatsapp",
-        subtotal: total,
+        subtotal,
         desconto: 0,
         total,
         itens: linhas.map((l) => ({ item: l.item, preco_unitario: l.unit, subtotal: l.subtotal })),
@@ -128,10 +178,13 @@ function CarrinhoPage() {
         "*Itens:*",
         linhasMsg,
         "",
+        `*Subtotal:* ${brl(subtotal)}`,
+        exigeEndereco ? `*Frete:* ${freteDescricao ?? "A confirmar"}` : null,
         `*Total: ${brl(total)}*`,
         "",
         `*Pagamento:* ${pagamento}`,
         `*Entrega:* ${entrega}`,
+        exigeEndereco ? `*CEP:* ${cep}` : null,
         exigeEndereco ? `*Endereço:* ${endereco.trim()}` : null,
         obs.trim() ? `*Observações:* ${obs.trim()}` : null,
         "",
