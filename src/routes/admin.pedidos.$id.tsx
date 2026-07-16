@@ -354,29 +354,150 @@ function AdminPedidoDetalhePage() {
 
           {/* Itens */}
           <section className="border border-border bg-background">
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 p-6 pb-3">— itens</p>
-            <ul className="divide-y divide-border">
-              {itens.map((i) => (
-                <li key={i.id} className="flex gap-4 p-6 py-4">
-                  <div className="h-14 w-14 shrink-0 bg-surface overflow-hidden">
-                    {i.imagem_snapshot && <img src={i.imagem_snapshot} alt="" className="h-full w-full object-cover" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">{i.nome_produto}</p>
-                    {i.categoria_snapshot && (
-                      <p className="text-[11px] text-muted-foreground">{i.categoria_snapshot}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-0.5">{i.quantidade}x {brl(i.preco_unitario)}</p>
-                  </div>
-                  <p className="text-sm text-foreground">{brl(i.subtotal)}</p>
-                </li>
-              ))}
-            </ul>
-            <div className="p-6 pt-4 border-t border-border space-y-1.5 text-sm">
-              <Row label="Subtotal" value={brl(pedido.subtotal)} />
-              {pedido.desconto > 0 && <Row label="Desconto" value={`- ${brl(pedido.desconto)}`} />}
-              <Row label="Total" value={brl(pedido.total)} strong />
+            <div className="flex items-center justify-between p-6 pb-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— itens</p>
+              {!editMode ? (
+                <button onClick={entrarEdicao} className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 border border-gold text-gold hover:bg-gold hover:text-background transition-colors">
+                  <Pencil size={11} /> Editar itens
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={cancelarEdicao} disabled={busy} className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 border border-border hover:bg-surface disabled:opacity-50">
+                    <X size={11} /> Cancelar
+                  </button>
+                  <button onClick={salvarEdicao} disabled={busy} className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 bg-foreground text-background hover:bg-gold disabled:opacity-50">
+                    <Check size={11} /> Salvar alterações
+                  </button>
+                </div>
+              )}
             </div>
+
+            {!editMode ? (
+              <>
+                <ul className="divide-y divide-border">
+                  {itens.map((i) => (
+                    <li key={i.id} className="flex gap-4 p-6 py-4">
+                      <div className="h-14 w-14 shrink-0 bg-surface overflow-hidden">
+                        {i.imagem_snapshot && <img src={i.imagem_snapshot} alt="" className="h-full w-full object-cover" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground">{i.nome_produto}</p>
+                        {i.categoria_snapshot && (
+                          <p className="text-[11px] text-muted-foreground">{i.categoria_snapshot}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-0.5">{i.quantidade}x {brl(i.preco_unitario)}</p>
+                      </div>
+                      <p className="text-sm text-foreground">{brl(i.subtotal)}</p>
+                    </li>
+                  ))}
+                </ul>
+                <div className="p-6 pt-4 border-t border-border space-y-1.5 text-sm">
+                  <Row label="Subtotal" value={brl(pedido.subtotal)} />
+                  {pedido.desconto > 0 && <Row label="Desconto" value={`- ${brl(pedido.desconto)}`} />}
+                  <Row label="Total" value={brl(pedido.total)} strong />
+                </div>
+              </>
+            ) : (
+              <div className="p-6 pt-0 space-y-4">
+                {pedido.status === "confirmado" && (
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 border border-amber-500/30 bg-amber-500/10 p-2">
+                    Pedido já confirmado: alterações ajustam o estoque automaticamente (permitindo negativo).
+                  </p>
+                )}
+
+                {/* Itens em edição */}
+                <div className="border border-border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-surface text-left text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      <tr>
+                        <th className="p-3">Item</th>
+                        <th className="p-3 w-16">Tipo</th>
+                        <th className="p-3 w-20">Qtd</th>
+                        <th className="p-3 w-28">Preço</th>
+                        <th className="p-3 w-24 text-right">Subtotal</th>
+                        <th className="p-3 w-8"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {draft.length === 0 && (
+                        <tr><td colSpan={6} className="p-4 text-xs text-muted-foreground">Nenhum item — adicione abaixo.</td></tr>
+                      )}
+                      {draft.map((l, idx) => (
+                        <tr key={idx} className="border-t border-border">
+                          <td className="p-3">{l.nome_produto}</td>
+                          <td className="p-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{l.kind}</td>
+                          <td className="p-3">
+                            <input type="number" min={1} value={l.quantidade}
+                              onChange={(e) => alterarDraftQtd(idx, Number(e.target.value))}
+                              className="form-input w-16" />
+                          </td>
+                          <td className="p-3">
+                            <input type="number" step="0.01" min={0} value={l.preco_unitario}
+                              onChange={(e) => alterarDraftPreco(idx, Number(e.target.value))}
+                              className="form-input w-24" />
+                          </td>
+                          <td className="p-3 text-right">{brl(l.subtotal)}</td>
+                          <td className="p-3">
+                            <button onClick={() => removerDraft(idx)} className="text-destructive hover:opacity-70">
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Catálogo */}
+                <div>
+                  <div className="flex border border-border mb-3 w-fit">
+                    <button onClick={() => setAba("produto")} className={`inline-flex items-center gap-2 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] ${aba === "produto" ? "bg-foreground text-background" : "hover:text-gold"}`}>
+                      <Package size={12} /> Produtos
+                    </button>
+                    <button onClick={() => setAba("kit")} className={`inline-flex items-center gap-2 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] border-l border-border ${aba === "kit" ? "bg-foreground text-background" : "hover:text-gold"}`}>
+                      <Boxes size={12} /> Kits
+                    </button>
+                  </div>
+                  <div className="flex gap-2 mb-2">
+                    <div className="relative flex-1">
+                      <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input className="form-input pl-8 w-full" placeholder={aba === "kit" ? "Buscar kit…" : "Buscar produto…"}
+                        value={buscaCat} onChange={(e) => setBuscaCat(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), buscarCatalogo())} />
+                    </div>
+                    <button onClick={buscarCatalogo} className="border border-border px-3 text-[10px] uppercase tracking-[0.18em] hover:border-gold hover:text-gold">
+                      Buscar
+                    </button>
+                  </div>
+                  {buscandoCat ? (
+                    <p className="text-xs text-muted-foreground">Carregando…</p>
+                  ) : (
+                    <div className="border border-border max-h-56 overflow-auto divide-y divide-border">
+                      {catalogo.map((c) => (
+                        <button key={`${c.kind}-${c.id}`} onClick={() => adicionarDoCatalogo(c)} className="w-full flex items-center justify-between p-2 hover:bg-surface text-left">
+                          <div className="flex items-center gap-2">
+                            {c.imagens?.[0] && <img src={c.imagens[0]} alt="" className="w-8 h-8 object-cover" />}
+                            <div>
+                              <div className="text-xs text-foreground">{c.nome}</div>
+                              <div className="text-[10px] text-muted-foreground">{brl(Number(c.preco_varejo))}</div>
+                            </div>
+                          </div>
+                          <Plus size={12} className="text-gold" />
+                        </button>
+                      ))}
+                      {catalogo.length === 0 && <p className="p-2 text-xs text-muted-foreground">Nenhum {aba === "kit" ? "kit" : "produto"}.</p>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Prévia de totais */}
+                <div className="border-t border-border pt-3 space-y-1 text-sm">
+                  <Row label="Subtotal (prévia)" value={brl(draft.reduce((s, l) => s + l.subtotal, 0))} />
+                  {pedido.desconto > 0 && <Row label="Desconto" value={`- ${brl(pedido.desconto)}`} />}
+                  <Row label="Total (prévia)" value={brl(Math.max(0, draft.reduce((s, l) => s + l.subtotal, 0) - pedido.desconto))} strong />
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Entrega */}
