@@ -203,7 +203,7 @@ function NovoPedidoManualPage() {
           forma_pagamento: formaPagamento || null,
           forma_entrega: formaEntrega || null,
           endereco: endereco || null,
-          observacoes: observacoes || null,
+          observacoes: montarObservacoes() || null,
           subtotal,
           desconto,
           total,
