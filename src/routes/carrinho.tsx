@@ -42,6 +42,12 @@ function CarrinhoPage() {
   const [obs, setObs] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState<{ numero: string; link: string } | null>(null);
+  const [cep, setCep] = useState("");
+  const [freteOpcoes, setFreteOpcoes] = useState<OpcaoFrete[] | null>(null);
+  const [freteSelId, setFreteSelId] = useState<number | null>(null);
+  const [freteErro, setFreteErro] = useState<string | null>(null);
+  const [freteLoading, setFreteLoading] = useState(false);
+  const calcFrete = useServerFn(calcularFrete);
 
   // pré-preenche dados do perfil
   useEffect(() => {
