@@ -44,12 +44,22 @@ type Pedido = {
 
 type Item = {
   id: string;
+  kind: "produto" | "kit";
+  produto_id: string | null;
   nome_produto: string;
   categoria_snapshot: string | null;
   imagem_snapshot: string | null;
   quantidade: number;
   preco_unitario: number;
   subtotal: number;
+};
+
+type Catalogo = {
+  id: string;
+  nome: string;
+  imagens: string[] | null;
+  preco_varejo: number;
+  kind: "produto" | "kit";
 };
 
 type Historico = { id: string; status: PedidoStatus; created_at: string };
