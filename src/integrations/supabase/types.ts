@@ -995,6 +995,10 @@ export type Database = {
         }
       }
       admin_metricas_vendas_30d: { Args: never; Returns: Json }
+      admin_pedido_editar_itens: {
+        Args: { p_payload: Json; p_pedido_id: string }
+        Returns: Json
+      }
       admin_produtos_mais_vendidos: {
         Args: { dias_periodo?: number }
         Returns: {
@@ -1028,6 +1032,10 @@ export type Database = {
           perfil: string
           receita: number
         }[]
+      }
+      ajustar_estoque_item: {
+        Args: { _delta_qtd: number; _kind: string; _produto_id: string }
+        Returns: undefined
       }
       criar_pedido_publico: { Args: { payload: Json }; Returns: Json }
       get_kit_composicao_publica: {
