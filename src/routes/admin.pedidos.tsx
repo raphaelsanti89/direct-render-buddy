@@ -149,6 +149,7 @@ function AdminPedidosPage() {
                 <th className="p-4">Status</th>
                 <th className="p-4">Origem</th>
                 <th className="p-4">Data</th>
+                <th className="p-4 text-right">Ação</th>
               </tr>
             </thead>
             <tbody>
