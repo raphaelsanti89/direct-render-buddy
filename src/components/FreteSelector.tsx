@@ -72,7 +72,7 @@ export function FreteSelector({
     setOpcoes(null);
     setSelId(null);
     try {
-      const res = await calc({ data: { cep_destino: cepDigits, subtotal } });
+      const res = await calc({ data: { cep_destino: cepDigits, subtotal, itens } });
       if (res.ok) {
         setOpcoes(res.opcoes);
         setSelId(res.opcoes[0]?.id ?? null);
