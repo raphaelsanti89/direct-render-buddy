@@ -62,6 +62,7 @@ const EMPTY: Partial<Prod> = {
   imagens: [], volume: "", intensidade: 3, sensacao_transmitida: "",
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
   estoque_atual: 0, estoque_minimo: 0, estoque_ideal: 0,
+  peso_kg: null, altura_cm: null, largura_cm: null, comprimento_cm: null,
 };
 
 // Descontos sugeridos (sobre o preço de varejo)
