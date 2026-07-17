@@ -141,6 +141,10 @@ function ProdutosAdmin() {
       estoque_atual: Number(editing.estoque_atual ?? 0),
       estoque_minimo: Number(editing.estoque_minimo ?? 0),
       estoque_ideal: Number(editing.estoque_ideal ?? 0),
+      peso_kg: editing.peso_kg != null && (editing.peso_kg as unknown) !== "" ? Number(editing.peso_kg) : null,
+      altura_cm: editing.altura_cm != null && (editing.altura_cm as unknown) !== "" ? Number(editing.altura_cm) : null,
+      largura_cm: editing.largura_cm != null && (editing.largura_cm as unknown) !== "" ? Number(editing.largura_cm) : null,
+      comprimento_cm: editing.comprimento_cm != null && (editing.comprimento_cm as unknown) !== "" ? Number(editing.comprimento_cm) : null,
     };
     if (!payload.nome) return toast.error("Nome é obrigatório");
     if (!payload.preco_varejo) return toast.error("Preço é obrigatório");
