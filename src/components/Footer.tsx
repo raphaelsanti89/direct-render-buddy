@@ -58,8 +58,9 @@ export function Footer() {
             <li><Link to="/kits" className="hover:text-gold transition-colors">Kits Sensoriais</Link></li>
             <li><Link to="/cadastro-assinatura" className="hover:text-gold transition-colors">Assinatura</Link></li>
             <li><Link to="/cadastro-b2b" className="hover:text-gold transition-colors">Cadastro B2B</Link></li>
-            
+            <li><Link to="/politica-de-trocas" className="hover:text-gold transition-colors">Política de Entrega e Trocas</Link></li>
           </ul>
+
         </div>
 
         <div className="md:col-span-5 space-y-4">
