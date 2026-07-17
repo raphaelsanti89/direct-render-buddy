@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+
 
 const SUPERFRETE_BASE = "https://api.superfrete.com";
 const USER_AGENT = "Gama Sensacoes (contato@gamasensacoes.com.br)";
