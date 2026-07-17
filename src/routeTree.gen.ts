@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PoliticaDeTrocasRouteImport } from './routes/politica-de-trocas'
+import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KitsRouteImport } from './routes/kits'
@@ -38,6 +40,11 @@ import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
 import { Route as AdminPedidosNovoRouteImport } from './routes/admin.pedidos.novo'
 import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
 
+const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
+  id: '/termos-de-uso',
+  path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -51,6 +58,11 @@ const ProdutosRoute = ProdutosRouteImport.update({
 const PoliticaDeTrocasRoute = PoliticaDeTrocasRouteImport.update({
   id: '/politica-de-trocas',
   path: '/politica-de-trocas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
+  id: '/politica-de-privacidade',
+  path: '/politica-de-privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MinhaContaRoute = MinhaContaRouteImport.update({
@@ -189,9 +201,11 @@ export interface FileRoutesByFullPath {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/minha-conta': typeof MinhaContaRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/politica-de-trocas': typeof PoliticaDeTrocasRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -218,9 +232,11 @@ export interface FileRoutesByTo {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/minha-conta': typeof MinhaContaRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/politica-de-trocas': typeof PoliticaDeTrocasRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -249,9 +265,11 @@ export interface FileRoutesById {
   '/kits': typeof KitsRoute
   '/login': typeof LoginRoute
   '/minha-conta': typeof MinhaContaRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/politica-de-trocas': typeof PoliticaDeTrocasRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -281,9 +299,11 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/minha-conta'
+    | '/politica-de-privacidade'
     | '/politica-de-trocas'
     | '/produtos'
     | '/sitemap.xml'
+    | '/termos-de-uso'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
@@ -310,9 +330,11 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/minha-conta'
+    | '/politica-de-privacidade'
     | '/politica-de-trocas'
     | '/produtos'
     | '/sitemap.xml'
+    | '/termos-de-uso'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
@@ -340,9 +362,11 @@ export interface FileRouteTypes {
     | '/kits'
     | '/login'
     | '/minha-conta'
+    | '/politica-de-privacidade'
     | '/politica-de-trocas'
     | '/produtos'
     | '/sitemap.xml'
+    | '/termos-de-uso'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
@@ -371,9 +395,11 @@ export interface RootRouteChildren {
   KitsRoute: typeof KitsRoute
   LoginRoute: typeof LoginRoute
   MinhaContaRoute: typeof MinhaContaRoute
+  PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   PoliticaDeTrocasRoute: typeof PoliticaDeTrocasRoute
   ProdutosRoute: typeof ProdutosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermosDeUsoRoute: typeof TermosDeUsoRoute
   KitSlugRoute: typeof KitSlugRoute
   PedidoNumeroRoute: typeof PedidoNumeroRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
@@ -381,6 +407,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/termos-de-uso': {
+      id: '/termos-de-uso'
+      path: '/termos-de-uso'
+      fullPath: '/termos-de-uso'
+      preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -400,6 +433,13 @@ declare module '@tanstack/react-router' {
       path: '/politica-de-trocas'
       fullPath: '/politica-de-trocas'
       preLoaderRoute: typeof PoliticaDeTrocasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politica-de-privacidade': {
+      id: '/politica-de-privacidade'
+      path: '/politica-de-privacidade'
+      fullPath: '/politica-de-privacidade'
+      preLoaderRoute: typeof PoliticaDePrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/minha-conta': {
@@ -634,9 +674,11 @@ const rootRouteChildren: RootRouteChildren = {
   KitsRoute: KitsRoute,
   LoginRoute: LoginRoute,
   MinhaContaRoute: MinhaContaRoute,
+  PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   PoliticaDeTrocasRoute: PoliticaDeTrocasRoute,
   ProdutosRoute: ProdutosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermosDeUsoRoute: TermosDeUsoRoute,
   KitSlugRoute: KitSlugRoute,
   PedidoNumeroRoute: PedidoNumeroRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
