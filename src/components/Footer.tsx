@@ -86,8 +86,8 @@ export function Footer() {
         <p>© {new Date().getFullYear()} Gama Sensações — Todos os direitos reservados.</p>
         <div className="flex gap-6 flex-wrap">
           <Link to="/politica-de-trocas" className="hover:text-gold">Política de Entrega e Trocas</Link>
-          <a href="#" className="hover:text-gold">Política de Privacidade</a>
-          <a href="#" className="hover:text-gold">Termos de Uso</a>
+          <Link to="/politica-de-privacidade" className="hover:text-gold">Política de Privacidade</Link>
+          <Link to="/termos-de-uso" className="hover:text-gold">Termos de Uso</Link>
         </div>
       </div>
     </footer>
