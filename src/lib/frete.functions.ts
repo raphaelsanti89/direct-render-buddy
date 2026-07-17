@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+
 
 const SUPERFRETE_BASE = "https://api.superfrete.com";
 const USER_AGENT = "Gama Sensacoes (contato@gamasensacoes.com.br)";
@@ -32,23 +31,8 @@ export const calcularFrete = createServerFn({ method: "POST" })
     const token = process.env.SUPERFRETE_TOKEN;
     if (!token) return { ok: false, erro: "SuperFrete não configurado." };
 
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) return { ok: false, erro: "Backend indisponível." };
-
-    const supa = createClient<Database>(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: {
-        fetch: (input, init) => {
-          const h = new Headers(init?.headers);
-          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
-            h.delete("Authorization");
-          }
-          h.set("apikey", key);
-          return fetch(input, { ...init, headers: h });
-        },
-      },
-    });
+    // Use admin client (server-only) to avoid RLS blocking non-public config rows.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const chaves = [
       "cep_origem",
@@ -57,15 +41,22 @@ export const calcularFrete = createServerFn({ method: "POST" })
       "pacote_largura_cm",
       "pacote_comprimento_cm",
     ];
-    const { data: cfgRows, error: cfgErr } = await supa
+    const { data: cfgRows, error: cfgErr } = await supabaseAdmin
       .from("configuracoes_gerais")
       .select("chave,valor")
       .in("chave", chaves);
-    if (cfgErr) return { ok: false, erro: "Falha ao ler configurações." };
+    if (cfgErr) {
+      console.error("[calcularFrete] cfg read fail", cfgErr);
+      return { ok: false, erro: "Falha ao ler configurações." };
+    }
 
     const cfg = Object.fromEntries((cfgRows ?? []).map((r) => [r.chave, r.valor ?? ""]));
     const cepOrigem = (cfg.cep_origem ?? "").replace(/\D/g, "");
     if (cepOrigem.length !== 8) {
+      console.error("[calcularFrete] cep_origem ausente/inválido", {
+        rowsCount: cfgRows?.length ?? 0,
+        raw: cfg.cep_origem,
+      });
       return { ok: false, erro: "CEP de origem não configurado." };
     }
 
