@@ -47,6 +47,10 @@ type Prod = {
   estoque_atual: number | null;
   estoque_minimo: number | null;
   estoque_ideal: number | null;
+  peso_kg: number | null;
+  altura_cm: number | null;
+  largura_cm: number | null;
+  comprimento_cm: number | null;
 };
 
 const EMPTY: Partial<Prod> = {
