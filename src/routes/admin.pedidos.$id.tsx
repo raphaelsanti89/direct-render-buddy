@@ -292,7 +292,7 @@ function AdminPedidoDetalhePage() {
     );
   }
 
-  const waMessage = buildWhatsMessage(pedido);
+  const waMessage = buildWhatsMessage(pedido, itens);
   const waLink = buildWhatsAppLink(pedido.telefone, waMessage) || null;
 
   return (
