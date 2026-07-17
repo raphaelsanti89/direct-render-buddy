@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useConfig } from "@/hooks/useConfig";
-import { supabase } from "@/integrations/supabase/client";
 
 
 const links = [
@@ -18,7 +17,6 @@ const links = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [, setAuthed] = useState(false);
   const { count } = useCart();
   const { config } = useConfig();
   const logo = config.logo_url_clara || "";
@@ -27,15 +25,9 @@ export function Navbar() {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll);
-    supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setAuthed(!!session);
-    });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      sub.subscription.unsubscribe();
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
 
   return (
     <header
