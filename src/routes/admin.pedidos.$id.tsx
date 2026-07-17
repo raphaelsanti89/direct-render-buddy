@@ -292,7 +292,7 @@ function AdminPedidoDetalhePage() {
     );
   }
 
-  const waMessage = buildWhatsMessage(pedido);
+  const waMessage = buildWhatsMessage(pedido, itens);
   const waLink = buildWhatsAppLink(pedido.telefone, waMessage) || null;
 
   return (
@@ -663,17 +663,43 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   );
 }
 
-function buildWhatsMessage(p: Pedido): string {
+function buildWhatsMessage(p: Pedido, itens: Item[] = []): string {
   const nome = p.nome_cliente?.split(" ")[0] || p.nome_cliente || "";
   const numero = p.numero_pedido;
   const rastreio = p.codigo_rastreamento?.trim();
+  const trackingLink = `https://gamasensacoes.com.br/pedido/${p.codigo_rastreio}`;
   switch (p.status) {
-    case "confirmado":
-      return `Olá ${nome}! Seu pedido ${numero} foi confirmado. Em breve você recebe as próximas atualizações por aqui.`;
+    case "confirmado": {
+      const linhasItens = itens
+        .map((it) => `- ${it.nome_produto} — ${brl(it.subtotal)}`)
+        .join("\n");
+      return [
+        `Olá, ${nome}! 🎉 Recebemos seu pedido com muito carinho!`,
+        "",
+        `Pedido: ${numero}`,
+        `Status: Confirmado ✅`,
+        "",
+        "Itens:",
+        linhasItens || "-",
+        "",
+        `Total: ${brl(p.total)}`,
+        `Pagamento: ${p.forma_pagamento ?? "—"}`,
+        `Entrega: ${p.forma_entrega ?? "—"}`,
+        "",
+        "Você pode acompanhar cada etapa do seu pedido em tempo real por aqui:",
+        `🔗 ${trackingLink}`,
+        "",
+        "Para acessar, basta logar com o número do seu WhatsApp, sem pontos ou traços. Se preferir, também pode acompanhar ou editar seu pedido diretamente por aqui, chamando a gente no WhatsApp! 😊",
+        "",
+        "Nosso prazo de entrega padrão é de 7 a 10 dias úteis para todo o Brasil. Qualquer dúvida, estamos à disposição!",
+        "",
+        "Aproveita e nos segue no Instagram @gamasensacoes para acompanhar novidades e lançamentos ✨",
+      ].join("\n");
+    }
     case "em_separacao":
       return `Seu pedido ${numero} está sendo separado com carinho.`;
     case "enviado":
-      return `Seu pedido ${numero} foi enviado! Prazo estimado de entrega: 7 a 10 dias úteis.${rastreio ? ` Código de rastreio: ${rastreio}` : ""}`;
+      return `Seu pedido ${numero} foi enviado! Prazo estimado de entrega: 7 a 10 dias úteis.${rastreio ? ` Código de rastreio: ${rastreio}` : ""}\n\nAcompanhe: ${trackingLink}`;
     case "entregue":
       return `Seu pedido ${numero} foi entregue! Esperamos que goste. Qualquer dúvida, é só chamar por aqui.`;
     case "cancelado":
