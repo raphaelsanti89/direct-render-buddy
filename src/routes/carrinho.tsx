@@ -98,7 +98,7 @@ function CarrinhoPage() {
     setFreteOpcoes(null);
     setFreteSelId(null);
     try {
-      const res = await calcFrete({ data: { cep_destino: cepDigits, subtotal } });
+      const res = await calcFrete({ data: { cep_destino: cepDigits, subtotal, itens: items.map((i) => ({ kind: i.kind, id: i.id, qty: i.qty })) } });
       if (res.ok) {
         setFreteOpcoes(res.opcoes);
         setFreteSelId(res.opcoes[0]?.id ?? null);

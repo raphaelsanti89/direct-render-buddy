@@ -47,6 +47,10 @@ type Prod = {
   estoque_atual: number | null;
   estoque_minimo: number | null;
   estoque_ideal: number | null;
+  peso_kg: number | null;
+  altura_cm: number | null;
+  largura_cm: number | null;
+  comprimento_cm: number | null;
 };
 
 const EMPTY: Partial<Prod> = {
@@ -58,6 +62,7 @@ const EMPTY: Partial<Prod> = {
   imagens: [], volume: "", intensidade: 3, sensacao_transmitida: "",
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
   estoque_atual: 0, estoque_minimo: 0, estoque_ideal: 0,
+  peso_kg: null, altura_cm: null, largura_cm: null, comprimento_cm: null,
 };
 
 // Descontos sugeridos (sobre o preço de varejo)
@@ -136,6 +141,10 @@ function ProdutosAdmin() {
       estoque_atual: Number(editing.estoque_atual ?? 0),
       estoque_minimo: Number(editing.estoque_minimo ?? 0),
       estoque_ideal: Number(editing.estoque_ideal ?? 0),
+      peso_kg: editing.peso_kg != null && (editing.peso_kg as unknown) !== "" ? Number(editing.peso_kg) : null,
+      altura_cm: editing.altura_cm != null && (editing.altura_cm as unknown) !== "" ? Number(editing.altura_cm) : null,
+      largura_cm: editing.largura_cm != null && (editing.largura_cm as unknown) !== "" ? Number(editing.largura_cm) : null,
+      comprimento_cm: editing.comprimento_cm != null && (editing.comprimento_cm as unknown) !== "" ? Number(editing.comprimento_cm) : null,
     };
     if (!payload.nome) return toast.error("Nome é obrigatório");
     if (!payload.preco_varejo) return toast.error("Preço é obrigatório");
@@ -398,6 +407,47 @@ function ProdutosAdmin() {
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Abaixo (ou igual) ao mínimo aparece como <span className="text-destructive">comprar agora</span>; entre mínimo e ideal, como <span className="text-amber-600">comprar em breve</span>. A baixa acontece automaticamente quando o pedido é confirmado.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Peso e dimensões (frete)</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Field label="Peso (kg)">
+                  <input
+                    type="number" min={0} step="0.001"
+                    className="form-input"
+                    value={editing.peso_kg ?? ""}
+                    onChange={(e) => setEditing({ ...editing, peso_kg: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+                <Field label="Altura (cm)">
+                  <input
+                    type="number" min={0} step="0.1"
+                    className="form-input"
+                    value={editing.altura_cm ?? ""}
+                    onChange={(e) => setEditing({ ...editing, altura_cm: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+                <Field label="Largura (cm)">
+                  <input
+                    type="number" min={0} step="0.1"
+                    className="form-input"
+                    value={editing.largura_cm ?? ""}
+                    onChange={(e) => setEditing({ ...editing, largura_cm: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+                <Field label="Comprimento (cm)">
+                  <input
+                    type="number" min={0} step="0.1"
+                    className="form-input"
+                    value={editing.comprimento_cm ?? ""}
+                    onChange={(e) => setEditing({ ...editing, comprimento_cm: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Se vazio, usará os valores padrão de pacote definidos em Configurações.
               </p>
             </div>
 

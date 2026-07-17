@@ -13,8 +13,12 @@ export type FreteSelection = {
   erro: string | null;
 };
 
+export type FreteItem = { kind: "produto" | "kit"; id: string; qty: number };
+
 type Props = {
   subtotal: number;
+  /** Itens do pedido; usados para calcular peso/dimensões reais. */
+  itens?: FreteItem[];
   /** Se subtotal >= este valor, frete = 0 (mostrado como "Grátis"). Default 150. */
   freteGratisMin?: number;
   /** Notifica o pai sempre que muda CEP / opção / custo. */
@@ -29,6 +33,7 @@ type Props = {
  */
 export function FreteSelector({
   subtotal,
+  itens,
   freteGratisMin = 150,
   onChange,
   placeholder = "Informe o CEP e clique em Calcular para ver as opções de envio.",
@@ -67,7 +72,7 @@ export function FreteSelector({
     setOpcoes(null);
     setSelId(null);
     try {
-      const res = await calc({ data: { cep_destino: cepDigits, subtotal } });
+      const res = await calc({ data: { cep_destino: cepDigits, subtotal, itens } });
       if (res.ok) {
         setOpcoes(res.opcoes);
         setSelId(res.opcoes[0]?.id ?? null);

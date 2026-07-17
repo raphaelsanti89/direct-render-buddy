@@ -560,9 +560,11 @@ export type Database = {
       }
       produtos: {
         Row: {
+          altura_cm: number | null
           ativo: boolean | null
           categoria_id: string | null
           composicao: string | null
+          comprimento_cm: number | null
           created_at: string | null
           descricao: string | null
           descricao_curta: string | null
@@ -580,11 +582,13 @@ export type Database = {
           imagens: string[] | null
           intensidade: number | null
           lancamento: boolean | null
+          largura_cm: number | null
           mais_vendido: boolean | null
           margem_varejo_pct: number | null
           modo_de_uso: string | null
           nome: string
           notas_olfativas: string[] | null
+          peso_kg: number | null
           preco_assinatura: number | null
           preco_b2b_1: number | null
           preco_b2b_2: number | null
@@ -597,9 +601,11 @@ export type Database = {
           volume: string | null
         }
         Insert: {
+          altura_cm?: number | null
           ativo?: boolean | null
           categoria_id?: string | null
           composicao?: string | null
+          comprimento_cm?: number | null
           created_at?: string | null
           descricao?: string | null
           descricao_curta?: string | null
@@ -617,11 +623,13 @@ export type Database = {
           imagens?: string[] | null
           intensidade?: number | null
           lancamento?: boolean | null
+          largura_cm?: number | null
           mais_vendido?: boolean | null
           margem_varejo_pct?: number | null
           modo_de_uso?: string | null
           nome: string
           notas_olfativas?: string[] | null
+          peso_kg?: number | null
           preco_assinatura?: number | null
           preco_b2b_1?: number | null
           preco_b2b_2?: number | null
@@ -634,9 +642,11 @@ export type Database = {
           volume?: string | null
         }
         Update: {
+          altura_cm?: number | null
           ativo?: boolean | null
           categoria_id?: string | null
           composicao?: string | null
+          comprimento_cm?: number | null
           created_at?: string | null
           descricao?: string | null
           descricao_curta?: string | null
@@ -654,11 +664,13 @@ export type Database = {
           imagens?: string[] | null
           intensidade?: number | null
           lancamento?: boolean | null
+          largura_cm?: number | null
           mais_vendido?: boolean | null
           margem_varejo_pct?: number | null
           modo_de_uso?: string | null
           nome?: string
           notas_olfativas?: string[] | null
+          peso_kg?: number | null
           preco_assinatura?: number | null
           preco_b2b_1?: number | null
           preco_b2b_2?: number | null
@@ -984,9 +996,11 @@ export type Database = {
       admin_list_produtos: {
         Args: never
         Returns: {
+          altura_cm: number | null
           ativo: boolean | null
           categoria_id: string | null
           composicao: string | null
+          comprimento_cm: number | null
           created_at: string | null
           descricao: string | null
           descricao_curta: string | null
@@ -1004,11 +1018,13 @@ export type Database = {
           imagens: string[] | null
           intensidade: number | null
           lancamento: boolean | null
+          largura_cm: number | null
           mais_vendido: boolean | null
           margem_varejo_pct: number | null
           modo_de_uso: string | null
           nome: string
           notas_olfativas: string[] | null
+          peso_kg: number | null
           preco_assinatura: number | null
           preco_b2b_1: number | null
           preco_b2b_2: number | null
