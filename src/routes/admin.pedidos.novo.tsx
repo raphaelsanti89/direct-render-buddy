@@ -471,7 +471,11 @@ function NovoPedidoManualPage() {
                     <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">
                       CEP do cliente
                     </span>
-                    <FreteSelector subtotal={subtotal} onChange={setFreteSel} />
+                    <FreteSelector
+                      subtotal={subtotal}
+                      itens={itens.map((l) => ({ kind: l.kind, id: l.item.id, qty: l.quantidade }))}
+                      onChange={setFreteSel}
+                    />
                   </div>
                   <label className="block">
                     <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
