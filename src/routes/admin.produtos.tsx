@@ -410,6 +410,47 @@ function ProdutosAdmin() {
               </p>
             </div>
 
+            <div className="space-y-3">
+              <h3 className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Peso e dimensões (frete)</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Field label="Peso (kg)">
+                  <input
+                    type="number" min={0} step="0.001"
+                    className="form-input"
+                    value={editing.peso_kg ?? ""}
+                    onChange={(e) => setEditing({ ...editing, peso_kg: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+                <Field label="Altura (cm)">
+                  <input
+                    type="number" min={0} step="0.1"
+                    className="form-input"
+                    value={editing.altura_cm ?? ""}
+                    onChange={(e) => setEditing({ ...editing, altura_cm: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+                <Field label="Largura (cm)">
+                  <input
+                    type="number" min={0} step="0.1"
+                    className="form-input"
+                    value={editing.largura_cm ?? ""}
+                    onChange={(e) => setEditing({ ...editing, largura_cm: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+                <Field label="Comprimento (cm)">
+                  <input
+                    type="number" min={0} step="0.1"
+                    className="form-input"
+                    value={editing.comprimento_cm ?? ""}
+                    onChange={(e) => setEditing({ ...editing, comprimento_cm: e.target.value ? Number(e.target.value) : null })}
+                  />
+                </Field>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Se vazio, usará os valores padrão de pacote definidos em Configurações.
+              </p>
+            </div>
+
             <FormActions onCancel={() => setEditing(null)} saveLabel={editing.id ? "Salvar" : "Criar"} />
           </form>
         </FormDrawer>
