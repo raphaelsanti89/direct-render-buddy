@@ -1089,6 +1089,7 @@ export type Database = {
         Args: { p_codigo: string; p_identificador?: string }
         Returns: Json
       }
+      get_pedidos_por_telefone: { Args: { p_telefone: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
