@@ -7,6 +7,8 @@ import { brl } from "@/lib/slug";
 import { PEDIDO_STATUS, STATUS_ADMIN_LABEL, type PedidoStatus } from "@/lib/pedidos";
 import { FORMAS_PAGAMENTO, FORMAS_ENTREGA } from "@/lib/pedido-opcoes";
 import { FreteSelector, type FreteSelection } from "@/components/FreteSelector";
+import { SugestoesCombina } from "@/components/SugestoesCombina";
+import type { SugestaoProduto } from "@/lib/sugestoes";
 
 export const Route = createFileRoute("/admin/pedidos/novo")({
   head: () => ({ meta: [{ title: "Novo pedido manual — Admin" }] }),
@@ -32,6 +34,9 @@ type Precificavel = {
   preco_b2b_1: number | null;
   preco_b2b_2: number | null;
   preco_b2b_3: number | null;
+  fragrancia?: string | null;
+  categoria_id?: string | null;
+  slug?: string | null;
 };
 
 type CatalogoItem = Precificavel & { kind: "produto" | "kit" };
@@ -126,16 +131,19 @@ function NovoPedidoManualPage() {
   async function buscarCatalogo() {
     setCarregandoCatalogo(true);
     const tabela = aba === "kit" ? "kits" : "produtos";
+    const cols = aba === "kit"
+      ? "id,nome,imagens,preco_varejo,preco_assinatura,preco_b2b_1,preco_b2b_2,preco_b2b_3"
+      : "id,nome,slug,imagens,fragrancia,categoria_id,preco_varejo,preco_assinatura,preco_b2b_1,preco_b2b_2,preco_b2b_3";
     let query = supabase
       .from(tabela)
-      .select("id,nome,imagens,preco_varejo,preco_assinatura,preco_b2b_1,preco_b2b_2,preco_b2b_3")
+      .select(cols)
       .eq("ativo", true)
       .order("nome")
       .limit(30);
     const q = buscaCatalogo.trim();
     if (q) query = query.ilike("nome", `%${q}%`);
     const { data } = await query;
-    setCatalogo(((data as Precificavel[]) ?? []).map((d) => ({ ...d, kind: aba })));
+    setCatalogo(((data as unknown as Precificavel[]) ?? []).map((d) => ({ ...d, kind: aba })));
     setCarregandoCatalogo(false);
   }
 
@@ -438,6 +446,37 @@ function NovoPedidoManualPage() {
                 <p className="p-3 text-[11px] text-muted-foreground border-t border-border">
                   Kits baixam o estoque dos produtos componentes automaticamente ao registrar o pedido.
                 </p>
+              </div>
+            )}
+
+            {itens.length > 0 && (
+              <div className="mt-6">
+                <SugestoesCombina
+                  itens={itens
+                    .filter((l) => l.kind === "produto")
+                    .map((l) => ({
+                      id: l.item.id,
+                      fragrancia: l.item.fragrancia ?? null,
+                      categoria_id: l.item.categoria_id ?? null,
+                    }))}
+                  onAdd={(s: SugestaoProduto) =>
+                    adicionar({
+                      kind: "produto",
+                      id: s.id,
+                      nome: s.nome,
+                      imagens: s.imagens,
+                      preco_varejo: s.preco_varejo,
+                      preco_assinatura: s.preco_assinatura,
+                      preco_b2b_1: s.preco_b2b_1,
+                      preco_b2b_2: s.preco_b2b_2,
+                      preco_b2b_3: s.preco_b2b_3,
+                      fragrancia: s.fragrancia,
+                      categoria_id: s.categoria_id,
+                      slug: s.slug,
+                    })
+                  }
+                  precoDe={(s) => precoDoPerfil(s, perfil)}
+                />
               </div>
             )}
           </section>

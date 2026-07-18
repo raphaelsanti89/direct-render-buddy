@@ -12,6 +12,9 @@ import { buildWhatsAppLink, normalizeWhatsAppNumber } from "@/lib/whatsapp";
 import { useServerFn } from "@tanstack/react-start";
 import { calcularFrete, type OpcaoFrete } from "@/lib/frete.functions";
 import { Loader2 } from "lucide-react";
+import { SugestoesCombina } from "@/components/SugestoesCombina";
+import { supabase } from "@/integrations/supabase/client";
+import type { SugestaoProduto } from "@/lib/sugestoes";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({
@@ -30,7 +33,7 @@ type Pagamento = (typeof PAGAMENTOS)[number];
 type Entrega = (typeof ENTREGAS)[number];
 
 function CarrinhoPage() {
-  const { items, setQty, remove, clear } = useCart();
+  const { items, setQty, remove, clear, add } = useCart();
   const { profile, loading: loadingProfile } = useCurrentProfile();
   const { config, loading: loadingConfig } = useConfig();
 
@@ -71,6 +74,57 @@ function CarrinhoPage() {
       }),
     [items, profile],
   );
+
+  // Enriquece itens do tipo "produto" com fragrancia/categoria_id para gerar sugestões
+  const [meta, setMeta] = useState<Map<string, { fragrancia: string | null; categoria_id: string | null }>>(new Map());
+  const produtoIds = useMemo(
+    () => items.filter((i) => i.kind === "produto").map((i) => i.id).sort().join(","),
+    [items],
+  );
+  useEffect(() => {
+    if (!produtoIds) { setMeta(new Map()); return; }
+    (async () => {
+      const ids = produtoIds.split(",");
+      const { data } = await supabase
+        .from("produtos")
+        .select("id,fragrancia,categoria_id")
+        .in("id", ids);
+      const m = new Map<string, { fragrancia: string | null; categoria_id: string | null }>();
+      for (const r of (data ?? []) as { id: string; fragrancia: string | null; categoria_id: string | null }[]) {
+        m.set(r.id, { fragrancia: r.fragrancia, categoria_id: r.categoria_id });
+      }
+      setMeta(m);
+    })();
+  }, [produtoIds]);
+
+  const cartLike = useMemo(
+    () => items
+      .filter((i) => i.kind === "produto")
+      .map((i) => ({
+        id: i.id,
+        fragrancia: meta.get(i.id)?.fragrancia ?? null,
+        categoria_id: meta.get(i.id)?.categoria_id ?? null,
+      })),
+    [items, meta],
+  );
+
+  function adicionarSugestao(s: SugestaoProduto) {
+    add({
+      kind: "produto",
+      id: s.id,
+      slug: s.slug,
+      nome: s.nome,
+      imagem: s.imagens?.[0] ?? null,
+      precos: {
+        preco_varejo: s.preco_varejo,
+        preco_assinatura: s.preco_assinatura,
+        preco_b2b_1: s.preco_b2b_1,
+        preco_b2b_2: s.preco_b2b_2,
+        preco_b2b_3: s.preco_b2b_3,
+      },
+    });
+    toast.success(`${s.nome} adicionado ao carrinho.`);
+  }
 
   const subtotal = linhas.reduce((s, l) => s + l.subtotal, 0);
   const empresaWa = normalizeWhatsAppNumber(config.whatsapp_pedidos);
@@ -328,6 +382,12 @@ function CarrinhoPage() {
                   Esvaziar carrinho
                 </button>
               </div>
+
+              <SugestoesCombina
+                itens={cartLike}
+                onAdd={adicionarSugestao}
+                precoDe={(s) => getPrecoForProfile(s, profile).valor}
+              />
             </div>
 
             {/* Checkout */}

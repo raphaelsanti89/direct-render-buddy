@@ -22,14 +22,16 @@ type Prod = {
   categoria_id: string | null;
   destaque: boolean | null;
   lancamento: boolean | null;
+  linha: string | null;
   fornecedor: { nome: string | null } | null;
 };
 
-type Search = { categoria?: string };
+type Search = { categoria?: string; linha?: string };
 
 export const Route = createFileRoute("/produtos")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     categoria: typeof s.categoria === "string" ? s.categoria : undefined,
+    linha: typeof s.linha === "string" ? s.linha : undefined,
   }),
   head: () => ({
     meta: [
@@ -45,7 +47,7 @@ export const Route = createFileRoute("/produtos")({
 });
 
 function ProdutosPage() {
-  const { categoria } = Route.useSearch();
+  const { categoria, linha } = Route.useSearch();
   const navigate = Route.useNavigate();
   const { profile } = useCurrentProfile();
   const [items, setItems] = useState<Prod[]>([]);
@@ -74,24 +76,31 @@ function ProdutosPage() {
     })();
   }, [categoria]);
 
+  const isEssencias = categoria === "essencias";
+  const LINHAS = ["Clássica", "Mundo", "Sensações"] as const;
+
   const catById = new Map(cats.map((c) => [c.id, c.nome.toLowerCase()]));
   const term = q.trim().toLowerCase();
-  const visibleItems = term
-    ? items.filter((p) => {
-        const catNome = p.categoria_id ? catById.get(p.categoria_id) ?? "" : "";
-        return [
-          p.nome,
-          p.descricao_curta ?? "",
-          p.descricao ?? "",
-          p.sensacao_transmitida ?? "",
-          p.fornecedor?.nome ?? "",
-          catNome,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(term);
-      })
-    : items;
+  let visibleItems = items;
+  if (isEssencias && linha) {
+    visibleItems = visibleItems.filter((p) => (p.linha ?? "") === linha);
+  }
+  if (term) {
+    visibleItems = visibleItems.filter((p) => {
+      const catNome = p.categoria_id ? catById.get(p.categoria_id) ?? "" : "";
+      return [
+        p.nome,
+        p.descricao_curta ?? "",
+        p.descricao ?? "",
+        p.sensacao_transmitida ?? "",
+        p.fornecedor?.nome ?? "",
+        catNome,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(term);
+    });
+  }
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-24">
@@ -132,6 +141,31 @@ function ProdutosPage() {
                 }`}
               >
                 {c.nome}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isEssencias && (
+          <div className="flex flex-wrap items-center gap-2 mb-8 -mt-6">
+            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mr-2">Linha:</span>
+            <button
+              onClick={() => navigate({ search: { categoria } })}
+              className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border transition-colors ${
+                !linha ? "border-gold text-gold" : "border-border text-foreground/60 hover:text-foreground"
+              }`}
+            >
+              Todas
+            </button>
+            {LINHAS.map((l) => (
+              <button
+                key={l}
+                onClick={() => navigate({ search: { categoria, linha: l } })}
+                className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border transition-colors ${
+                  linha === l ? "border-gold text-gold" : "border-border text-foreground/60 hover:text-foreground"
+                }`}
+              >
+                {l}
               </button>
             ))}
           </div>
