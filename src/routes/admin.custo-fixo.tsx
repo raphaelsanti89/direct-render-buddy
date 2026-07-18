@@ -314,7 +314,117 @@ function CustoFixoPage() {
           })}
         </div>
       </div>
+
+      <LucratividadeProdutos />
     </>
+  );
+}
+
+type LucroRow = {
+  produto_id: string;
+  nome: string;
+  qtd_vendida: number;
+  receita: number;
+  custo: number;
+  lucro: number;
+  margem_pct: number;
+};
+
+function LucratividadeProdutos() {
+  const [periodo, setPeriodo] = useState<number>(30);
+  const [rows, setRows] = useState<LucroRow[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    (async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_lucratividade_produtos", { dias_periodo: periodo });
+      if (error) toast.error(error.message);
+      setRows(
+        ((data as LucroRow[]) ?? []).map((r) => ({
+          ...r,
+          qtd_vendida: Number(r.qtd_vendida ?? 0),
+          receita: Number(r.receita ?? 0),
+          custo: Number(r.custo ?? 0),
+          lucro: Number(r.lucro ?? 0),
+          margem_pct: Number(r.margem_pct ?? 0),
+        })),
+      );
+      setLoading(false);
+    })();
+  }, [periodo]);
+
+  const totalReceita = rows.reduce((s, r) => s + r.receita, 0);
+  const totalCusto = rows.reduce((s, r) => s + r.custo, 0);
+  const totalLucro = totalReceita - totalCusto;
+  const margemTotal = totalReceita > 0 ? (totalLucro / totalReceita) * 100 : 0;
+
+  return (
+    <div className="mt-12 bg-background border border-border">
+      <div className="flex items-center justify-between p-6 pb-3 flex-wrap gap-4">
+        <div className="flex items-center gap-3">
+          <TrendingUp className="text-gold" size={16} />
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— lucratividade por produto</p>
+            <p className="text-xs text-muted-foreground mt-1">Ordenado pelo lucro absoluto — qual produto realmente traz mais dinheiro.</p>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          {[7, 30, 90].map((d) => (
+            <button
+              key={d}
+              onClick={() => setPeriodo(d)}
+              className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] ${
+                periodo === d ? "bg-foreground text-background" : "text-foreground/60 hover:text-foreground"
+              }`}
+            >
+              {d}d
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-surface/50 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <tr>
+              <th className="text-left px-4 py-3">Produto</th>
+              <th className="text-right px-4 py-3">Qtd</th>
+              <th className="text-right px-4 py-3">Receita</th>
+              <th className="text-right px-4 py-3">Custo</th>
+              <th className="text-right px-4 py-3">Lucro</th>
+              <th className="text-right px-4 py-3">Margem</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {loading ? (
+              <tr><td colSpan={6} className="p-6 text-center text-muted-foreground animate-pulse">Carregando…</td></tr>
+            ) : rows.length === 0 ? (
+              <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Nenhuma venda no período.</td></tr>
+            ) : rows.map((r) => (
+              <tr key={r.produto_id} className="hover:bg-surface/40">
+                <td className="px-4 py-3 text-foreground">{r.nome}</td>
+                <td className="px-4 py-3 text-right font-mono">{r.qtd_vendida}</td>
+                <td className="px-4 py-3 text-right font-mono">{brl(r.receita)}</td>
+                <td className="px-4 py-3 text-right font-mono text-muted-foreground">{brl(r.custo)}</td>
+                <td className={`px-4 py-3 text-right font-mono ${r.lucro > 0 ? "text-foreground" : "text-destructive"}`}>{brl(r.lucro)}</td>
+                <td className="px-4 py-3 text-right font-mono text-gold">{r.margem_pct.toFixed(1)}%</td>
+              </tr>
+            ))}
+            {rows.length > 0 && (
+              <tr className="bg-surface/40 font-medium">
+                <td className="px-4 py-3 uppercase tracking-[0.18em] text-[11px]">Total</td>
+                <td />
+                <td className="px-4 py-3 text-right font-display">{brl(totalReceita)}</td>
+                <td className="px-4 py-3 text-right font-display text-muted-foreground">{brl(totalCusto)}</td>
+                <td className="px-4 py-3 text-right font-display text-gold">{brl(totalLucro)}</td>
+                <td className="px-4 py-3 text-right font-display text-gold">{margemTotal.toFixed(1)}%</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
