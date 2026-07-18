@@ -11,6 +11,8 @@ type Prod = {
   nome: string;
   slug: string;
   descricao_curta: string | null;
+  descricao: string | null;
+  sensacao_transmitida: string | null;
   preco_varejo: number;
   preco_assinatura: number | null;
   preco_b2b_1: number | null;
@@ -20,6 +22,7 @@ type Prod = {
   categoria_id: string | null;
   destaque: boolean | null;
   lancamento: boolean | null;
+  fornecedor: { nome: string | null } | null;
 };
 
 type Search = { categoria?: string };
@@ -48,6 +51,7 @@ function ProdutosPage() {
   const [items, setItems] = useState<Prod[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -55,16 +59,39 @@ function ProdutosPage() {
       const { data: cs } = await supabase.from("categorias").select("id,nome,slug").eq("ativo", true).order("ordem");
       setCats((cs as Cat[]) ?? []);
 
-      let q = supabase.from("produtos").select("*").eq("ativo", true).order("destaque", { ascending: false });
+      let query = supabase
+        .from("produtos")
+        .select("*, fornecedor:fornecedores(nome)")
+        .eq("ativo", true)
+        .order("destaque", { ascending: false });
       if (categoria) {
         const cat = (cs as Cat[] | null)?.find((c) => c.slug === categoria);
-        if (cat) q = q.eq("categoria_id", cat.id);
+        if (cat) query = query.eq("categoria_id", cat.id);
       }
-      const { data } = await q;
-      setItems((data as Prod[]) ?? []);
+      const { data } = await query;
+      setItems((data as unknown as Prod[]) ?? []);
       setLoading(false);
     })();
   }, [categoria]);
+
+  const catById = new Map(cats.map((c) => [c.id, c.nome.toLowerCase()]));
+  const term = q.trim().toLowerCase();
+  const visibleItems = term
+    ? items.filter((p) => {
+        const catNome = p.categoria_id ? catById.get(p.categoria_id) ?? "" : "";
+        return [
+          p.nome,
+          p.descricao_curta ?? "",
+          p.descricao ?? "",
+          p.sensacao_transmitida ?? "",
+          p.fornecedor?.nome ?? "",
+          catNome,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(term);
+      })
+    : items;
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-24">
@@ -75,6 +102,16 @@ function ProdutosPage() {
         </div>
 
         <PriceBanner profile={profile} />
+
+        <div className="mb-8">
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por nome, sensação, marca…"
+            className="w-full md:max-w-md px-4 py-3 bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold transition-colors"
+          />
+        </div>
 
         {cats.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-12 pb-6 border-b border-border">
@@ -102,13 +139,15 @@ function ProdutosPage() {
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Carregando…</p>
-        ) : items.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Em breve, novos produtos {categoria ? "nesta categoria" : ""}.
+            {term
+              ? `Nenhum produto encontrado para "${q}".`
+              : `Em breve, novos produtos ${categoria ? "nesta categoria" : ""}.`}
           </p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {items.map((p) => <ProductCard key={p.id} p={p} profile={profile} />)}
+            {visibleItems.map((p) => <ProductCard key={p.id} p={p} profile={profile} />)}
           </div>
         )}
       </div>
