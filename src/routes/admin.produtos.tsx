@@ -104,12 +104,29 @@ function ProdutosAdmin() {
   }
   useEffect(() => { load(); }, []);
 
+  const [query, setQuery] = useState("");
+
   const visibleItems = useMemo(() => {
+    let list = items;
     if (filter === "baixo") {
-      return items.filter((p) => (p.estoque_atual ?? 0) <= (p.estoque_minimo ?? 0));
+      list = list.filter((p) => (p.estoque_atual ?? 0) <= (p.estoque_minimo ?? 0));
     }
-    return items;
-  }, [items, filter]);
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter((p) => {
+        const catNome = cats.find((c) => c.id === p.categoria_id)?.nome?.toLowerCase() ?? "";
+        const fornNome = fornecedores.find((f) => f.id === p.fornecedor_id)?.nome?.toLowerCase() ?? "";
+        return (
+          p.nome.toLowerCase().includes(q) ||
+          catNome.includes(q) ||
+          fornNome.includes(q) ||
+          (p.slug ?? "").toLowerCase().includes(q)
+        );
+      });
+    }
+    return list;
+  }, [items, filter, query, cats, fornecedores]);
+
 
 
   async function save(e: React.FormEvent) {
