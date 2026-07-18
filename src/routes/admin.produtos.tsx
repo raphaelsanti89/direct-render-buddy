@@ -104,12 +104,29 @@ function ProdutosAdmin() {
   }
   useEffect(() => { load(); }, []);
 
+  const [query, setQuery] = useState("");
+
   const visibleItems = useMemo(() => {
+    let list = items;
     if (filter === "baixo") {
-      return items.filter((p) => (p.estoque_atual ?? 0) <= (p.estoque_minimo ?? 0));
+      list = list.filter((p) => (p.estoque_atual ?? 0) <= (p.estoque_minimo ?? 0));
     }
-    return items;
-  }, [items, filter]);
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter((p) => {
+        const catNome = cats.find((c) => c.id === p.categoria_id)?.nome?.toLowerCase() ?? "";
+        const fornNome = fornecedores.find((f) => f.id === p.fornecedor_id)?.nome?.toLowerCase() ?? "";
+        return (
+          p.nome.toLowerCase().includes(q) ||
+          catNome.includes(q) ||
+          fornNome.includes(q) ||
+          (p.slug ?? "").toLowerCase().includes(q)
+        );
+      });
+    }
+    return list;
+  }, [items, filter, query, cats, fornecedores]);
+
 
 
   async function save(e: React.FormEvent) {
@@ -240,10 +257,29 @@ function ProdutosAdmin() {
         </div>
       )}
 
+      <div className="mb-6 flex items-center gap-3">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar por nome, categoria ou fornecedor…"
+          className="form-input flex-1"
+        />
+        {query && (
+          <button onClick={() => setQuery("")} className="text-xs uppercase tracking-[0.18em] text-foreground/70 hover:text-gold">
+            Limpar
+          </button>
+        )}
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground whitespace-nowrap">
+          {visibleItems.length} / {items.length}
+        </span>
+      </div>
+
       <div className="bg-background border border-border">
         {loading ? <Empty text="Carregando…" /> : visibleItems.length === 0 ? (
-          <Empty text={filter === "baixo" ? "Nenhum produto com estoque baixo." : "Nenhum produto ainda."} />
+          <Empty text={query ? "Nenhum produto encontrado." : filter === "baixo" ? "Nenhum produto com estoque baixo." : "Nenhum produto ainda."} />
         ) : (
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {visibleItems.map((p) => (
               <ProductCard key={p.id} p={p} catName={cats.find((c) => c.id === p.categoria_id)?.nome} margemPiso={margemPiso} margemMeta={margemMeta} campeao={velocidade.get(p.id)?.campeao ?? false} qtd30d={velocidade.get(p.id)?.qtd_30d ?? 0} onEdit={() => setEditing(p)} onDelete={() => del(p)} onDuplicate={() => duplicate(p)} />

@@ -1044,6 +1044,10 @@ export type Database = {
         }
       }
       admin_metricas_vendas_30d: { Args: never; Returns: Json }
+      admin_metricas_vendas_periodo: {
+        Args: { p_fim: string; p_inicio: string }
+        Returns: Json
+      }
       admin_pedido_editar_itens: {
         Args: { p_payload: Json; p_pedido_id: string }
         Returns: Json
@@ -1106,6 +1110,18 @@ export type Database = {
         Returns: Json
       }
       get_pedidos_por_telefone: { Args: { p_telefone: string }; Returns: Json }
+      get_produtos_mais_vendidos_publico: {
+        Args: { p_limit?: number }
+        Returns: {
+          categoria_nome: string
+          id: string
+          imagens: string[]
+          nome: string
+          preco_varejo: number
+          qtd_vendida: number
+          slug: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
