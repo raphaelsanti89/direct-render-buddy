@@ -1,13 +1,32 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, Calculator, Truck, Warehouse } from "lucide-react";
+import { Package, Boxes, Tag, Mail, Users, Settings, ClipboardList, AlertCircle, Calculator, Truck, Warehouse, TrendingUp } from "lucide-react";
 import { brl } from "@/lib/slug";
 import { STATUS_ADMIN_LABEL, statusBadgeClasses, type PedidoStatus } from "@/lib/pedidos";
 
 export const Route = createFileRoute("/admin/")({
   component: DashboardPage,
 });
+
+type LucroPeriodo = "mes_atual" | "mes_passado" | "30d";
+
+function calcularIntervalo(p: LucroPeriodo): { inicio: Date; fim: Date; label: string } {
+  const agora = new Date();
+  if (p === "mes_atual") {
+    const inicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
+    const fim = new Date(agora.getFullYear(), agora.getMonth() + 1, 1);
+    return { inicio, fim, label: "Mês atual" };
+  }
+  if (p === "mes_passado") {
+    const inicio = new Date(agora.getFullYear(), agora.getMonth() - 1, 1);
+    const fim = new Date(agora.getFullYear(), agora.getMonth(), 1);
+    return { inicio, fim, label: "Mês passado" };
+  }
+  const inicio = new Date(agora); inicio.setDate(inicio.getDate() - 30);
+  return { inicio, fim: agora, label: "Últimos 30 dias" };
+}
+
 
 type Stats = {
   produtos: number;
