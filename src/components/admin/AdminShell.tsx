@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, LayoutDashboard, Package, Boxes, Tag, ArrowLeft, Users, Settings, ClipboardList, Warehouse, Calculator, Truck, BookOpen } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Boxes, Tag, ArrowLeft, Users, Settings, ClipboardList, Warehouse, Calculator, Truck, BookOpen, Wallet } from "lucide-react";
 
 const NAV = [
   { to: "/admin", label: "Visão geral", icon: LayoutDashboard, exact: true },
@@ -12,10 +12,12 @@ const NAV = [
   { to: "/admin/estoque", label: "Estoque", icon: Warehouse, exact: false },
   { to: "/admin/fornecedores", label: "Fornecedores", icon: Truck, exact: false },
   { to: "/admin/custo-fixo", label: "Custo fixo", icon: Calculator, exact: false },
+  { to: "/admin/contas-pagar", label: "Contas a pagar", icon: Wallet, exact: false },
   { to: "/admin/clientes", label: "Clientes", icon: Users, exact: false },
   { to: "/admin/referencia", label: "Referência", icon: BookOpen, exact: false },
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings, exact: false },
 ];
+
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
