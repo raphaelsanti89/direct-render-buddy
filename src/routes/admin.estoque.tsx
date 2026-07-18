@@ -271,6 +271,7 @@ function EstoquePage() {
                 <th className="text-right px-4 py-3">Valor investido</th>
                 <th className="text-left px-4 py-3">Fornecedor</th>
                 <th className="text-left px-4 py-3">Status</th>
+                <th className="text-right px-4 py-3">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -278,8 +279,10 @@ function EstoquePage() {
                 const v = velMap.get(r.id);
                 const sug = v?.sugestao_minimo ?? 0;
                 const pendente = sug > (r.estoque_minimo ?? 0);
+                const isEditing = editingId === r.id;
+                const inputCls = "w-20 bg-background border border-border px-2 py-1 text-right text-sm focus:outline-none focus:border-gold";
                 return (
-                  <tr key={r.id}>
+                  <tr key={r.id} className={isEditing ? "bg-surface/30" : ""}>
                     <td className="px-4 py-3 text-foreground">
                       <div className="flex items-center gap-2">
                         {v?.campeao && (
@@ -290,8 +293,20 @@ function EstoquePage() {
                         {r.nome}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">{r.estoque_atual}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_minimo}</td>
+                    <td className="px-4 py-3 text-right">
+                      {isEditing ? (
+                        <input type="number" className={inputCls} value={draft.estoque_atual} onChange={(e) => setDraft((d) => ({ ...d, estoque_atual: e.target.value }))} />
+                      ) : (
+                        r.estoque_atual
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">
+                      {isEditing ? (
+                        <input type="number" min={0} className={inputCls} value={draft.estoque_minimo} onChange={(e) => setDraft((d) => ({ ...d, estoque_minimo: e.target.value }))} />
+                      ) : (
+                        r.estoque_minimo
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {pendente ? (
                         <div className="flex items-center gap-2">
@@ -307,11 +322,44 @@ function EstoquePage() {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_ideal}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">
+                      {isEditing ? (
+                        <input type="number" min={0} className={inputCls} value={draft.estoque_ideal} onChange={(e) => setDraft((d) => ({ ...d, estoque_ideal: e.target.value }))} />
+                      ) : (
+                        r.estoque_ideal
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right text-muted-foreground text-xs">{v ? v.media_diaria.toFixed(2) : "—"}</td>
                     <td className="px-4 py-3 text-right">{brl(r.valor_investido)}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{r.fornecedor_nome ?? "—"}</td>
                     <td className="px-4 py-3"><StatusPill status={r.status} /></td>
+                    <td className="px-4 py-3 text-right">
+                      {isEditing ? (
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            onClick={() => saveEdit(r)}
+                            disabled={saving}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 bg-foreground text-background hover:bg-gold transition-colors disabled:opacity-50"
+                          >
+                            <Check size={10} /> Salvar
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            disabled={saving}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 border border-border text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEdit(r)}
+                          className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 border border-border text-muted-foreground hover:text-gold hover:border-gold transition-colors"
+                        >
+                          <Pencil size={10} /> Editar
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
