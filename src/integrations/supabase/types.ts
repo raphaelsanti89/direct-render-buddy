@@ -107,6 +107,45 @@ export type Database = {
         }
         Relationships: []
       }
+      contas_pagar: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string
+          id: string
+          observacoes: string | null
+          status: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       custos_fixos: {
         Row: {
           categoria: string | null
@@ -1050,6 +1089,18 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      admin_lucratividade_produtos: {
+        Args: { dias_periodo?: number }
+        Returns: {
+          custo: number
+          lucro: number
+          margem_pct: number
+          nome: string
+          produto_id: string
+          qtd_vendida: number
+          receita: number
+        }[]
       }
       admin_metricas_vendas_30d: { Args: never; Returns: Json }
       admin_metricas_vendas_periodo: {
