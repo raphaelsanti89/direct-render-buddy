@@ -44,6 +44,53 @@ function EstoquePage() {
   const [coberturaIdeal, setCoberturaIdeal] = useState<number>(30);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<{ estoque_atual: string; estoque_minimo: string; estoque_ideal: string }>({ estoque_atual: "", estoque_minimo: "", estoque_ideal: "" });
+  const [saving, setSaving] = useState(false);
+
+  function startEdit(r: Row) {
+    setEditingId(r.id);
+    setDraft({
+      estoque_atual: String(r.estoque_atual ?? 0),
+      estoque_minimo: String(r.estoque_minimo ?? 0),
+      estoque_ideal: String(r.estoque_ideal ?? 0),
+    });
+  }
+  function cancelEdit() {
+    setEditingId(null);
+  }
+  async function saveEdit(r: Row) {
+    const atual = Math.trunc(Number(draft.estoque_atual));
+    const minimo = Math.max(0, Math.trunc(Number(draft.estoque_minimo)));
+    const ideal = Math.max(0, Math.trunc(Number(draft.estoque_ideal)));
+    if (!Number.isFinite(atual) || !Number.isFinite(minimo) || !Number.isFinite(ideal)) {
+      toast.error("Valores inválidos.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("produtos")
+      .update({ estoque_atual: atual, estoque_minimo: minimo, estoque_ideal: ideal })
+      .eq("id", r.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    const valor_investido = Math.max(atual, 0) * Number(r.preco_custo ?? 0);
+    const status: Row["status"] =
+      atual <= minimo ? "comprar_agora" : atual < ideal ? "comprar_em_breve" : "ok";
+    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, estoque_atual: atual, estoque_minimo: minimo, estoque_ideal: ideal, valor_investido, status } : x)));
+    setResumo((prev) => {
+      const next = { valor_total: 0, comprar_agora: 0, comprar_em_breve: 0 };
+      const updated = rows.map((x) => (x.id === r.id ? { ...x, estoque_atual: atual, estoque_minimo: minimo, estoque_ideal: ideal, valor_investido, status } : x));
+      for (const x of updated) {
+        next.valor_total += Math.max(x.estoque_atual, 0) * Number(x.preco_custo ?? 0);
+        if (x.status === "comprar_agora") next.comprar_agora += 1;
+        else if (x.status === "comprar_em_breve") next.comprar_em_breve += 1;
+      }
+      return next;
+    });
+    setEditingId(null);
+    toast.success("Estoque atualizado.");
+  }
 
   async function load() {
     setLoading(true);
