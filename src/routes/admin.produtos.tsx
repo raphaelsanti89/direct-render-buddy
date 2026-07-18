@@ -239,6 +239,8 @@ function ProdutosAdmin() {
       destaque: false,
       lancamento: p.lancamento,
       mais_vendido: false,
+      linha: p.linha,
+      fragrancia: p.fragrancia,
     };
     const { data, error } = await supabase
       .from("produtos")
