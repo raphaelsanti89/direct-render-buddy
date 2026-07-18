@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calculator, Plus, Trash2 } from "lucide-react";
+import { Calculator, Plus, Trash2, TrendingUp } from "lucide-react";
 import { brl } from "@/lib/slug";
 
 export const Route = createFileRoute("/admin/custo-fixo")({
