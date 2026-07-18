@@ -59,16 +59,39 @@ function ProdutosPage() {
       const { data: cs } = await supabase.from("categorias").select("id,nome,slug").eq("ativo", true).order("ordem");
       setCats((cs as Cat[]) ?? []);
 
-      let q = supabase.from("produtos").select("*").eq("ativo", true).order("destaque", { ascending: false });
+      let query = supabase
+        .from("produtos")
+        .select("*, fornecedor:fornecedores(nome)")
+        .eq("ativo", true)
+        .order("destaque", { ascending: false });
       if (categoria) {
         const cat = (cs as Cat[] | null)?.find((c) => c.slug === categoria);
-        if (cat) q = q.eq("categoria_id", cat.id);
+        if (cat) query = query.eq("categoria_id", cat.id);
       }
-      const { data } = await q;
-      setItems((data as Prod[]) ?? []);
+      const { data } = await query;
+      setItems((data as unknown as Prod[]) ?? []);
       setLoading(false);
     })();
   }, [categoria]);
+
+  const catById = new Map(cats.map((c) => [c.id, c.nome.toLowerCase()]));
+  const term = q.trim().toLowerCase();
+  const visibleItems = term
+    ? items.filter((p) => {
+        const catNome = p.categoria_id ? catById.get(p.categoria_id) ?? "" : "";
+        return [
+          p.nome,
+          p.descricao_curta ?? "",
+          p.descricao ?? "",
+          p.sensacao_transmitida ?? "",
+          p.fornecedor?.nome ?? "",
+          catNome,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(term);
+      })
+    : items;
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-24">
