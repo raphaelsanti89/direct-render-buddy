@@ -51,6 +51,7 @@ function ProdutosPage() {
   const [items, setItems] = useState<Prod[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     (async () => {
