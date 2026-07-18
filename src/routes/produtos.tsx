@@ -103,6 +103,16 @@ function ProdutosPage() {
 
         <PriceBanner profile={profile} />
 
+        <div className="mb-8">
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por nome, sensação, marca…"
+            className="w-full md:max-w-md px-4 py-3 bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold transition-colors"
+          />
+        </div>
+
         {cats.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-12 pb-6 border-b border-border">
             <button
@@ -129,13 +139,15 @@ function ProdutosPage() {
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Carregando…</p>
-        ) : items.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Em breve, novos produtos {categoria ? "nesta categoria" : ""}.
+            {term
+              ? `Nenhum produto encontrado para "${q}".`
+              : `Em breve, novos produtos ${categoria ? "nesta categoria" : ""}.`}
           </p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {items.map((p) => <ProductCard key={p.id} p={p} profile={profile} />)}
+            {visibleItems.map((p) => <ProductCard key={p.id} p={p} profile={profile} />)}
           </div>
         )}
       </div>
