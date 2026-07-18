@@ -113,7 +113,7 @@ function ClientesContent() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8 pb-4 border-b border-border">
+      <div className="flex flex-wrap items-center gap-2 mb-8 pb-4 border-b border-border">
         <FilterBtn active={filter === "pendentes"} onClick={() => setFilter("pendentes")}>
           Pendentes {pendentesCount > 0 && <span className="ml-2 bg-gold text-foreground px-1.5 rounded-full text-[10px]">{pendentesCount}</span>}
         </FilterBtn>
@@ -122,7 +122,24 @@ function ClientesContent() {
         <FilterBtn active={filter === "varejo"} onClick={() => setFilter("varejo")}>Varejo</FilterBtn>
         <FilterBtn active={filter === "guest"} onClick={() => setFilter("guest")}>Sem conta</FilterBtn>
         <FilterBtn active={filter === "todos"} onClick={() => setFilter("todos")}>Todos</FilterBtn>
+
+        <div className="ml-auto flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <span>Ordenar:</span>
+          <button
+            onClick={() => setSort("recentes")}
+            className={`px-3 py-1.5 ${sort === "recentes" ? "bg-foreground text-background" : "text-foreground/60 hover:text-foreground"}`}
+          >
+            Mais recentes
+          </button>
+          <button
+            onClick={() => setSort("valor")}
+            className={`px-3 py-1.5 ${sort === "valor" ? "bg-foreground text-background" : "text-foreground/60 hover:text-foreground"}`}
+          >
+            Maior valor
+          </button>
+        </div>
       </div>
+
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando…</p>
