@@ -11,6 +11,8 @@ type Prod = {
   nome: string;
   slug: string;
   descricao_curta: string | null;
+  descricao: string | null;
+  sensacao_transmitida: string | null;
   preco_varejo: number;
   preco_assinatura: number | null;
   preco_b2b_1: number | null;
@@ -20,6 +22,7 @@ type Prod = {
   categoria_id: string | null;
   destaque: boolean | null;
   lancamento: boolean | null;
+  fornecedor: { nome: string | null } | null;
 };
 
 type Search = { categoria?: string };
