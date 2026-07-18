@@ -33,6 +33,7 @@ function HomePage() {
       <Hero />
       <FreteGratisBanner />
       <ProdutosDestaque />
+      <MaisVendidos />
       <SobreMarca />
       <ExperienciaSensorial />
       <ComoFunciona />
@@ -42,6 +43,89 @@ function HomePage() {
     </div>
   );
 }
+
+type MaisVendido = {
+  id: string;
+  nome: string;
+  slug: string;
+  preco_varejo: number;
+  imagens: string[] | null;
+  categoria_nome: string | null;
+  qtd_vendida: number;
+};
+
+function MaisVendidos() {
+  const [items, setItems] = useState<MaisVendido[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.rpc("get_produtos_mais_vendidos_publico", { p_limit: 6 });
+      setItems((data as MaisVendido[]) ?? []);
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading || items.length === 0) return null;
+
+  return (
+    <section className="py-24 md:py-32 bg-background">
+      <div className="container-editorial">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold mb-6">— mais vendidos</p>
+          <h2 className="font-display text-4xl md:text-5xl leading-[1.05] text-foreground">
+            Os favoritos <em className="text-gold not-italic">da casa.</em>
+          </h2>
+          <p className="mt-6 text-foreground/70 leading-relaxed">
+            Aromas mais escolhidos por quem já vive a experiência Gama Sensações.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
+          {items.map((p) => {
+            const img = p.imagens?.[0];
+            return (
+              <Link
+                key={p.id}
+                to="/produto/$slug"
+                params={{ slug: p.slug }}
+                className="group bg-surface flex flex-col shadow-soft hover:shadow-lg transition-shadow"
+              >
+                <div className="aspect-[4/5] bg-background overflow-hidden">
+                  {img ? (
+                    <img src={img} alt={p.nome} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                      sem imagem
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 flex-1 flex flex-col">
+                  {p.categoria_nome && (
+                    <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-gold mb-1.5">{p.categoria_nome}</p>
+                  )}
+                  <h3 className="font-display text-base text-foreground leading-tight">{p.nome}</h3>
+                  <span className="mt-auto pt-3 font-display text-base text-foreground">{brl(p.preco_varejo)}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-16 text-center">
+          <Link
+            to="/produtos"
+            className="inline-flex items-center gap-3 border border-foreground text-foreground px-8 py-4 text-xs uppercase tracking-[0.2em] font-medium hover:bg-foreground hover:text-background transition-colors"
+          >
+            Ver catálogo completo
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 function FreteGratisBanner() {
   return (
