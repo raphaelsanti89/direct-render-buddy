@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { brl } from "@/lib/slug";
-import { Warehouse, AlertTriangle, PackageCheck, Wallet, Trophy, Check } from "lucide-react";
+import { Warehouse, AlertTriangle, PackageCheck, Wallet, Trophy, Check, Pencil, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/estoque")({
   head: () => ({ meta: [{ title: "Estoque — Admin" }] }),
@@ -44,6 +44,53 @@ function EstoquePage() {
   const [coberturaIdeal, setCoberturaIdeal] = useState<number>(30);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<{ estoque_atual: string; estoque_minimo: string; estoque_ideal: string }>({ estoque_atual: "", estoque_minimo: "", estoque_ideal: "" });
+  const [saving, setSaving] = useState(false);
+
+  function startEdit(r: Row) {
+    setEditingId(r.id);
+    setDraft({
+      estoque_atual: String(r.estoque_atual ?? 0),
+      estoque_minimo: String(r.estoque_minimo ?? 0),
+      estoque_ideal: String(r.estoque_ideal ?? 0),
+    });
+  }
+  function cancelEdit() {
+    setEditingId(null);
+  }
+  async function saveEdit(r: Row) {
+    const atual = Math.trunc(Number(draft.estoque_atual));
+    const minimo = Math.max(0, Math.trunc(Number(draft.estoque_minimo)));
+    const ideal = Math.max(0, Math.trunc(Number(draft.estoque_ideal)));
+    if (!Number.isFinite(atual) || !Number.isFinite(minimo) || !Number.isFinite(ideal)) {
+      toast.error("Valores inválidos.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("produtos")
+      .update({ estoque_atual: atual, estoque_minimo: minimo, estoque_ideal: ideal })
+      .eq("id", r.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    const valor_investido = Math.max(atual, 0) * Number(r.preco_custo ?? 0);
+    const status: Row["status"] =
+      atual <= minimo ? "comprar_agora" : atual < ideal ? "comprar_em_breve" : "ok";
+    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, estoque_atual: atual, estoque_minimo: minimo, estoque_ideal: ideal, valor_investido, status } : x)));
+    setResumo((prev) => {
+      const next = { valor_total: 0, comprar_agora: 0, comprar_em_breve: 0 };
+      const updated = rows.map((x) => (x.id === r.id ? { ...x, estoque_atual: atual, estoque_minimo: minimo, estoque_ideal: ideal, valor_investido, status } : x));
+      for (const x of updated) {
+        next.valor_total += Math.max(x.estoque_atual, 0) * Number(x.preco_custo ?? 0);
+        if (x.status === "comprar_agora") next.comprar_agora += 1;
+        else if (x.status === "comprar_em_breve") next.comprar_em_breve += 1;
+      }
+      return next;
+    });
+    setEditingId(null);
+    toast.success("Estoque atualizado.");
+  }
 
   async function load() {
     setLoading(true);
@@ -224,6 +271,7 @@ function EstoquePage() {
                 <th className="text-right px-4 py-3">Valor investido</th>
                 <th className="text-left px-4 py-3">Fornecedor</th>
                 <th className="text-left px-4 py-3">Status</th>
+                <th className="text-right px-4 py-3">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -231,8 +279,10 @@ function EstoquePage() {
                 const v = velMap.get(r.id);
                 const sug = v?.sugestao_minimo ?? 0;
                 const pendente = sug > (r.estoque_minimo ?? 0);
+                const isEditing = editingId === r.id;
+                const inputCls = "w-20 bg-background border border-border px-2 py-1 text-right text-sm focus:outline-none focus:border-gold";
                 return (
-                  <tr key={r.id}>
+                  <tr key={r.id} className={isEditing ? "bg-surface/30" : ""}>
                     <td className="px-4 py-3 text-foreground">
                       <div className="flex items-center gap-2">
                         {v?.campeao && (
@@ -243,8 +293,20 @@ function EstoquePage() {
                         {r.nome}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">{r.estoque_atual}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_minimo}</td>
+                    <td className="px-4 py-3 text-right">
+                      {isEditing ? (
+                        <input type="number" className={inputCls} value={draft.estoque_atual} onChange={(e) => setDraft((d) => ({ ...d, estoque_atual: e.target.value }))} />
+                      ) : (
+                        r.estoque_atual
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">
+                      {isEditing ? (
+                        <input type="number" min={0} className={inputCls} value={draft.estoque_minimo} onChange={(e) => setDraft((d) => ({ ...d, estoque_minimo: e.target.value }))} />
+                      ) : (
+                        r.estoque_minimo
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {pendente ? (
                         <div className="flex items-center gap-2">
@@ -260,11 +322,44 @@ function EstoquePage() {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{r.estoque_ideal}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">
+                      {isEditing ? (
+                        <input type="number" min={0} className={inputCls} value={draft.estoque_ideal} onChange={(e) => setDraft((d) => ({ ...d, estoque_ideal: e.target.value }))} />
+                      ) : (
+                        r.estoque_ideal
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right text-muted-foreground text-xs">{v ? v.media_diaria.toFixed(2) : "—"}</td>
                     <td className="px-4 py-3 text-right">{brl(r.valor_investido)}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{r.fornecedor_nome ?? "—"}</td>
                     <td className="px-4 py-3"><StatusPill status={r.status} /></td>
+                    <td className="px-4 py-3 text-right">
+                      {isEditing ? (
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            onClick={() => saveEdit(r)}
+                            disabled={saving}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 bg-foreground text-background hover:bg-gold transition-colors disabled:opacity-50"
+                          >
+                            <Check size={10} /> Salvar
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            disabled={saving}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 border border-border text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEdit(r)}
+                          className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] px-2 py-1 border border-border text-muted-foreground hover:text-gold hover:border-gold transition-colors"
+                        >
+                          <Pencil size={10} /> Editar
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
