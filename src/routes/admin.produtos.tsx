@@ -51,6 +51,8 @@ type Prod = {
   altura_cm: number | null;
   largura_cm: number | null;
   comprimento_cm: number | null;
+  linha: string | null;
+  fragrancia: string | null;
 };
 
 const EMPTY: Partial<Prod> = {
@@ -63,7 +65,12 @@ const EMPTY: Partial<Prod> = {
   durabilidade_media: "", ativo: true, destaque: false, lancamento: false, mais_vendido: false,
   estoque_atual: 0, estoque_minimo: 0, estoque_ideal: 0,
   peso_kg: null, altura_cm: null, largura_cm: null, comprimento_cm: null,
+  linha: null, fragrancia: null,
 };
+
+const LINHAS_ESSENCIAS = ["Clássica", "Mundo", "Sensações"] as const;
+// ID da categoria "Essencias" — usado para mostrar o sub-filtro por linha
+const CAT_ESSENCIAS_ID = "81b6fbb3-044b-413a-a4d6-8b0bd1b1cc6b";
 
 // Descontos sugeridos (sobre o preço de varejo)
 const DESC = { assinante: 0.13, b2b1: 0.15, b2b2: 0.20, b2b3: 0.25 };
@@ -105,11 +112,17 @@ function ProdutosAdmin() {
   useEffect(() => { load(); }, []);
 
   const [query, setQuery] = useState("");
+  const [catFiltro, setCatFiltro] = useState<string>("");
+  const [linhaFiltro, setLinhaFiltro] = useState<string>("");
 
   const visibleItems = useMemo(() => {
     let list = items;
     if (filter === "baixo") {
       list = list.filter((p) => (p.estoque_atual ?? 0) <= (p.estoque_minimo ?? 0));
+    }
+    if (catFiltro) list = list.filter((p) => p.categoria_id === catFiltro);
+    if (catFiltro === CAT_ESSENCIAS_ID && linhaFiltro) {
+      list = list.filter((p) => (p.linha ?? "") === linhaFiltro);
     }
     const q = query.trim().toLowerCase();
     if (q) {
@@ -120,12 +133,13 @@ function ProdutosAdmin() {
           p.nome.toLowerCase().includes(q) ||
           catNome.includes(q) ||
           fornNome.includes(q) ||
-          (p.slug ?? "").toLowerCase().includes(q)
+          (p.slug ?? "").toLowerCase().includes(q) ||
+          (p.fragrancia ?? "").toLowerCase().includes(q)
         );
       });
     }
     return list;
-  }, [items, filter, query, cats, fornecedores]);
+  }, [items, filter, query, cats, fornecedores, catFiltro, linhaFiltro]);
 
 
 
@@ -162,6 +176,8 @@ function ProdutosAdmin() {
       altura_cm: editing.altura_cm != null && (editing.altura_cm as unknown) !== "" ? Number(editing.altura_cm) : null,
       largura_cm: editing.largura_cm != null && (editing.largura_cm as unknown) !== "" ? Number(editing.largura_cm) : null,
       comprimento_cm: editing.comprimento_cm != null && (editing.comprimento_cm as unknown) !== "" ? Number(editing.comprimento_cm) : null,
+      linha: editing.linha || null,
+      fragrancia: editing.fragrancia?.trim() || null,
     };
     if (!payload.nome) return toast.error("Nome é obrigatório");
     if (!payload.preco_varejo) return toast.error("Preço é obrigatório");
@@ -223,6 +239,8 @@ function ProdutosAdmin() {
       destaque: false,
       lancamento: p.lancamento,
       mais_vendido: false,
+      linha: p.linha,
+      fragrancia: p.fragrancia,
     };
     const { data, error } = await supabase
       .from("produtos")
@@ -273,6 +291,27 @@ function ProdutosAdmin() {
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground whitespace-nowrap">
           {visibleItems.length} / {items.length}
         </span>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <select
+          className="form-input"
+          value={catFiltro}
+          onChange={(e) => { setCatFiltro(e.target.value); setLinhaFiltro(""); }}
+        >
+          <option value="">Todas as categorias</option>
+          {cats.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+        </select>
+        {catFiltro === CAT_ESSENCIAS_ID && (
+          <select
+            className="form-input"
+            value={linhaFiltro}
+            onChange={(e) => setLinhaFiltro(e.target.value)}
+          >
+            <option value="">Todas as linhas</option>
+            {LINHAS_ESSENCIAS.map((l) => <option key={l} value={l}>{l}</option>)}
+          </select>
+        )}
       </div>
 
       <div className="bg-background border border-border">
@@ -389,6 +428,28 @@ function ProdutosAdmin() {
                 />
               </Field>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Linha (só p/ Essencias)">
+                <select
+                  className="form-input"
+                  value={editing.linha ?? ""}
+                  onChange={(e) => setEditing({ ...editing, linha: e.target.value || null })}
+                >
+                  <option value="">— não se aplica —</option>
+                  {LINHAS_ESSENCIAS.map((l) => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </Field>
+              <Field label="Fragrância (nome normalizado)">
+                <input
+                  className="form-input"
+                  value={editing.fragrancia ?? ""}
+                  onChange={(e) => setEditing({ ...editing, fragrancia: e.target.value })}
+                  placeholder="ex.: Bamboo, Amsterdã"
+                />
+              </Field>
+            </div>
+
 
             <Field label="Sinalizações">
               <div className="grid grid-cols-2 gap-3">

@@ -578,11 +578,13 @@ export type Database = {
           estoque_ideal: number
           estoque_minimo: number
           fornecedor_id: string | null
+          fragrancia: string | null
           id: string
           imagens: string[] | null
           intensidade: number | null
           lancamento: boolean | null
           largura_cm: number | null
+          linha: string | null
           mais_vendido: boolean | null
           margem_varejo_pct: number | null
           modo_de_uso: string | null
@@ -619,11 +621,13 @@ export type Database = {
           estoque_ideal?: number
           estoque_minimo?: number
           fornecedor_id?: string | null
+          fragrancia?: string | null
           id?: string
           imagens?: string[] | null
           intensidade?: number | null
           lancamento?: boolean | null
           largura_cm?: number | null
+          linha?: string | null
           mais_vendido?: boolean | null
           margem_varejo_pct?: number | null
           modo_de_uso?: string | null
@@ -660,11 +664,13 @@ export type Database = {
           estoque_ideal?: number
           estoque_minimo?: number
           fornecedor_id?: string | null
+          fragrancia?: string | null
           id?: string
           imagens?: string[] | null
           intensidade?: number | null
           lancamento?: boolean | null
           largura_cm?: number | null
+          linha?: string | null
           mais_vendido?: boolean | null
           margem_varejo_pct?: number | null
           modo_de_uso?: string | null
@@ -1014,11 +1020,13 @@ export type Database = {
           estoque_ideal: number
           estoque_minimo: number
           fornecedor_id: string | null
+          fragrancia: string | null
           id: string
           imagens: string[] | null
           intensidade: number | null
           lancamento: boolean | null
           largura_cm: number | null
+          linha: string | null
           mais_vendido: boolean | null
           margem_varejo_pct: number | null
           modo_de_uso: string | null
