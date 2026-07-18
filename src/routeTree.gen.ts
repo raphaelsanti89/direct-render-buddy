@@ -34,6 +34,7 @@ import { Route as AdminKitsRouteImport } from './routes/admin.kits'
 import { Route as AdminFornecedoresRouteImport } from './routes/admin.fornecedores'
 import { Route as AdminEstoqueRouteImport } from './routes/admin.estoque'
 import { Route as AdminCustoFixoRouteImport } from './routes/admin.custo-fixo'
+import { Route as AdminContasPagarRouteImport } from './routes/admin.contas-pagar'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
@@ -165,6 +166,11 @@ const AdminCustoFixoRoute = AdminCustoFixoRouteImport.update({
   path: '/custo-fixo',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminContasPagarRoute = AdminContasPagarRouteImport.update({
+  id: '/contas-pagar',
+  path: '/contas-pagar',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/contas-pagar': typeof AdminContasPagarRoute
   '/admin/custo-fixo': typeof AdminCustoFixoRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/fornecedores': typeof AdminFornecedoresRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/contas-pagar': typeof AdminContasPagarRoute
   '/admin/custo-fixo': typeof AdminCustoFixoRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/fornecedores': typeof AdminFornecedoresRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/contas-pagar': typeof AdminContasPagarRoute
   '/admin/custo-fixo': typeof AdminCustoFixoRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/fornecedores': typeof AdminFornecedoresRoute
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
+    | '/admin/contas-pagar'
     | '/admin/custo-fixo'
     | '/admin/estoque'
     | '/admin/fornecedores'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
+    | '/admin/contas-pagar'
     | '/admin/custo-fixo'
     | '/admin/estoque'
     | '/admin/fornecedores'
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
+    | '/admin/contas-pagar'
     | '/admin/custo-fixo'
     | '/admin/estoque'
     | '/admin/fornecedores'
@@ -582,6 +594,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustoFixoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/contas-pagar': {
+      id: '/admin/contas-pagar'
+      path: '/contas-pagar'
+      fullPath: '/admin/contas-pagar'
+      preLoaderRoute: typeof AdminContasPagarRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/configuracoes': {
       id: '/admin/configuracoes'
       path: '/configuracoes'
@@ -638,6 +657,7 @@ interface AdminRouteChildren {
   AdminCategoriasRoute: typeof AdminCategoriasRoute
   AdminClientesRoute: typeof AdminClientesRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
+  AdminContasPagarRoute: typeof AdminContasPagarRoute
   AdminCustoFixoRoute: typeof AdminCustoFixoRoute
   AdminEstoqueRoute: typeof AdminEstoqueRoute
   AdminFornecedoresRoute: typeof AdminFornecedoresRoute
@@ -652,6 +672,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriasRoute: AdminCategoriasRoute,
   AdminClientesRoute: AdminClientesRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
+  AdminContasPagarRoute: AdminContasPagarRoute,
   AdminCustoFixoRoute: AdminCustoFixoRoute,
   AdminEstoqueRoute: AdminEstoqueRoute,
   AdminFornecedoresRoute: AdminFornecedoresRoute,
