@@ -49,6 +49,7 @@ function ClientesContent() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [crmEdit, setCrmEdit] = useState<{ id: string | null } | null>(null);
+  const [sort, setSort] = useState<"recentes" | "valor">("recentes");
 
   async function reload() {
     setLoading(true);
@@ -64,19 +65,25 @@ function ClientesContent() {
 
   useEffect(() => { reload(); }, []);
 
-  const filtrados = items.filter((p) => {
-    if (filter === "pendentes" && !(p.tipo_cliente === "b2b" && p.status_aprovacao === "pendente")) return false;
-    if (filter === "b2b" && p.tipo_cliente !== "b2b") return false;
-    if (filter === "assinantes" && p.tipo_cliente !== "assinante") return false;
-    if (filter === "varejo" && (p.tipo_cliente !== "varejo" || p.is_guest)) return false;
-    if (filter === "guest" && !p.is_guest) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      const blob = [p.nome, p.email, p.empresa_nome, p.cnpj, p.whatsapp].filter(Boolean).join(" ").toLowerCase();
-      if (!blob.includes(q)) return false;
-    }
-    return true;
-  });
+  const filtrados = items
+    .filter((p) => {
+      if (filter === "pendentes" && !(p.tipo_cliente === "b2b" && p.status_aprovacao === "pendente")) return false;
+      if (filter === "b2b" && p.tipo_cliente !== "b2b") return false;
+      if (filter === "assinantes" && p.tipo_cliente !== "assinante") return false;
+      if (filter === "varejo" && (p.tipo_cliente !== "varejo" || p.is_guest)) return false;
+      if (filter === "guest" && !p.is_guest) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        const blob = [p.nome, p.email, p.empresa_nome, p.cnpj, p.whatsapp].filter(Boolean).join(" ").toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "valor") return b.total_gasto - a.total_gasto;
+      return 0; // já vem por created_at desc do RPC
+    });
+
 
   const pendentesCount = items.filter(p => p.tipo_cliente === "b2b" && p.status_aprovacao === "pendente").length;
 
