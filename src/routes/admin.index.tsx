@@ -65,6 +65,26 @@ function DashboardPage() {
   const [fornecedores, setFornecedores] = useState<Array<{ id: string; nome: string; pedido_minimo: number; margem: number; abaixoPiso: boolean }>>([]);
   const [fornTotalMin, setFornTotalMin] = useState(0);
   const [margemPiso, setMargemPiso] = useState(50);
+  const [lucroPeriodo, setLucroPeriodo] = useState<LucroPeriodo>("30d");
+  const [lucro, setLucro] = useState<{ lucro: number; receita: number; num_pedidos: number } | null>(null);
+
+  const intervalo = useMemo(() => calcularIntervalo(lucroPeriodo), [lucroPeriodo]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.rpc("admin_metricas_vendas_periodo", {
+        p_inicio: intervalo.inicio.toISOString(),
+        p_fim: intervalo.fim.toISOString(),
+      });
+      const m: any = data ?? {};
+      setLucro({
+        lucro: Number(m.lucro ?? 0),
+        receita: Number(m.receita_total ?? 0),
+        num_pedidos: Number(m.num_pedidos ?? 0),
+      });
+    })();
+  }, [intervalo]);
+
 
   useEffect(() => {
     (async () => {
