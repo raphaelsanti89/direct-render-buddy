@@ -211,6 +211,50 @@ function DashboardPage() {
         <Stat label="Meta / dia útil" value={brl(metaDia)} icon={Calculator} />
       </div>
 
+      {/* Lucro com seletor de período */}
+      <div className="bg-background border border-border p-6 mb-10">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <TrendingUp size={16} className="text-gold" />
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— lucro</p>
+          </div>
+          <div className="flex items-center gap-1 border border-border p-0.5">
+            {(["mes_atual", "mes_passado", "30d"] as LucroPeriodo[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setLucroPeriodo(p)}
+                className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] transition-colors ${
+                  lucroPeriodo === p ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {p === "mes_atual" ? "Mês atual" : p === "mes_passado" ? "Mês passado" : "30 dias"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-6">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Lucro ({intervalo.label})</p>
+            <p className={`font-display text-4xl ${lucro && lucro.lucro >= 0 ? "text-foreground" : "text-destructive"}`}>
+              {lucro ? brl(lucro.lucro) : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Receita no período</p>
+            <p className="font-display text-2xl text-foreground/80">{lucro ? brl(lucro.receita) : "—"}</p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Pedidos no período</p>
+            <p className="font-display text-2xl text-foreground/80">{lucro?.num_pedidos ?? "—"}</p>
+          </div>
+        </div>
+        <p className="mt-4 text-[11px] text-muted-foreground">
+          Lucro = receita − custo dos produtos vendidos − custos variáveis (%). Mesma lógica de Custo Fixo & Metas.
+        </p>
+      </div>
+
+
+
       {/* Vendas do mês vs meta */}
       {pontoEquilibrio > 0 && (
         <div className="bg-background border border-border p-6 mb-10">
