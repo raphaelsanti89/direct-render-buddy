@@ -603,6 +603,38 @@ function AdminPedidoDetalhePage() {
         {/* Sidebar: status + histórico */}
         <aside className="space-y-6 lg:sticky lg:top-28 self-start">
           <section className="border border-border p-6 bg-background">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— pagamento</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["em_aberto", "pago"] as const).map((sp) => {
+                const ativo = pedido.status_pagamento === sp;
+                const label = sp === "pago" ? "Pago" : "Em aberto";
+                const cls = sp === "pago"
+                  ? "bg-green-500/15 text-green-700 dark:text-green-400"
+                  : "bg-amber-500/15 text-amber-700 dark:text-amber-400";
+                return (
+                  <button
+                    key={sp}
+                    disabled={busy || ativo}
+                    onClick={async () => {
+                      setBusy(true);
+                      const { error } = await supabase.from("pedidos").update({ status_pagamento: sp } as any).eq("id", pedido.id);
+                      setBusy(false);
+                      if (error) return toast.error(error.message);
+                      setPedido({ ...pedido, status_pagamento: sp });
+                      toast.success(sp === "pago" ? "Marcado como pago." : "Marcado como em aberto.");
+                    }}
+                    className={`px-3 py-2 text-xs uppercase tracking-[0.15em] transition-colors ${
+                      ativo ? `${cls} cursor-default` : "border border-border hover:bg-surface text-foreground/80"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="border border-border p-6 bg-background">
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— alterar status</p>
             <div className="space-y-2">
               {PEDIDO_STATUS.map((s) => (
