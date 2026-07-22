@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Wallet, Plus, Check, Trash2, X } from "lucide-react";
+import { Wallet, Plus, Check, Trash2, X, TrendingUp } from "lucide-react";
 import { brl } from "@/lib/slug";
+import { STATUS_ADMIN_LABEL, statusBadgeClasses, type PedidoStatus } from "@/lib/pedidos";
 
 export const Route = createFileRoute("/admin/contas-pagar")({
-  head: () => ({ meta: [{ title: "Contas a pagar — Admin" }] }),
+  head: () => ({ meta: [{ title: "Financeiro — Admin" }] }),
   component: ContasPagarPage,
 });
 
@@ -21,6 +22,16 @@ type Conta = {
   observacoes: string | null;
 };
 
+type PedidoReceber = {
+  id: string;
+  numero_pedido: string;
+  nome_cliente: string;
+  total: number;
+  status: PedidoStatus;
+  status_pagamento: "pago" | "em_aberto";
+  created_at: string;
+};
+
 const HOJE = () => new Date().toISOString().slice(0, 10);
 
 function diffDias(dataStr: string) {
@@ -32,9 +43,12 @@ function diffDias(dataStr: string) {
 function ContasPagarPage() {
   const [rows, setRows] = useState<Conta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modo, setModo] = useState<"pagar" | "receber">("pagar");
   const [tab, setTab] = useState<"vencer" | "pagas">("vencer");
   const [edit, setEdit] = useState<Partial<Conta> | null>(null);
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [pedidos, setPedidos] = useState<PedidoReceber[]>([]);
+  const [receberOrder, setReceberOrder] = useState<"valor" | "data">("data");
 
   async function load() {
     setLoading(true);
