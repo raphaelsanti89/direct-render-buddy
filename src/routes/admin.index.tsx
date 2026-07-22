@@ -237,6 +237,16 @@ function DashboardPage() {
         <Stat label="Meta / dia útil" value={brl(metaDia)} icon={Calculator} />
       </div>
 
+      {/* Contas a receber — visão rápida */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— contas a receber</p>
+        <Link to="/admin/contas-pagar" className="text-xs uppercase tracking-[0.18em] text-gold hover:underline">Ver detalhes →</Link>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-px bg-border mb-10">
+        <Stat label="Recebido (mês)" value={brl(recebidoMes)} icon={TrendingUp} />
+        <Stat label="A receber" value={brl(aReceber)} icon={Calculator} />
+      </div>
+
       {/* Lucro com seletor de período */}
       <div className="bg-background border border-border p-6 mb-10">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
