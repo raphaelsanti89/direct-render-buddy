@@ -234,6 +234,7 @@ function NovoPedidoManualPage() {
           desconto,
           total,
           status,
+          status_pagamento: statusPagamento,
         })
         .select("id, numero_pedido")
         .single();
@@ -557,9 +558,17 @@ function NovoPedidoManualPage() {
             </label>
 
             <label className="block">
-              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status inicial</span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status inicial (entrega)</span>
               <select className="form-input w-full mt-1" value={status} onChange={(e) => setStatus(e.target.value as PedidoStatus)}>
                 {PEDIDO_STATUS.map((s) => <option key={s} value={s}>{STATUS_ADMIN_LABEL[s]}</option>)}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status de pagamento</span>
+              <select className="form-input w-full mt-1" value={statusPagamento} onChange={(e) => setStatusPagamento(e.target.value as "pago" | "em_aberto")}>
+                <option value="em_aberto">Em aberto</option>
+                <option value="pago">Pago</option>
               </select>
             </label>
 
