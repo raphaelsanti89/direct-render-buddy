@@ -52,17 +52,50 @@ function ContasPagarPage() {
 
   async function load() {
     setLoading(true);
-    const [{ data, error }, { data: cf }] = await Promise.all([
+    const inicioMes = new Date();
+    inicioMes.setDate(1);
+    inicioMes.setHours(0, 0, 0, 0);
+    const [{ data, error }, { data: cf }, { data: peds }] = await Promise.all([
       supabase.from("contas_pagar").select("*").order("data_vencimento", { ascending: true }),
       supabase.from("custos_fixos").select("categoria").not("categoria", "is", null),
+      supabase
+        .from("pedidos")
+        .select("id,numero_pedido,nome_cliente,total,status,status_pagamento,created_at")
+        .neq("status", "cancelado")
+        .order("created_at", { ascending: false }),
     ]);
     if (error) toast.error(error.message);
     setRows((data as Conta[]) ?? []);
     const cats = Array.from(new Set(((cf ?? []) as { categoria: string | null }[]).map((r) => r.categoria).filter(Boolean) as string[]));
     setCategorias(cats);
+    setPedidos((peds as PedidoReceber[]) ?? []);
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
+
+  const totalRecebidoMes = useMemo(() => {
+    const ini = new Date();
+    ini.setDate(1);
+    ini.setHours(0, 0, 0, 0);
+    return pedidos
+      .filter((p) => p.status_pagamento === "pago" && new Date(p.created_at) >= ini)
+      .reduce((s, p) => s + Number(p.total || 0), 0);
+  }, [pedidos]);
+  const emAberto = useMemo(() => pedidos.filter((p) => p.status_pagamento === "em_aberto"), [pedidos]);
+  const totalAReceber = useMemo(() => emAberto.reduce((s, p) => s + Number(p.total || 0), 0), [emAberto]);
+  const emAbertoOrdenado = useMemo(() => {
+    const arr = [...emAberto];
+    if (receberOrder === "valor") arr.sort((a, b) => Number(b.total) - Number(a.total));
+    else arr.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return arr;
+  }, [emAberto, receberOrder]);
+
+  async function marcarPedidoPago(id: string) {
+    const { error } = await supabase.from("pedidos").update({ status_pagamento: "pago" } as any).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Pedido marcado como pago.");
+    load();
+  }
 
   const vencer = useMemo(
     () => rows.filter((r) => r.status !== "pago").sort((a, b) => a.data_vencimento.localeCompare(b.data_vencimento)),
