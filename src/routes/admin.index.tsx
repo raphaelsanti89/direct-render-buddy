@@ -87,6 +87,30 @@ function DashboardPage() {
     })();
   }, [intervalo]);
 
+  useEffect(() => {
+    (async () => {
+      const inicioMes = new Date();
+      inicioMes.setDate(1);
+      inicioMes.setHours(0, 0, 0, 0);
+      const [{ data: pagosMes }, { data: abertos }] = await Promise.all([
+        supabase
+          .from("pedidos")
+          .select("total")
+          .neq("status", "cancelado")
+          .eq("status_pagamento", "pago")
+          .gte("created_at", inicioMes.toISOString()),
+        supabase
+          .from("pedidos")
+          .select("total")
+          .neq("status", "cancelado")
+          .eq("status_pagamento", "em_aberto"),
+      ]);
+      setRecebidoMes(((pagosMes as any[]) ?? []).reduce((s, r) => s + Number(r.total || 0), 0));
+      setAReceber(((abertos as any[]) ?? []).reduce((s, r) => s + Number(r.total || 0), 0));
+    })();
+  }, []);
+
+
 
   useEffect(() => {
     (async () => {
