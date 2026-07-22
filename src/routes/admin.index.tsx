@@ -67,6 +67,8 @@ function DashboardPage() {
   const [margemPiso, setMargemPiso] = useState(50);
   const [lucroPeriodo, setLucroPeriodo] = useState<LucroPeriodo>("30d");
   const [lucro, setLucro] = useState<{ lucro: number; receita: number; num_pedidos: number } | null>(null);
+  const [recebidoMes, setRecebidoMes] = useState(0);
+  const [aReceber, setAReceber] = useState(0);
 
   const intervalo = useMemo(() => calcularIntervalo(lucroPeriodo), [lucroPeriodo]);
 
@@ -84,6 +86,30 @@ function DashboardPage() {
       });
     })();
   }, [intervalo]);
+
+  useEffect(() => {
+    (async () => {
+      const inicioMes = new Date();
+      inicioMes.setDate(1);
+      inicioMes.setHours(0, 0, 0, 0);
+      const [{ data: pagosMes }, { data: abertos }] = await Promise.all([
+        supabase
+          .from("pedidos")
+          .select("total")
+          .neq("status", "cancelado")
+          .eq("status_pagamento", "pago")
+          .gte("created_at", inicioMes.toISOString()),
+        supabase
+          .from("pedidos")
+          .select("total")
+          .neq("status", "cancelado")
+          .eq("status_pagamento", "em_aberto"),
+      ]);
+      setRecebidoMes(((pagosMes as any[]) ?? []).reduce((s, r) => s + Number(r.total || 0), 0));
+      setAReceber(((abertos as any[]) ?? []).reduce((s, r) => s + Number(r.total || 0), 0));
+    })();
+  }, []);
+
 
 
   useEffect(() => {
@@ -209,6 +235,16 @@ function DashboardPage() {
         <Stat label="Ponto de equilíbrio" value={brl(pontoEquilibrio)} icon={Calculator} />
         <Stat label="Reserva de giro" value={brl(reservaGiro)} icon={Calculator} />
         <Stat label="Meta / dia útil" value={brl(metaDia)} icon={Calculator} />
+      </div>
+
+      {/* Contas a receber — visão rápida */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60">— contas a receber</p>
+        <Link to="/admin/contas-pagar" className="text-xs uppercase tracking-[0.18em] text-gold hover:underline">Ver detalhes →</Link>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-px bg-border mb-10">
+        <Stat label="Recebido (mês)" value={brl(recebidoMes)} icon={TrendingUp} />
+        <Stat label="A receber" value={brl(aReceber)} icon={Calculator} />
       </div>
 
       {/* Lucro com seletor de período */}

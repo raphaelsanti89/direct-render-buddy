@@ -36,6 +36,7 @@ type Pedido = {
   desconto: number;
   total: number;
   status: PedidoStatus;
+  status_pagamento: "pago" | "em_aberto";
   codigo_rastreamento: string | null;
   codigo_rastreio: string;
 
@@ -309,9 +310,18 @@ function AdminPedidoDetalhePage() {
             {new Date(pedido.created_at).toLocaleString("pt-BR")}
           </p>
         </div>
-        <span className={`text-[10px] px-3 py-1.5 uppercase tracking-[0.18em] ${statusBadgeClasses(pedido.status)}`}>
-          {STATUS_ADMIN_LABEL[pedido.status]}
-        </span>
+        <div className="flex flex-wrap gap-2">
+          <span className={`text-[10px] px-3 py-1.5 uppercase tracking-[0.18em] ${statusBadgeClasses(pedido.status)}`}>
+            {STATUS_ADMIN_LABEL[pedido.status]}
+          </span>
+          <span className={`text-[10px] px-3 py-1.5 uppercase tracking-[0.18em] ${
+            pedido.status_pagamento === "pago"
+              ? "bg-green-500/15 text-green-700 dark:text-green-400"
+              : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+          }`}>
+            {pedido.status_pagamento === "pago" ? "Pago" : "Em aberto"}
+          </span>
+        </div>
       </div>
 
       {pedido.tags.length > 0 && (
@@ -601,6 +611,38 @@ function AdminPedidoDetalhePage() {
 
         {/* Sidebar: status + histórico */}
         <aside className="space-y-6 lg:sticky lg:top-28 self-start">
+          <section className="border border-border p-6 bg-background">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— pagamento</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["em_aberto", "pago"] as const).map((sp) => {
+                const ativo = pedido.status_pagamento === sp;
+                const label = sp === "pago" ? "Pago" : "Em aberto";
+                const cls = sp === "pago"
+                  ? "bg-green-500/15 text-green-700 dark:text-green-400"
+                  : "bg-amber-500/15 text-amber-700 dark:text-amber-400";
+                return (
+                  <button
+                    key={sp}
+                    disabled={busy || ativo}
+                    onClick={async () => {
+                      setBusy(true);
+                      const { error } = await supabase.from("pedidos").update({ status_pagamento: sp } as any).eq("id", pedido.id);
+                      setBusy(false);
+                      if (error) return toast.error(error.message);
+                      setPedido({ ...pedido, status_pagamento: sp });
+                      toast.success(sp === "pago" ? "Marcado como pago." : "Marcado como em aberto.");
+                    }}
+                    className={`px-3 py-2 text-xs uppercase tracking-[0.15em] transition-colors ${
+                      ativo ? `${cls} cursor-default` : "border border-border hover:bg-surface text-foreground/80"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
           <section className="border border-border p-6 bg-background">
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/60 mb-4">— alterar status</p>
             <div className="space-y-2">

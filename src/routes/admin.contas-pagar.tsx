@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Wallet, Plus, Check, Trash2, X } from "lucide-react";
+import { Wallet, Plus, Check, Trash2, X, TrendingUp } from "lucide-react";
 import { brl } from "@/lib/slug";
+import { STATUS_ADMIN_LABEL, statusBadgeClasses, type PedidoStatus } from "@/lib/pedidos";
 
 export const Route = createFileRoute("/admin/contas-pagar")({
-  head: () => ({ meta: [{ title: "Contas a pagar — Admin" }] }),
+  head: () => ({ meta: [{ title: "Financeiro — Admin" }] }),
   component: ContasPagarPage,
 });
 
@@ -21,6 +22,16 @@ type Conta = {
   observacoes: string | null;
 };
 
+type PedidoReceber = {
+  id: string;
+  numero_pedido: string;
+  nome_cliente: string;
+  total: number;
+  status: PedidoStatus;
+  status_pagamento: "pago" | "em_aberto";
+  created_at: string;
+};
+
 const HOJE = () => new Date().toISOString().slice(0, 10);
 
 function diffDias(dataStr: string) {
@@ -32,23 +43,59 @@ function diffDias(dataStr: string) {
 function ContasPagarPage() {
   const [rows, setRows] = useState<Conta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modo, setModo] = useState<"pagar" | "receber">("pagar");
   const [tab, setTab] = useState<"vencer" | "pagas">("vencer");
   const [edit, setEdit] = useState<Partial<Conta> | null>(null);
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [pedidos, setPedidos] = useState<PedidoReceber[]>([]);
+  const [receberOrder, setReceberOrder] = useState<"valor" | "data">("data");
 
   async function load() {
     setLoading(true);
-    const [{ data, error }, { data: cf }] = await Promise.all([
+    const inicioMes = new Date();
+    inicioMes.setDate(1);
+    inicioMes.setHours(0, 0, 0, 0);
+    const [{ data, error }, { data: cf }, { data: peds }] = await Promise.all([
       supabase.from("contas_pagar").select("*").order("data_vencimento", { ascending: true }),
       supabase.from("custos_fixos").select("categoria").not("categoria", "is", null),
+      supabase
+        .from("pedidos")
+        .select("id,numero_pedido,nome_cliente,total,status,status_pagamento,created_at")
+        .neq("status", "cancelado")
+        .order("created_at", { ascending: false }),
     ]);
     if (error) toast.error(error.message);
     setRows((data as Conta[]) ?? []);
     const cats = Array.from(new Set(((cf ?? []) as { categoria: string | null }[]).map((r) => r.categoria).filter(Boolean) as string[]));
     setCategorias(cats);
+    setPedidos((peds as PedidoReceber[]) ?? []);
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
+
+  const totalRecebidoMes = useMemo(() => {
+    const ini = new Date();
+    ini.setDate(1);
+    ini.setHours(0, 0, 0, 0);
+    return pedidos
+      .filter((p) => p.status_pagamento === "pago" && new Date(p.created_at) >= ini)
+      .reduce((s, p) => s + Number(p.total || 0), 0);
+  }, [pedidos]);
+  const emAberto = useMemo(() => pedidos.filter((p) => p.status_pagamento === "em_aberto"), [pedidos]);
+  const totalAReceber = useMemo(() => emAberto.reduce((s, p) => s + Number(p.total || 0), 0), [emAberto]);
+  const emAbertoOrdenado = useMemo(() => {
+    const arr = [...emAberto];
+    if (receberOrder === "valor") arr.sort((a, b) => Number(b.total) - Number(a.total));
+    else arr.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return arr;
+  }, [emAberto, receberOrder]);
+
+  async function marcarPedidoPago(id: string) {
+    const { error } = await supabase.from("pedidos").update({ status_pagamento: "pago" } as any).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Pedido marcado como pago.");
+    load();
+  }
 
   const vencer = useMemo(
     () => rows.filter((r) => r.status !== "pago").sort((a, b) => a.data_vencimento.localeCompare(b.data_vencimento)),
@@ -115,16 +162,117 @@ function ContasPagarPage() {
             <Wallet className="text-gold" size={18} />
             <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-gold">— financeiro</p>
           </div>
-          <h1 className="font-display text-4xl text-foreground">Contas a pagar</h1>
+          <h1 className="font-display text-4xl text-foreground">
+            {modo === "pagar" ? "Contas a pagar" : "Contas a receber"}
+          </h1>
         </div>
-        <button
-          onClick={() => setEdit({ data_vencimento: HOJE(), valor: 0, categoria: "" })}
-          className="inline-flex items-center gap-2 bg-foreground text-background px-5 py-2.5 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors"
-        >
-          <Plus size={14} /> Nova conta
-        </button>
+        {modo === "pagar" && (
+          <button
+            onClick={() => setEdit({ data_vencimento: HOJE(), valor: 0, categoria: "" })}
+            className="inline-flex items-center gap-2 bg-foreground text-background px-5 py-2.5 text-xs uppercase tracking-[0.18em] hover:bg-gold transition-colors"
+          >
+            <Plus size={14} /> Nova conta
+          </button>
+        )}
       </div>
 
+      <div className="flex gap-2 mb-6 border-b border-border">
+        <TabBtn active={modo === "pagar"} onClick={() => setModo("pagar")}>A pagar</TabBtn>
+        <TabBtn active={modo === "receber"} onClick={() => setModo("receber")}>A receber</TabBtn>
+      </div>
+
+      {modo === "receber" ? (
+        <>
+          <div className="grid sm:grid-cols-3 gap-px bg-border mb-8">
+            <div className="bg-background p-5 border-l-2 border-green-500">
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Recebido (mês atual)</p>
+              <p className="font-display text-2xl text-green-700 dark:text-green-400">{brl(totalRecebidoMes)}</p>
+            </div>
+            <div className="bg-background p-5 border-l-2 border-amber-500">
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">A receber</p>
+              <p className="font-display text-2xl text-amber-700 dark:text-amber-400">{brl(totalAReceber)}</p>
+            </div>
+            <div className="bg-background p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Nº pedidos em aberto</p>
+              <p className="font-display text-2xl text-foreground">{emAberto.length}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/60">— pedidos em aberto</p>
+            <div className="flex gap-1 border border-border p-0.5">
+              {(["data", "valor"] as const).map((o) => (
+                <button
+                  key={o}
+                  onClick={() => setReceberOrder(o)}
+                  className={`px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                    receberOrder === o ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Ordenar por {o}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <p className="font-mono text-xs text-muted-foreground animate-pulse">Carregando…</p>
+          ) : emAbertoOrdenado.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-6 bg-background border border-border text-center">
+              Nenhum pedido em aberto. 🎉
+            </p>
+          ) : (
+            <div className="bg-background border border-border overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-surface/50 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-4 py-3">Pedido</th>
+                    <th className="text-left px-4 py-3">Cliente</th>
+                    <th className="text-left px-4 py-3">Data</th>
+                    <th className="text-left px-4 py-3">Entrega</th>
+                    <th className="text-right px-4 py-3">Valor</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {emAbertoOrdenado.map((p) => (
+                    <tr key={p.id}>
+                      <td className="px-4 py-3">
+                        <Link
+                          to="/admin/pedidos/$id"
+                          params={{ id: p.id }}
+                          className="font-mono text-xs text-foreground underline underline-offset-4 hover:text-gold"
+                        >
+                          {p.numero_pedido}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-foreground">{p.nome_cliente}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-[10px] px-2 py-1 uppercase tracking-[0.18em] ${statusBadgeClasses(p.status)}`}>
+                          {STATUS_ADMIN_LABEL[p.status]}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono">{brl(Number(p.total))}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <button
+                          onClick={() => marcarPedidoPago(p.id)}
+                          className="inline-flex items-center gap-1 text-xs uppercase tracking-[0.18em] text-green-700 dark:text-green-400 hover:underline"
+                        >
+                          <TrendingUp size={12} /> Marcar pago
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      ) : (
+      <>
       <div className="grid sm:grid-cols-3 gap-px bg-border mb-8">
         <div className="bg-background p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Em aberto</p>
@@ -288,6 +436,8 @@ function ContasPagarPage() {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
     </>
   );

@@ -522,6 +522,7 @@ export type Database = {
           perfil_cliente: string
           responsavel_atendimento: string | null
           status: Database["public"]["Enums"]["pedido_status"]
+          status_pagamento: string
           subtotal: number
           tags: string[]
           telefone: string
@@ -548,6 +549,7 @@ export type Database = {
           perfil_cliente?: string
           responsavel_atendimento?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
+          status_pagamento?: string
           subtotal?: number
           tags?: string[]
           telefone: string
@@ -574,6 +576,7 @@ export type Database = {
           perfil_cliente?: string
           responsavel_atendimento?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
+          status_pagamento?: string
           subtotal?: number
           tags?: string[]
           telefone?: string
