@@ -437,6 +437,8 @@ function ContasPagarPage() {
           </div>
         </div>
       )}
+      </>
+      )}
     </>
   );
 }
