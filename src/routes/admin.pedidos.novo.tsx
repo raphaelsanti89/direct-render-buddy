@@ -89,6 +89,7 @@ function NovoPedidoManualPage() {
 
   // Pedido meta
   const [status, setStatus] = useState<PedidoStatus>("confirmado");
+  const [statusPagamento, setStatusPagamento] = useState<"pago" | "em_aberto">("em_aberto");
   const [formaPagamento, setFormaPagamento] = useState("");
   const [formaEntrega, setFormaEntrega] = useState("");
   const [endereco, setEndereco] = useState("");
