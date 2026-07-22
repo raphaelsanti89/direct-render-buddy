@@ -310,9 +310,18 @@ function AdminPedidoDetalhePage() {
             {new Date(pedido.created_at).toLocaleString("pt-BR")}
           </p>
         </div>
-        <span className={`text-[10px] px-3 py-1.5 uppercase tracking-[0.18em] ${statusBadgeClasses(pedido.status)}`}>
-          {STATUS_ADMIN_LABEL[pedido.status]}
-        </span>
+        <div className="flex flex-wrap gap-2">
+          <span className={`text-[10px] px-3 py-1.5 uppercase tracking-[0.18em] ${statusBadgeClasses(pedido.status)}`}>
+            {STATUS_ADMIN_LABEL[pedido.status]}
+          </span>
+          <span className={`text-[10px] px-3 py-1.5 uppercase tracking-[0.18em] ${
+            pedido.status_pagamento === "pago"
+              ? "bg-green-500/15 text-green-700 dark:text-green-400"
+              : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+          }`}>
+            {pedido.status_pagamento === "pago" ? "Pago" : "Em aberto"}
+          </span>
+        </div>
       </div>
 
       {pedido.tags.length > 0 && (
