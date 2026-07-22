@@ -36,6 +36,7 @@ type Pedido = {
   desconto: number;
   total: number;
   status: PedidoStatus;
+  status_pagamento: "pago" | "em_aberto";
   codigo_rastreamento: string | null;
   codigo_rastreio: string;
 
