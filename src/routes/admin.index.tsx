@@ -67,6 +67,8 @@ function DashboardPage() {
   const [margemPiso, setMargemPiso] = useState(50);
   const [lucroPeriodo, setLucroPeriodo] = useState<LucroPeriodo>("30d");
   const [lucro, setLucro] = useState<{ lucro: number; receita: number; num_pedidos: number } | null>(null);
+  const [recebidoMes, setRecebidoMes] = useState(0);
+  const [aReceber, setAReceber] = useState(0);
 
   const intervalo = useMemo(() => calcularIntervalo(lucroPeriodo), [lucroPeriodo]);
 
