@@ -662,9 +662,11 @@ function PricingCalculator({
 }) {
   const custo = Number(editing.preco_custo ?? 0);
   const margem = Number(editing.margem_varejo_pct ?? 0);
-  const varejoSugerido = custo > 0 && margem > 0 ? r2(custo * (1 + margem / 100)) : 0;
-  const varejoEfetivo = Number(editing.preco_varejo ?? varejoSugerido ?? 0);
-  const margemValor = custo > 0 ? r2(varejoEfetivo - custo) : 0;
+  const varejoSugerido =
+    custo > 0 && margem > 0 && margem < 100 ? r2(custo / (1 - margem / 100)) : 0;
+  
+
+  const markupEquivalente = margem > 0 && margem < 100 ? margem / (1 - margem / 100) : 0;
 
   // Aplica varejo sugerido quando muda custo/margem (sem sobrescrever edição manual posterior)
   function aplicarSugestaoVarejo() {
@@ -701,14 +703,15 @@ function PricingCalculator({
             }
           />
         </Field>
-        <Field label="Margem de lucro varejo (%)">
+        <Field label="Margem de venda desejada (%)">
           <input
             type="number"
             step="0.1"
             min={0}
+            max={99}
             className="form-input"
             value={editing.margem_varejo_pct ?? ""}
-            placeholder="ex.: 60"
+            placeholder="ex.: 50"
             onChange={(e) =>
               setEditing({
                 ...editing,
@@ -719,15 +722,23 @@ function PricingCalculator({
         </Field>
       </div>
 
-      {custo > 0 && margem > 0 && (
+      {custo > 0 && margem > 0 && margem < 100 && (
         <div className="border border-dashed border-border p-4 bg-background space-y-2 font-mono text-[11px]">
           <p className="uppercase tracking-[0.25em] text-foreground/60 mb-2">
             Simulação de preços
           </p>
           <Row k="Preço de custo" v={brl(custo)} />
-          <Row k={`Margem aplicada (${margem}%)`} v={`+ ${brl(margemValor || r2(custo * margem / 100))}`} />
+          <Row k="Lucro bruto" v={`+ ${brl(r2(varejoSugerido - custo))}`} />
           <div className="h-px bg-border my-2" />
           <Row k="Varejo sugerido" v={brl(varejoSugerido)} accent />
+          <p className="text-[10px] text-foreground/70 normal-case tracking-normal leading-relaxed pl-1">
+            Margem sobre o preço de venda: <strong>{margem}%</strong>
+            <br />
+            <span className="text-muted-foreground">
+              equivalente a {markupEquivalente.toFixed(1)}% de markup sobre o custo
+            </span>
+          </p>
+          <div className="h-px bg-border my-2" />
           <Row k="Assinante (−13%)" v={brl(r2(varejoSugerido * (1 - DESC.assinante)))} />
           <Row k="B2B Nível 1 (−15%)" v={brl(r2(varejoSugerido * (1 - DESC.b2b1)))} />
           <Row k="B2B Nível 2 (−20%)" v={brl(r2(varejoSugerido * (1 - DESC.b2b2)))} />
@@ -740,10 +751,11 @@ function PricingCalculator({
             Aplicar sugestão a todos os preços
           </button>
           <p className="text-[10px] text-muted-foreground normal-case tracking-normal leading-relaxed">
-            Você pode editar manualmente qualquer valor abaixo. A calculadora é só uma sugestão.
+            Você pode editar manualmente qualquer valor abaixo. A calculadora é só uma sugestão — preços já salvos não mudam sozinhos.
           </p>
         </div>
       )}
+
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Preço varejo (R$) *">
