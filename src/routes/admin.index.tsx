@@ -149,8 +149,10 @@ function DashboardPage() {
       const diasU = Number(cfgMap.get("dias_uteis_mes") ?? 26);
       const piso = Number(cfgMap.get("margem_piso") ?? 50);
       const metricas: any = metricasRes.data ?? {};
-      const margemReal = Number(metricas.margem_real ?? 0);
-      const pe = margemReal > 0 ? totalFixo / margemReal : 0;
+      const margemBruta = Number(metricas.margem_real ?? 0);
+      const variaveisPct = Number(metricas.variaveis_pct ?? 0);
+      const margemLiquida = Math.max(0, margemBruta - variaveisPct);
+      const pe = margemLiquida > 0 ? totalFixo / margemLiquida : 0;
       setCustoFixo(totalFixo);
       setPontoEquilibrio(pe);
       setReservaGiro(totalFixo * meses);
