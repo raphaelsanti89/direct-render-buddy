@@ -664,8 +664,8 @@ function PricingCalculator({
   const margem = Number(editing.margem_varejo_pct ?? 0);
   const varejoSugerido =
     custo > 0 && margem > 0 && margem < 100 ? r2(custo / (1 - margem / 100)) : 0;
-  const varejoEfetivo = Number(editing.preco_varejo ?? varejoSugerido ?? 0);
-  const margemValor = custo > 0 ? r2(varejoEfetivo - custo) : 0;
+  const markupEquivalente_unused = 0; void markupEquivalente_unused;
+
   const markupEquivalente = margem > 0 && margem < 100 ? margem / (1 - margem / 100) : 0;
 
   // Aplica varejo sugerido quando muda custo/margem (sem sobrescrever edição manual posterior)
